@@ -48,11 +48,18 @@ public interface NPC {
      * @return Whether this NPC was able to despawn
      */
     public boolean despawn();
+	
+	/**
+	 * Gets the Minecraft entity associated with this NPC
+	 * 
+	 * @return Minecraft Entity associated with this NPC
+	 */
+	public net.minecraft.server.Entity getEntity();
 
     /**
      * Gets the Bukkit entity associated with this NPC
      * 
-     * @return Entity associated with this NPC
+     * @return Bukkit Entity associated with this NPC
      */
     public Entity getBukkitEntity();
 
