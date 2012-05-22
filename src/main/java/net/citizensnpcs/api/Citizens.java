@@ -15,10 +15,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.citizensnpcs.api.npc;
+package net.citizensnpcs.api;
 
 /**
- * Represents an NPC.
+ * This is the main Citizens class to be implemented across all platforms.
  */
-public interface NPC {
+public interface Citizens {
 }
