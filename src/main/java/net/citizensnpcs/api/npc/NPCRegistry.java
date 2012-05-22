@@ -17,40 +17,35 @@
  */
 package net.citizensnpcs.api.npc;
 
-import net.citizensnpcs.api.compat.Position;
-
 /**
- * Represents an NPC.
+ * Registers {@link NPC}'s with Citizens. NPCs in this registry will be saved to disk on server shutdown and loaded on
+ * server start.
  */
-public interface NPC {
+public interface NPCRegistry {
 
     /**
-     * Returns a new NPC that is identical to this NPC.
+     * Creates and spawns an {@link NPC} with the given name.
      * 
-     * @return A new NPC instance with this NPC's data
+     * @param name
+     *            Name to give the NPC
+     * @return Instance of the NPC
      */
-    public NPC copy();
+    public NPC createAndSpawnNPC(String name);
 
     /**
-     * Returns the {@link Position} of this NPC.
+     * Creates an {@link NPC} with the given name.
      * 
-     * @return Position of this NPC
+     * @param name
+     *            Name to give the NPC
+     * @return Instance of the NPC
      */
-    public Position getPosition();
+    public NPC createNPC(String name);
 
     /**
-     * Moves this NPC to the given {@link Position}.
+     * Unregisters the given {@link NPC} and removes all data about it from the data store.
      * 
-     * @param position
-     *            Positon to move this NPC to
+     * @param npc
+     *            NPC to unregister
      */
-    public void moveTo(Position position);
-
-    /**
-     * Spawns this NPC at the given {@link Position}.
-     * 
-     * @param position
-     *            Position to spawn this NPC at
-     */
-    public void spawn(Position position);
+    public void deregister(NPC npc);
 }
