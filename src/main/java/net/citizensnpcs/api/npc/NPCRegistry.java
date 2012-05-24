@@ -1,51 +1,30 @@
-/*
- * CitizensAPI
- * Copyright (C) 2012 CitizensDev <http://citizensnpcs.net>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
 package net.citizensnpcs.api.npc;
 
+import net.citizensnpcs.api.abstraction.MobType;
+
 /**
- * Registers {@link NPC}'s with Citizens. NPCs in this registry will be saved to disk on server shutdown and loaded on
- * server start.
+ * Handles various NPC-related methods.
  */
-public interface NPCRegistry {
+public interface NPCRegistry extends Iterable<NPC> {
 
     /**
-     * Creates and spawns an {@link NPC} with the given name.
+     * Creates an NPC with no attached character. This does not spawn the NPC.
      * 
+     * @param type
+     *            Entity type to assign to the NPC
      * @param name
      *            Name to give the NPC
-     * @return Instance of the NPC
+     * @return Created NPC
      */
-    public NPC createAndSpawnNPC(String name);
+    public NPC createNPC(MobType type, String name);
 
     /**
-     * Creates an {@link NPC} with the given name.
-     * 
-     * @param name
-     *            Name to give the NPC
-     * @return Instance of the NPC
-     */
-    public NPC createNPC(String name);
-
-    /**
-     * Unregisters the given {@link NPC} and removes all data about it from the data store.
+     * Deregisters the {@link NPC} and removes all data about it from the data
+     * store.
      * 
      * @param npc
-     *            NPC to unregister
      */
     public void deregister(NPC npc);
+
+    public NPC getById(int id);
 }

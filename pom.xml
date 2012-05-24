@@ -1,4 +1,4 @@
-<!-- CitizensAPI Build File -->
+<!-- CitizensAPI build file -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -8,33 +8,63 @@
 	<artifactId>citizensapi</artifactId>
 	<version>2.0-SNAPSHOT</version>
 	<name>CitizensAPI</name>
-	<description>Cross-platform API for NPC creation and control</description>
-	<url>http://www.citizensnpcs.net</url>
 
-	<!-- Global Properties -->
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<bukkit.version>1.2.5-R1.2-SNAPSHOT</bukkit.version>
+		<rhino.version>1.7R2</rhino.version>
 		<build.number>Unknown</build.number>
 	</properties>
 
+	<repositories>
+		<repository>
+			<id>bukkit-repo</id>
+			<url>http://repo.bukkit.org/content/groups/public/</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<dependenc>
+			<groupId>org.bukkit</groupId>
+			<artifactId>bukkit</artifactId>
+			<version>${bukkit.version}</version>
+			<scope>provided</scope>
+		</dependenc>
+		<dependency>
+			<groupId>rhino</groupId>
+			<artifactId>js</artifactId>
+			<version>${rhino.version}</version>
+		</dependency>
+		<dependency>
+            <groupId>javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.12.1.GA</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>10.0.1</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+	</dependencies>
+
+	<url>http://www.citizensnpcs.net</url>
 	<ciManagement>
 		<system>jenkins</system>
 		<url>http://ci.citizensnpcs.net</url>
 	</ciManagement>
-
 	<scm>
 		<connection>scm:git:git://github.com/CitizensDev/CitizensAPI.git</connection>
 		<developerConnection>scm:git:git:@github.com:CitizensDev/CitizensAPI.git</developerConnection>
 		<url>https://github.com/CitizensDev/CitizensAPI/tree/master/</url>
 	</scm>
-
-	<!-- Build Information -->
 	<build>
 		<defaultGoal>clean install</defaultGoal>
 		<sourceDirectory>${basedir}/src/main/java</sourceDirectory>
 
-		<!-- Plugins -->
 		<plugins>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>

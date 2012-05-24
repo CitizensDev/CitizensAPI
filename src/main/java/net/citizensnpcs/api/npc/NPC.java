@@ -1,56 +1,110 @@
-/*
- * CitizensAPI
- * Copyright (C) 2012 CitizensDev <http://citizensnpcs.net>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
 package net.citizensnpcs.api.npc;
 
-import net.citizensnpcs.api.compat.Position;
+import net.citizensnpcs.api.abstraction.LivingEntity;
+import net.citizensnpcs.api.abstraction.Vector;
+import net.citizensnpcs.api.ai.AI;
+import net.citizensnpcs.api.attachment.Attachment;
 
 /**
- * Represents an NPC.
+ * Represents an NPC with a Character and separate attachments.
  */
-public interface NPC {
+public interface NPC /*metadatable*/{
+    public void attach(Class<? extends Attachment> attach);
 
     /**
-     * Returns a new NPC that is identical to this NPC.
+     * Despawns this NPC.
      * 
-     * @return A new NPC instance with this NPC's data
+     * @return Whether this NPC was able to despawn
      */
-    public NPC copy();
+    public boolean despawn();
 
     /**
-     * Returns the {@link Position} of this NPC.
+     * Gets the {@link AI} of this NPC.
      * 
-     * @return Position of this NPC
+     * @return AI of this NPC
      */
-    public Position getPosition();
+    public AI getAI();
 
     /**
-     * Moves this NPC to the given {@link Position}.
+     * Gets the entity associated with this NPC.
      * 
-     * @param position
-     *            Positon to move this NPC to
+     * @return Entity associated with this NPC
      */
-    public void moveTo(Position position);
+    public LivingEntity getEntity();
 
     /**
-     * Spawns this NPC at the given {@link Position}.
+     * Gets the full name of this NPC.
      * 
-     * @param position
-     *            Position to spawn this NPC at
+     * @return Full name of this NPC
      */
-    public void spawn(Position position);
+    public String getFullName();
+
+    /**
+     * Gets the unique ID of this NPC.
+     * 
+     * @return ID of this NPC
+     */
+    public int getId();
+
+    /**
+     * Gets the name of this NPC with color codes stripped.
+     * 
+     * @return Stripped name of this NPC
+     */
+    public String getName();
+
+    /**
+     * Gets an attachment from the given class.
+     * 
+     * @param attachment
+     *            Attachment to get
+     * @return Attachment with the given name
+     */
+    public <T extends Attachment> T getAttachment(Class<T> attachment);
+
+    /**
+     * Checks if this NPC has the given attachment.
+     * 
+     * @param attachment
+     *            Attachment to check
+     * @return Whether this NPC has the given attachment
+     */
+    public boolean isAttached(Class<? extends Attachment> attachment);
+
+    /**
+     * Gets whether this NPC is currently spawned.
+     * 
+     * @return Whether this NPC is spawned
+     */
+    public boolean isSpawned();
+
+    /**
+     * Permanently removes this NPC.
+     */
+    public void remove();
+
+    /**
+     * Removes an attachment from this NPC.
+     * 
+     * @param attachment
+     *            Attachment to remove
+     */
+    public void detach(Class<? extends Attachment> attachment);
+
+    /**
+     * Sets the name of this NPC.
+     * 
+     * @param name
+     *            Name to give this NPC
+     */
+    public void setName(String name);
+
+    /**
+     * Attempts to spawn this NPC.
+     * 
+     * @param location
+     *            Vector to spawn this NPC
+     * @return Whether this NPC was able to spawn at the location
+     */
+    public boolean spawn(Vector location);
 }
