@@ -10,6 +10,7 @@ import javassist.Modifier;
 import javassist.NotFoundException;
 
 public class EventConverter {
+    @SuppressWarnings("unused")
     private void convert() throws NotFoundException, CannotCompileException {
         ClassPool cp = ClassPool.getDefault();
         CtClass clazz = cp.get("");

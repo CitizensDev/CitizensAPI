@@ -7,7 +7,6 @@ import java.util.Map;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.attachment.Attachment;
 import net.citizensnpcs.api.event.NPCRemoveEvent;
-import net.citizensnpcs.api.util.Util;
 
 import org.mozilla.javascript.ContextFactory.Listener;
 
@@ -59,7 +58,7 @@ public abstract class AbstractNPC implements NPC {
 
     @Override
     public String getName() {
-        return Util.stripColor(name);
+        return name.replaceAll("0123456789abcdefgh", "");
     }
 
     @Override
