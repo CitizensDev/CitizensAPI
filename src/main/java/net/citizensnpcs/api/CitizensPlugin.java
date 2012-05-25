@@ -6,7 +6,14 @@ import net.citizensnpcs.api.attachment.AttachmentManager;
 import net.citizensnpcs.api.npc.NPCRegistry;
 
 public interface CitizensPlugin {
-    public File getScriptFolder();
+    /**
+     * Gets the AttachmentManager.
+     * 
+     * @return The attachment manager
+     */
+    public AttachmentManager getAttachmentManager();
+
+    public File getDataFolder();
 
     /**
      * Gets the {@link NPCRegistry}.
@@ -15,14 +22,7 @@ public interface CitizensPlugin {
      */
     public NPCRegistry getNPCRegistry();
 
-    /**
-     * Gets the AttachmentManager.
-     * 
-     * @return The attachment manager
-     */
-    public AttachmentManager getAttachmentManager();
+    public File getScriptFolder();
 
     public void onImplementationChanged();
-
-    public File getDataFolder();
 }

@@ -146,13 +146,11 @@ public final class NBTInputStream implements Closeable {
      * @throws IOException
      *             if an I/O error occurs.
      */
-    private Tag readTagPayload(int type, String name, int depth)
-            throws IOException {
+    private Tag readTagPayload(int type, String name, int depth) throws IOException {
         switch (type) {
         case NBTConstants.TYPE_END:
             if (depth == 0) {
-                throw new IOException(
-                        "TAG_End found without a TAG_Compound/TAG_List tag preceding it.");
+                throw new IOException("TAG_End found without a TAG_Compound/TAG_List tag preceding it.");
             } else {
                 return new EndTag();
             }

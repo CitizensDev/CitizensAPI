@@ -4,15 +4,6 @@ package net.citizensnpcs.api.ai;
  * Represents an AI Goal that can be added to a queue of an NPC's goals.
  */
 public interface Goal {
-
-    /**
-     * Called just before updating the goal. Returns whether the goal should
-     * continue to be updated or be cancelled.
-     * 
-     * @return Whether the goal should continue
-     */
-    public boolean continueExecuting();
-
     /**
      * Returns whether this and the other {@link Goal} can be run at the same
      * time.
@@ -29,20 +20,17 @@ public interface Goal {
     public void reset();
 
     /**
-     * Returns whether the goal is ready to start.
-     * 
-     * @return Whether the goal can be started.
-     */
-    public boolean shouldExecute();
-
-    /**
      * Sets up the execution of this goal so that it can be updated later.
      * Called initially instead of {@link Goal#update()};
+     * 
+     * @return Whether the goal was started
      */
-    public void start();
+    public boolean start();
 
     /**
      * Updates the goal.
+     * 
+     * @return Whether the goal is finished.
      */
-    public void update();
+    public boolean update();
 }

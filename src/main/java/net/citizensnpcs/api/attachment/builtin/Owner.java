@@ -10,7 +10,6 @@ import net.citizensnpcs.api.util.DataKey;
  * Represents the owner of an NPC.
  */
 public class Owner extends Attachment {
-    private static final String SERVER = "server";
     private String owner = SERVER;
 
     /**
@@ -20,10 +19,6 @@ public class Owner extends Attachment {
      */
     public String getOwner() {
         return owner;
-    }
-
-    public boolean isOwnedBy(String name) {
-        return owner.equalsIgnoreCase(name);
     }
 
     /**
@@ -39,6 +34,10 @@ public class Owner extends Attachment {
                     || (owner.equals(SERVER) && sender.hasPermission("citizens.admin"));
         }
         return owner.equals(SERVER);
+    }
+
+    public boolean isOwnedBy(String name) {
+        return owner.equalsIgnoreCase(name);
     }
 
     @Override
@@ -70,4 +69,6 @@ public class Owner extends Attachment {
     public String toString() {
         return "Owner{" + owner + "}";
     }
+
+    private static final String SERVER = "server";
 }

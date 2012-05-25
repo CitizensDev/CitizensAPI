@@ -20,12 +20,6 @@ public class ScriptRunnerCallback implements CompileCallback {
         this.methodArgs = methodArgs;
     }
 
-    @Override
-    public void onScriptCompiled(ScriptFactory factory) {
-        Script script = factory.newInstance();
-        invokeMethodIfAvailable(script);
-    }
-
     private void invokeMethodIfAvailable(Script script) {
         if (methodToInvoke == null)
             return;
@@ -34,5 +28,11 @@ public class ScriptRunnerCallback implements CompileCallback {
 
     @Override
     public void onCompileTaskFinished() {
+    }
+
+    @Override
+    public void onScriptCompiled(ScriptFactory factory) {
+        Script script = factory.newInstance();
+        invokeMethodIfAvailable(script);
     }
 }

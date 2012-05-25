@@ -4,8 +4,8 @@ import net.citizensnpcs.api.abstraction.Cancellable;
 import net.citizensnpcs.api.npc.NPC;
 
 public class NPCDamageEvent extends NPCEvent implements Cancellable {
-    private int damage;
     private boolean cancelled;
+    private int damage;
 
     public NPCDamageEvent(NPC npc, int damage) {
         super(npc);

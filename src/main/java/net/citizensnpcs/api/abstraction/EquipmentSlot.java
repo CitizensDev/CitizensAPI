@@ -1,9 +1,9 @@
 package net.citizensnpcs.api.abstraction;
 
 public enum EquipmentSlot {
+    BOOTS,
     CARRIED,
-    HELMET,
-    LEGGINGS,
     CHESTPLATE,
-    BOOTS;
+    HELMET,
+    LEGGINGS;
 }

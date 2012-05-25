@@ -1,9 +1,9 @@
 package net.citizensnpcs.api.abstraction;
 
 public interface LivingEntity extends Entity {
-    MobType getType();
-
     int getHealth();
+
+    MobType getType();
 
     void setHealth(int health);
 }

@@ -5,10 +5,10 @@ import java.util.Map;
 import com.google.common.collect.Maps;
 
 public class SimpleItemStack implements ItemStack {
-    private Material type;
     private int amount;
     private short durability;
     private final Map<Enchantment, Integer> enchantments = Maps.newHashMap();
+    private Material type;
 
     public SimpleItemStack(Material type, int amount, short durability) {
         this.type = type;
@@ -17,8 +17,8 @@ public class SimpleItemStack implements ItemStack {
     }
 
     @Override
-    public Material getType() {
-        return type;
+    public void addEnchantments(Map<Enchantment, Integer> enchantments) {
+        this.enchantments.putAll(enchantments);
     }
 
     @Override
@@ -32,18 +32,8 @@ public class SimpleItemStack implements ItemStack {
     }
 
     @Override
-    public void setAmount(int amount) {
-        this.amount = amount;
-    }
-
-    @Override
-    public void setType(Material type) {
-        this.type = type;
-    }
-
-    @Override
-    public void setDurability(short durability) {
-        this.durability = durability;
+    public int getEnchantmentLevel(Enchantment enchantment) {
+        return enchantments.containsKey(enchantment) ? enchantments.get(enchantment) : -1;
     }
 
     @Override
@@ -52,12 +42,22 @@ public class SimpleItemStack implements ItemStack {
     }
 
     @Override
-    public int getEnchantmentLevel(Enchantment enchantment) {
-        return enchantments.containsKey(enchantment) ? enchantments.get(enchantment) : -1;
+    public Material getType() {
+        return type;
     }
 
     @Override
-    public void addEnchantments(Map<Enchantment, Integer> enchantments) {
-        this.enchantments.putAll(enchantments);
+    public void setAmount(int amount) {
+        this.amount = amount;
+    }
+
+    @Override
+    public void setDurability(short durability) {
+        this.durability = durability;
+    }
+
+    @Override
+    public void setType(Material type) {
+        this.type = type;
     }
 }

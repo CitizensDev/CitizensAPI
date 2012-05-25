@@ -8,15 +8,6 @@ public class ObjectProvider implements ContextProvider {
     private final String name;
     private final Callable<Object> provider;
 
-    public ObjectProvider(String name, Object obj) {
-        if (obj == null)
-            throw new IllegalArgumentException("provided object cannot be null");
-        if (name == null)
-            throw new IllegalArgumentException("name cannot be null");
-        this.name = name;
-        this.provider = Callables.returning(obj);
-    }
-
     public ObjectProvider(String name, Callable<Object> provider) {
         if (provider == null)
             throw new IllegalArgumentException("provider cannot be null");
@@ -24,6 +15,15 @@ public class ObjectProvider implements ContextProvider {
             throw new IllegalArgumentException("name cannot be null");
         this.name = name;
         this.provider = provider;
+    }
+
+    public ObjectProvider(String name, Object obj) {
+        if (obj == null)
+            throw new IllegalArgumentException("provided object cannot be null");
+        if (name == null)
+            throw new IllegalArgumentException("name cannot be null");
+        this.name = name;
+        this.provider = Callables.returning(obj);
     }
 
     @Override

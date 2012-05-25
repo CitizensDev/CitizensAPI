@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.ai.AI;
+import net.citizensnpcs.api.ai.SimpleAI;
 import net.citizensnpcs.api.attachment.Attachment;
 import net.citizensnpcs.api.event.NPCRemoveEvent;
 
@@ -13,19 +15,18 @@ import org.mozilla.javascript.ContextFactory.Listener;
 import com.google.common.collect.Maps;
 
 public abstract class AbstractNPC implements NPC {
-    protected int id; // TODO: id could be settable via NPCRegistry
-                      // implementations and protected methods?
-    private String name;
-    protected final List<Runnable> runnables = new ArrayList<Runnable>();
+    private final AI ai;
     protected final Map<Class<? extends Attachment>, Attachment> attachments = Maps.newHashMap();
+    private final int id;
+    private String name;
+    private final NPCRegistry registeredWith;
+    private final List<Runnable> runnables = new ArrayList<Runnable>();
 
-    protected AbstractNPC(String name) {
+    protected AbstractNPC(NPCRegistry registry, String name) {
         this.name = name;
-    }
-
-    @Override
-    public void attach(Class<? extends Attachment> clazz) {
-        attach(getAttachmentFor(clazz));
+        this.id = registry.register(this);
+        this.registeredWith = registry;
+        this.ai = createAI();
     }
 
     private void attach(Attachment attachment) {
@@ -47,39 +48,18 @@ public abstract class AbstractNPC implements NPC {
     }
 
     @Override
-    public String getFullName() {
-        return name;
+    public Attachment attach(Class<? extends Attachment> clazz) {
+        Attachment attached = getAttachmentFor(clazz);
+        attach(attached);
+        return attached;
+    }
+
+    protected AI createAI() {
+        return new SimpleAI(this);
     }
 
     @Override
-    public int getId() {
-        return id;
-    }
-
-    @Override
-    public String getName() {
-        return name.replaceAll("0123456789abcdefgh", "");
-    }
-
-    @Override
-    public <T extends Attachment> T getAttachment(Class<T> clazz) {
-        Attachment attached = attachments.get(clazz);
-        if (attached == null) {
-            attached = getAttachmentFor(clazz);
-            attach(attached);
-        }
-        return attached != null ? clazz.cast(attached) : null;
-    }
-
-    protected abstract Attachment getAttachmentFor(Class<? extends Attachment> clazz);
-
-    @Override
-    public boolean isAttached(Class<? extends Attachment> attachment) {
-        return attachments.containsKey(attachment);
-    }
-
-    @Override
-    public void remove() {
+    public void destroy() {
         CitizensAPI.getServer().callEvent(new NPCRemoveEvent(this));
         runnables.clear();
         for (Attachment attached : attachments.values()) {
@@ -88,6 +68,7 @@ public abstract class AbstractNPC implements NPC {
             }
         }
         attachments.clear();
+        this.registeredWith.deregister(this);
     }
 
     @Override
@@ -101,7 +82,47 @@ public abstract class AbstractNPC implements NPC {
     }
 
     @Override
-    public void setName(String name) {
+    public AI getAI() {
+        return this.ai;
+    }
+
+    @Override
+    public <T extends Attachment> T getAttachment(Class<T> clazz) {
+        Attachment attached = attachments.get(clazz);
+        if (attached == null) {
+            attached = getAttachmentFor(clazz);
+            attach(attached);
+        }
+        return clazz.cast(attached);
+    }
+
+    protected abstract Attachment getAttachmentFor(Class<? extends Attachment> clazz);
+
+    @Override
+    public int getId() {
+        return id;
+    }
+
+    @Override
+    public String getName() {
+        return getStrippedName();
+    }
+
+    private String getStrippedName() {
+        String stripped = name;
+        for (int i = 0; i < COLORS.length(); ++i) {
+            stripped = stripped.replaceAll("<" + COLORS.charAt(i) + ">", stripped);
+        }
+        return stripped;
+    }
+
+    @Override
+    public boolean isAttached(Class<? extends Attachment> attachment) {
+        return attachments.containsKey(attachment);
+    }
+
+    @Override
+    public void rename(String name) {
         this.name = name;
     }
 
@@ -109,4 +130,6 @@ public abstract class AbstractNPC implements NPC {
         for (int i = 0; i < runnables.size(); ++i)
             runnables.get(i).run();
     }
+
+    private static final String COLORS = "0123456789abcdefklmnor";
 }

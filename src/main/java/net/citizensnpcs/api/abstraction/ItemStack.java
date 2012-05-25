@@ -3,21 +3,21 @@ package net.citizensnpcs.api.abstraction;
 import java.util.Map;
 
 public interface ItemStack {
-    Material getType();
+    void addEnchantments(Map<Enchantment, Integer> enchantments);
 
     int getAmount();
 
     short getDurability();
 
-    void setAmount(int amount);
-
-    void setType(Material type);
-
-    void setDurability(short durability);
+    int getEnchantmentLevel(Enchantment enchantment);
 
     Map<Enchantment, Integer> getEnchantments();
 
-    int getEnchantmentLevel(Enchantment enchantment);
+    Material getType();
 
-    void addEnchantments(Map<Enchantment, Integer> enchantments);
+    void setAmount(int amount);
+
+    void setDurability(short durability);
+
+    void setType(Material type);
 }
