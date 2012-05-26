@@ -1,6 +1,6 @@
 package net.citizensnpcs.api.abstraction;
 
-public enum EquipmentSlot {
+public enum Equipment {
     BOOTS,
     CARRIED,
     CHESTPLATE,

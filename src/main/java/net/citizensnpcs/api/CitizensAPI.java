@@ -4,7 +4,7 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 
 import net.citizensnpcs.api.abstraction.Server;
-import net.citizensnpcs.api.attachment.AttachmentManager;
+import net.citizensnpcs.api.attachment.AttachmentFactory;
 import net.citizensnpcs.api.npc.NPCRegistry;
 import net.citizensnpcs.api.scripting.ScriptCompiler;
 
@@ -25,7 +25,7 @@ public final class CitizensAPI {
      * 
      * @return Citizens attachment manager
      */
-    public static AttachmentManager getAttachmentManager() {
+    public static AttachmentFactory getAttachmentManager() {
         return getImplementation().getAttachmentManager();
     }
 

@@ -2,7 +2,7 @@ package net.citizensnpcs.api;
 
 import java.io.File;
 
-import net.citizensnpcs.api.attachment.AttachmentManager;
+import net.citizensnpcs.api.attachment.AttachmentFactory;
 import net.citizensnpcs.api.npc.NPCRegistry;
 
 public interface CitizensPlugin {
@@ -11,7 +11,7 @@ public interface CitizensPlugin {
      * 
      * @return The attachment manager
      */
-    public AttachmentManager getAttachmentManager();
+    public AttachmentFactory getAttachmentManager();
 
     public File getDataFolder();
 

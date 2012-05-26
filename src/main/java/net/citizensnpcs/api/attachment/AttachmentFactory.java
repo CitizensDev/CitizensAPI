@@ -1,32 +1,33 @@
 package net.citizensnpcs.api.attachment;
 
 /**
- * Builds a attachment.
+ * Represents a factory of {@link Attachment}s.
  */
-public final class AttachmentFactory {
-    private final Class<? extends Attachment> attachment;
-    private String name;
+public interface AttachmentFactory {
 
     /**
-     * Constructs a factory with the given attachment class.
+     * Gets a attachment with the given class.
      * 
-     * @param character
+     * @param clazz
      *            Class of the attachment
+     * @return Attachment with the given class
      */
-    public AttachmentFactory(Class<? extends Attachment> attachment) {
-        this.attachment = attachment;
-    }
+    public <T extends Attachment> T getAttachment(Class<T> clazz);
 
-    public Class<? extends Attachment> getAttachmentClass() {
-        return attachment;
-    }
+    /**
+     * Gets a attachment with the given name.
+     * 
+     * @param name
+     *            Name of the attachment
+     * @return Attachment with the given name
+     */
+    public <T extends Attachment> T getAttachment(String name);
 
-    public String getAttachmentName() {
-        return name;
-    }
-
-    public AttachmentFactory withName(String name) {
-        this.name = name;
-        return this;
-    }
+    /**
+     * Registers a attachment using the given information.
+     * 
+     * @param info
+     *            Information to use when creating attachments
+     */
+    public void registerAttachment(AttachmentInfo info);
 }

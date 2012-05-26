@@ -1,5 +1,6 @@
 package net.citizensnpcs.api.npc;
 
+import net.citizensnpcs.api.abstraction.EntityController;
 import net.citizensnpcs.api.abstraction.LivingEntity;
 import net.citizensnpcs.api.abstraction.WorldVector;
 import net.citizensnpcs.api.ai.AI;
@@ -62,6 +63,14 @@ public interface NPC extends Attachable {
      *            Name to give this NPC
      */
     public void rename(String name);
+
+    /**
+     * Sets the {@link EntityController} of this NPC.
+     * 
+     * @param controller
+     *            The new entity controller.
+     */
+    public void setEntityController(EntityController controller);
 
     /**
      * Attempts to spawn this NPC.

@@ -1,10 +1,12 @@
 package net.citizensnpcs.api.attachment;
 
 import net.citizensnpcs.api.exception.NPCLoadException;
+import net.citizensnpcs.api.npc.Attachable;
 import net.citizensnpcs.api.util.DataKey;
 
 /**
- * Represents a Trait that can be loaded and saved.
+ * Represents an attachment that can be attached to a given {@link Attachable},
+ * loaded and saved.
  */
 public abstract class Attachment {
     private String name;
@@ -29,7 +31,7 @@ public abstract class Attachment {
     public abstract void load(DataKey key) throws NPCLoadException;
 
     /**
-     * Called when a trait is removed from the given NPC.
+     * Called when this attachment is detached.
      */
     public void onRemove() {
     }
@@ -50,6 +52,12 @@ public abstract class Attachment {
      */
     public abstract void save(DataKey key);
 
+    /**
+     * Sets the name of this attachment.
+     * 
+     * @param name
+     *            The new name
+     */
     public final void setName(String name) {
         if (this.name != null)
             throw new IllegalArgumentException("Cannot change the name of a trait");

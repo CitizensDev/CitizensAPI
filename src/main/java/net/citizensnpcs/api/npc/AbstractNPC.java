@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.abstraction.EntityController;
 import net.citizensnpcs.api.ai.AI;
 import net.citizensnpcs.api.ai.SimpleAI;
 import net.citizensnpcs.api.attachment.Attachment;
@@ -17,6 +18,7 @@ import com.google.common.collect.Maps;
 public abstract class AbstractNPC implements NPC {
     private final AI ai;
     protected final Map<Class<? extends Attachment>, Attachment> attachments = Maps.newHashMap();
+    protected EntityController controller;
     private final int id;
     private String name;
     private final NPCRegistry registeredWith;
@@ -68,7 +70,7 @@ public abstract class AbstractNPC implements NPC {
             }
         }
         attachments.clear();
-        this.registeredWith.deregister(this);
+        registeredWith.deregister(this);
     }
 
     @Override
@@ -124,6 +126,11 @@ public abstract class AbstractNPC implements NPC {
     @Override
     public void rename(String name) {
         this.name = name;
+    }
+
+    @Override
+    public void setEntityController(EntityController controller) {
+        this.controller = controller;
     }
 
     public void update() {
