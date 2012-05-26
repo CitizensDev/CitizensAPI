@@ -5,6 +5,8 @@ import org.mozilla.javascript.ContextFactory.Listener;
 public interface Server {
     void callEvent(Event event);
 
+    String getMinecraftVersion();
+
     void registerEvents(Listener trait);
 
     void schedule(Runnable task);

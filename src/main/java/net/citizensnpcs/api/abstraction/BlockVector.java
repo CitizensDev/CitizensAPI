@@ -1,5 +1,5 @@
 package net.citizensnpcs.api.abstraction;
 
-public interface BlockVector {
+public interface BlockVector extends Vector {
 
 }

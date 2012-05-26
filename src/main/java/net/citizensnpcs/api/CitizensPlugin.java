@@ -6,13 +6,6 @@ import net.citizensnpcs.api.attachment.AttachmentFactory;
 import net.citizensnpcs.api.npc.NPCRegistry;
 
 public interface CitizensPlugin {
-    /**
-     * Gets the AttachmentManager.
-     * 
-     * @return The attachment manager
-     */
-    public AttachmentFactory getAttachmentManager();
-
     public File getDataFolder();
 
     /**
@@ -25,4 +18,6 @@ public interface CitizensPlugin {
     public File getScriptFolder();
 
     public void onImplementationChanged();
+
+    public AttachmentFactory getAttachmentFactory();
 }

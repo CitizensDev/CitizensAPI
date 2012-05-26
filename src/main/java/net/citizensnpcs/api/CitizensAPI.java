@@ -23,10 +23,10 @@ public final class CitizensAPI {
     /**
      * Gets the AttachmentManager.
      * 
-     * @return Citizens attachment manager
+     * @return Citizens attachment factory
      */
-    public static AttachmentFactory getAttachmentManager() {
-        return getImplementation().getAttachmentManager();
+    public static AttachmentFactory getAttachmentFactory() {
+        return getImplementation().getAttachmentFactory();
     }
 
     public static File getDataFolder() {

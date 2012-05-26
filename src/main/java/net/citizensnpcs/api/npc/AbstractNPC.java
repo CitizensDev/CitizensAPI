@@ -136,6 +136,7 @@ public abstract class AbstractNPC implements NPC {
     public void update() {
         for (int i = 0; i < runnables.size(); ++i)
             runnables.get(i).run();
+        ai.update();
     }
 
     private static final String COLORS = "0123456789abcdefklmnor";

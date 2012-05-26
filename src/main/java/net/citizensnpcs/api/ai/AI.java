@@ -21,4 +21,6 @@ public interface AI {
      *            The goal to remove
      */
     public void removeGoal(Goal goal);
+
+    public void update();
 }

@@ -8,5 +8,9 @@ public interface EntityController {
      *            Where to spawn the entity
      * @return The spawned entity
      */
-    public Entity spawn(WorldVector at);
+    public void spawn(WorldVector at);
+
+    public void despawn();
+
+    public Entity getEntity();
 }
