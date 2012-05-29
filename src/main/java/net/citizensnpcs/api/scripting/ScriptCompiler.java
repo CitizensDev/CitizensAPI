@@ -1,3 +1,20 @@
+/*
+ * CitizensAPI
+ * Copyright (C) 2012 CitizensDev <http://citizensnpcs.net>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 package net.citizensnpcs.api.scripting;
 
 import java.io.File;
@@ -26,9 +43,8 @@ import com.google.common.collect.Maps;
 import com.google.common.io.Closeables;
 
 /**
- * Compiles files into {@link ScriptFactory}s. Intended for use as a separate
- * thread - {@link ScriptCompiler#run()} will block while waiting for new tasks
- * to compile.
+ * Compiles files into {@link ScriptFactory}s. Intended for use as a separate thread - {@link ScriptCompiler#run()} will
+ * block while waiting for new tasks to compile.
  */
 public class ScriptCompiler implements Runnable {
     private final ScriptEngineManager engineManager = new ScriptEngineManager();
@@ -79,8 +95,7 @@ public class ScriptCompiler implements Runnable {
     }
 
     /**
-     * Registers a global {@link ContextProvider}, which will be invoked on all
-     * scripts created by this ScriptCompiler.
+     * Registers a global {@link ContextProvider}, which will be invoked on all scripts created by this ScriptCompiler.
      * 
      * @param provider
      *            The global provider

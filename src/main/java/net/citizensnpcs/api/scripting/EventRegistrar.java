@@ -1,3 +1,20 @@
+/*
+ * CitizensAPI
+ * Copyright (C) 2012 CitizensDev <http://citizensnpcs.net>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 package net.citizensnpcs.api.scripting;
 
 import java.util.Map;
@@ -9,8 +26,7 @@ import org.mozilla.javascript.ContextFactory.Listener;
 import com.google.common.collect.Maps;
 
 /**
- * A simple {@link ContextProvider} for scripts, allowing them to register and
- * unregister events.
+ * A simple {@link ContextProvider} for scripts, allowing them to register and unregister events.
  */
 public class EventRegistrar implements ContextProvider {
     @Override
@@ -44,44 +60,27 @@ public class EventRegistrar implements ContextProvider {
         private void deregisterListener(Listener listener) {
             CitizensAPI.getServer().unregisterAll(listener);
         }
-        /*// TODO
-                public void register(Object instance, String functionName, Class<? extends Event> eventClass) {
-                    registerEvent(instance, functionName, eventClass);
-                }
-
-                public void register(String functionName, Class<? extends Event> eventClass) {
-                    registerEvent(null, functionName, eventClass);
-                }
-
-                private void registerEvent(final Object object, final String functionName,
-                        final Class<? extends Event> eventClass) {
-                    if (!plugin.isEnabled())
-                        throw new IllegalStateException("Plugin is no longer valid.");
-                    if (functionName == null || eventClass == null)
-                        throw new IllegalArgumentException("Arguments should not be null");
-                    Listener listener = object != null ? script.convertToInterface(object, Listener.class) : null;
-                    if (listener == null) {
-                        anonymousListeners.put(new FunctionReference(functionName, object), (listener = new Listener() {
-                        }));
-                    }
-                    PluginManager manager = plugin.getServer().getPluginManager();
-                    manager.registerEvent(eventClass, listener, EventPriority.NORMAL, new EventExecutor() {
-                        @Override
-                        public void execute(Listener listener, Event event) throws EventException {
-                            try {
-                                if (!eventClass.isAssignableFrom(event.getClass()))
-                                    return;
-                                if (object != null) {
-                                    script.invoke(object, functionName, event);
-                                } else {
-                                    script.invoke(functionName, event);
-                                }
-                            } catch (Throwable t) {
-                                throw new EventException(t);
-                            }
-                        }
-                    }, plugin);
-                }*/
+        /*
+         * // TODO public void register(Object instance, String functionName, Class<? extends Event> eventClass) {
+         * registerEvent(instance, functionName, eventClass); }
+         * 
+         * public void register(String functionName, Class<? extends Event> eventClass) { registerEvent(null,
+         * functionName, eventClass); }
+         * 
+         * private void registerEvent(final Object object, final String functionName, final Class<? extends Event>
+         * eventClass) { if (!plugin.isEnabled()) throw new IllegalStateException("Plugin is no longer valid."); if
+         * (functionName == null || eventClass == null) throw new
+         * IllegalArgumentException("Arguments should not be null"); Listener listener = object != null ?
+         * script.convertToInterface(object, Listener.class) : null; if (listener == null) { anonymousListeners.put(new
+         * FunctionReference(functionName, object), (listener = new Listener() { })); } PluginManager manager =
+         * plugin.getServer().getPluginManager(); manager.registerEvent(eventClass, listener, EventPriority.NORMAL, new
+         * EventExecutor() {
+         * 
+         * @Override public void execute(Listener listener, Event event) throws EventException { try { if
+         * (!eventClass.isAssignableFrom(event.getClass())) return; if (object != null) { script.invoke(object,
+         * functionName, event); } else { script.invoke(functionName, event); } } catch (Throwable t) { throw new
+         * EventException(t); } } }, plugin); }
+         */
     }
 
     private static class FunctionReference {

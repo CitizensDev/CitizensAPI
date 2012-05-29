@@ -1,3 +1,20 @@
+/*
+ * CitizensAPI
+ * Copyright (C) 2012 CitizensDev <http://citizensnpcs.net>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 package net.citizensnpcs.api.attachment;
 
 import net.citizensnpcs.api.exception.NPCLoadException;
@@ -5,8 +22,7 @@ import net.citizensnpcs.api.npc.Attachable;
 import net.citizensnpcs.api.util.DataKey;
 
 /**
- * Represents an attachment that can be attached to a given {@link Attachable},
- * loaded and saved.
+ * Represents an attachment that can be attached to a given {@link Attachable}, loaded and saved.
  */
 public abstract class Attachment {
     private String name;
@@ -37,9 +53,8 @@ public abstract class Attachment {
     }
 
     /**
-     * Called when an NPC is spawned. NPCs cannot be physically modified until
-     * the entity is created in-game. This is called after the entity has been
-     * created.
+     * Called when an NPC is spawned. NPCs cannot be physically modified until the entity is created in-game. This is
+     * called after the entity has been created.
      */
     public void onSpawn() {
     }
