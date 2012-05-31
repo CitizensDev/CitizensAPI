@@ -15,12 +15,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.citizensnpcs.api.abstraction;
+package net.citizensnpcs.api.abstraction.entity;
 
-public interface Entity {
-    WorldVector getLocation();
+import net.citizensnpcs.api.abstraction.WorldVector;
 
-    World getWorld();
+public interface EntityController {
+    public void despawn();
 
-    void remove();
+    public Entity getEntity();
+
+    /**
+     * Spawns an {@link Entity} at the given location.
+     * 
+     * @param at
+     *            Where to spawn the entity
+     * @return The spawned entity
+     */
+    public void spawn(WorldVector at);
 }

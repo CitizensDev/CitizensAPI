@@ -17,9 +17,9 @@
  */
 package net.citizensnpcs.api.npc;
 
-import net.citizensnpcs.api.abstraction.EntityController;
-import net.citizensnpcs.api.abstraction.LivingEntity;
 import net.citizensnpcs.api.abstraction.WorldVector;
+import net.citizensnpcs.api.abstraction.entity.EntityController;
+import net.citizensnpcs.api.abstraction.entity.LivingEntity;
 import net.citizensnpcs.api.ai.AI;
 
 /**

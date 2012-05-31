@@ -25,6 +25,13 @@ import net.citizensnpcs.api.npc.NPCRegistry;
 
 public interface CitizensPlugin {
     /**
+     * Gets the {@link AttachmentFactory} that is used to register NPC attachments.
+     * 
+     * @return Citizens attachment factory
+     */
+    public AttachmentFactory getAttachmentFactory();
+
+    /**
      * Gets the folder containing all Citizens files.
      * 
      * @return Folder containing Citizens files
@@ -44,13 +51,6 @@ public interface CitizensPlugin {
      * @return Folder containing Citizens scripts
      */
     public File getScriptFolder();
-
-    /**
-     * Gets the {@link AttachmentFactory} that is used to register NPC attachments.
-     * 
-     * @return Citizens attachment factory
-     */
-    public AttachmentFactory getAttachmentFactory();
 
     /**
      * Gets the {@link Server} that is implementing Citizens.

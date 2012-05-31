@@ -19,6 +19,10 @@ package net.citizensnpcs.api.abstraction;
 
 public enum MobType {
     CREEPER,
-    VILLAGER,
-    UNKNOWN;
+    UNKNOWN,
+    VILLAGER;
+
+    public static MobType fromName(String name) {
+        return null;
+    }
 }

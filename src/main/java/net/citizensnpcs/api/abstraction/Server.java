@@ -17,14 +17,10 @@
  */
 package net.citizensnpcs.api.abstraction;
 
-import org.mozilla.javascript.ContextFactory.Listener;
-
 public interface Server {
-    void callEvent(Event event);
+    void callEvent(Object event);
 
-    String getMinecraftVersion();
-
-    void registerEvents(Listener trait);
+    void registerEvents(Object listener);
 
     void schedule(Runnable task);
 
@@ -34,5 +30,5 @@ public interface Server {
 
     void scheduleRepeating(Runnable task, long initialDelay, long repeatDelay);
 
-    void unregisterAll(Listener trait);
+    void unregisterAll(Object listener);
 }

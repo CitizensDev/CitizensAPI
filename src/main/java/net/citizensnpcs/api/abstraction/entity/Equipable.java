@@ -15,12 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.citizensnpcs.api.abstraction;
+package net.citizensnpcs.api.abstraction.entity;
 
-public interface LivingEntity extends Entity {
-    int getHealth();
+import net.citizensnpcs.api.abstraction.Equipment;
+import net.citizensnpcs.api.abstraction.ItemStack;
 
-    MobType getType();
+public interface Equipable {
+    public ItemStack getEquipment(Equipment slot);
 
-    void setHealth(int health);
+    public void setEquipment(Equipment slot, ItemStack item);
 }

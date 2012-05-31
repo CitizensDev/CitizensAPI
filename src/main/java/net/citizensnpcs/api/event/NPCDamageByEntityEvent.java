@@ -17,7 +17,7 @@
  */
 package net.citizensnpcs.api.event;
 
-import net.citizensnpcs.api.abstraction.Entity;
+import net.citizensnpcs.api.abstraction.entity.Entity;
 import net.citizensnpcs.api.npc.NPC;
 
 public class NPCDamageByEntityEvent extends NPCDamageEvent {

@@ -18,9 +18,12 @@
 package net.citizensnpcs.api;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 
 import net.citizensnpcs.api.abstraction.Server;
 import net.citizensnpcs.api.attachment.AttachmentFactory;
+import net.citizensnpcs.api.event.CitizensImplementationChangedEvent;
+import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.npc.NPCRegistry;
 import net.citizensnpcs.api.scripting.ScriptCompiler;
 
@@ -28,23 +31,31 @@ import net.citizensnpcs.api.scripting.ScriptCompiler;
  * Contains methods used in order to utilize the Citizens API.
  */
 public final class CitizensAPI {
-    private static CitizensPlugin plugin;
+    private CitizensAPI() {
+    }
+    private static WeakReference<CitizensPlugin> plugin;
+
     private static final ScriptCompiler scriptCompiler = new ScriptCompiler();
 
-    private CitizensAPI() {
+    private static void checkHasPlugin() {
+        if (!hasPlugin())
+            throw new IllegalStateException("No implementation provided.");
     }
 
     /**
-     * Gets the {@link AttachmentFactory} that is used to register NPC attachments.
+     * Gets the {@link AttachmentFactory} that is used to register NPC
+     * attachments.
      * 
      * @return Citizens attachment factory
      */
     public static AttachmentFactory getAttachmentFactory() {
-        return plugin.getAttachmentFactory();
+        checkHasPlugin();
+        return getPlugin().getAttachmentFactory();
     }
 
     public static File getDataFolder() {
-        return plugin.getDataFolder();
+        checkHasPlugin();
+        return getPlugin().getDataFolder();
     }
 
     /**
@@ -53,7 +64,12 @@ public final class CitizensAPI {
      * @return Citizens NPC registry
      */
     public static NPCRegistry getNPCRegistry() {
-        return plugin.getNPCRegistry();
+        checkHasPlugin();
+        return getPlugin().getNPCRegistry();
+    }
+
+    private static CitizensPlugin getPlugin() {
+        return plugin == null ? null : plugin.get();
     }
 
     /**
@@ -71,7 +87,8 @@ public final class CitizensAPI {
      * @return Citizens script folder
      */
     public static File getScriptFolder() {
-        return plugin.getScriptFolder();
+        checkHasPlugin();
+        return getPlugin().getScriptFolder();
     }
 
     /**
@@ -80,18 +97,28 @@ public final class CitizensAPI {
      * @return Server implementing Citizens
      */
     public static Server getServer() {
-        return plugin.getServer();
+        checkHasPlugin();
+        return getPlugin().getServer();
+    }
+
+    private static boolean hasPlugin() {
+        return getPlugin() != null;
     }
 
     /**
-     * Sets the plugin implementation of Citizens. This should only be used by plugins that use the CitizensAPI
-     * compatibility layer.
+     * Sets the plugin implementation of Citizens. This should only be used by
+     * plugins that use the CitizensAPI compatibility layer.
      */
     public static void setImplementation(CitizensPlugin citizens) {
-        if (plugin != null) {
-            throw new IllegalArgumentException("A Citizens implementation has already been registered for this server.");
-        }
-        plugin = citizens;
+        if (hasPlugin()) {
+            if (citizens != null) {
+                throw new IllegalArgumentException("A Citizens implementation has already been registered");
+            } else
+                getServer().callEvent(new CitizensImplementationChangedEvent());
+        } else if (citizens == null)
+            throw new IllegalArgumentException("Cannot set a null implementation.");
+
+        plugin = new WeakReference<CitizensPlugin>(citizens);
     }
 
     static {

@@ -18,7 +18,7 @@
 package net.citizensnpcs.api.event;
 
 import net.citizensnpcs.api.abstraction.Cancellable;
-import net.citizensnpcs.api.abstraction.Player;
+import net.citizensnpcs.api.abstraction.entity.Player;
 import net.citizensnpcs.api.npc.NPC;
 
 /**

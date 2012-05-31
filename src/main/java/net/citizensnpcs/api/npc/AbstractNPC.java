@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.citizensnpcs.api.CitizensAPI;
-import net.citizensnpcs.api.abstraction.EntityController;
+import net.citizensnpcs.api.abstraction.entity.EntityController;
 import net.citizensnpcs.api.ai.AI;
 import net.citizensnpcs.api.ai.SimpleAI;
 import net.citizensnpcs.api.attachment.Attachment;
@@ -37,7 +37,7 @@ public abstract class AbstractNPC implements NPC {
     protected final Map<Class<? extends Attachment>, Attachment> attachments = Maps.newHashMap();
     protected EntityController controller;
     private final int id;
-    private String name;
+    protected String name;
     private final NPCRegistry registeredWith;
     private final List<Runnable> runnables = new ArrayList<Runnable>();
 
@@ -48,7 +48,7 @@ public abstract class AbstractNPC implements NPC {
         this.ai = createAI();
     }
 
-    private void attach(Attachment attachment) {
+    protected void attach(Attachment attachment) {
         if (attachment == null) {
             System.err.println("[Citizens] Cannot register a null trait. Was it registered properly?");
             return;

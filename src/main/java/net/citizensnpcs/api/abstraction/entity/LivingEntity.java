@@ -15,19 +15,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.citizensnpcs.api.abstraction;
+package net.citizensnpcs.api.abstraction.entity;
 
-public interface EntityController {
-    /**
-     * Spawns an {@link Entity} at the given location.
-     * 
-     * @param at
-     *            Where to spawn the entity
-     * @return The spawned entity
-     */
-    public void spawn(WorldVector at);
+import net.citizensnpcs.api.abstraction.MobType;
 
-    public void despawn();
+public interface LivingEntity extends Entity {
+    int getHealth();
 
-    public Entity getEntity();
+    MobType getType();
+
+    void setHealth(int health);
 }

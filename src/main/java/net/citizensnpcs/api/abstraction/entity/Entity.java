@@ -15,10 +15,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.citizensnpcs.api.abstraction;
+package net.citizensnpcs.api.abstraction.entity;
 
-public interface Equipable {
-    public void getEquipment(Equipment slot);
+import java.util.List;
 
-    public void setEquipment(Equipment slot, ItemStack item);
+import net.citizensnpcs.api.abstraction.World;
+import net.citizensnpcs.api.abstraction.WorldVector;
+
+public interface Entity {
+    List<Entity> getNearbyEntities(double dX, double dY, double dZ);
+
+    WorldVector getLocation();
+
+    World getWorld();
+
+    void remove();
+
+    void setRotation(double yaw, double pitch);
 }

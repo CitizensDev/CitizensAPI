@@ -15,9 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.citizensnpcs.api.abstraction;
+package net.citizensnpcs.api.abstraction.entity;
+
+import net.citizensnpcs.api.abstraction.CommandSender;
+import net.citizensnpcs.api.abstraction.ItemStack;
 
 public interface Player extends LivingEntity, CommandSender, Equipable {
+    boolean isOnline();
 
     void setArmor(ItemStack[] armor);
 }

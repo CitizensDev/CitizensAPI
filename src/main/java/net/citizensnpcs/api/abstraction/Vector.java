@@ -18,15 +18,19 @@
 package net.citizensnpcs.api.abstraction;
 
 public interface Vector {
-    double getX();
+    double distance(WorldVector other);
 
-    double getY();
-
-    double getZ();
+    double distanceSquared(WorldVector other);
 
     int getBlockX();
 
     int getBlockY();
 
     int getBlockZ();
+
+    double getX();
+
+    double getY();
+
+    double getZ();
 }

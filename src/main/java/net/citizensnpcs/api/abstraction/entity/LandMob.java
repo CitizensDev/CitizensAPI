@@ -15,7 +15,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.citizensnpcs.api.abstraction;
+package net.citizensnpcs.api.abstraction.entity;
+
+import net.citizensnpcs.api.abstraction.WorldVector;
 
 public interface LandMob extends LivingEntity { // TODO: better name
     boolean hasDestination();

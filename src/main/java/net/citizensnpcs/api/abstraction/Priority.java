@@ -18,9 +18,9 @@
 package net.citizensnpcs.api.abstraction;
 
 public enum Priority {
-    HIGHEST,
     HIGH,
-    NORMAL,
+    HIGHEST,
     LOW,
-    LOWEST;
+    LOWEST,
+    NORMAL;
 }
