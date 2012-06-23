@@ -88,6 +88,7 @@ public class SimpleAI implements AI {
         toRemove = null;
     }
 
+    @Override
     public void update() {
         if (!npc.isSpawned()) {
             return;
@@ -102,7 +103,7 @@ public class SimpleAI implements AI {
                     entry.getGoal().reset();
                     executingGoals.remove(entry);
                 }
-            } else if (isGoalAllowable(entry) && entry.getGoal().start()) {
+            } else if (isGoalAllowable(entry) && entry.getGoal().shouldRun()) {
                 executingGoals.add(entry);
             }
         }

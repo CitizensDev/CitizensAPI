@@ -17,12 +17,58 @@
  */
 package net.citizensnpcs.api.abstraction;
 
+import java.util.Map;
+
+import com.google.common.collect.Maps;
+
 public enum MobType {
-    CREEPER,
-    UNKNOWN,
-    VILLAGER;
+    BLAZE("Blaze"),
+    CAVE_SPIDER("CaveSpider"),
+    CHICKEN("Chicken"),
+    COW("Cow"),
+    CREEPER("Creeper"),
+    ENDER_DRAGON("EnderDragon"),
+    ENDERMAN("Enderman"),
+    GHAST("Ghast"),
+    GIANT("Giant"),
+    IRON_GOLEM("VillagerGolem"),
+    MAGMA_CUBE("LavaSlime"),
+    MUSHROOM_COW("MushroomCow"),
+    OCELOT("Ozelot"),
+    PIG("Pig"),
+    PIG_ZOMBIE("PigZombie"),
+    PLAYER("Player"),
+    SHEEP("Sheep"),
+    SILVERFISH("Silverfish"),
+    SKELETON("Skeleton"),
+    SLIME("Slime"),
+    SNOWMAN("Snowman"),
+    SPIDER("Spider"),
+    SQUID("Squid"),
+    UNKNOWN(null),
+    VILLAGER("Villager"),
+    WOLF("Wolf"),
+    ZOMBIE("Zombie");
+
+    private String name;
+
+    MobType(String name) {
+        this.name = name;
+    }public String getName() {
+        return this.name;
+    }
 
     public static MobType fromName(String name) {
-        return null;
+        if (name == null)
+            return null;
+        return BY_NAME.get(name.toLowerCase());
+    }
+
+    private static final Map<String, MobType> BY_NAME = Maps.newHashMap();
+    static {
+        for (MobType type : values()) {
+            BY_NAME.put(type.name.toLowerCase(), type);
+            BY_NAME.put(type.name().toLowerCase(), type);
+        }
     }
 }

@@ -22,7 +22,8 @@ package net.citizensnpcs.api.ai;
  */
 public interface Goal {
     /**
-     * Returns whether this and the other {@link Goal} can be run at the same time.
+     * Returns whether this and the other {@link Goal} can be run at the same
+     * time.
      * 
      * @param other
      *            The goal to check
@@ -36,12 +37,12 @@ public interface Goal {
     public void reset();
 
     /**
-     * Sets up the execution of this goal so that it can be updated later. Called initially instead of
-     * {@link Goal#update()};
+     * Checks whether the goal can be run and sets up the execution of this goal
+     * so that it can be updated later.
      * 
      * @return Whether the goal was started
      */
-    public boolean start();
+    public boolean shouldRun();
 
     /**
      * Updates the goal.

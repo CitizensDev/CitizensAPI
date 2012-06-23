@@ -22,11 +22,16 @@ import java.util.List;
 import java.util.Map;
 
 import net.citizensnpcs.api.CitizensAPI;
-import net.citizensnpcs.api.abstraction.entity.EntityController;
+import net.citizensnpcs.api.abstraction.WorldVector;
+import net.citizensnpcs.api.abstraction.entity.Entity;
+import net.citizensnpcs.api.abstraction.entity.EntityFactory;
+import net.citizensnpcs.api.abstraction.entity.LivingEntity;
 import net.citizensnpcs.api.ai.AI;
 import net.citizensnpcs.api.ai.SimpleAI;
 import net.citizensnpcs.api.attachment.Attachment;
+import net.citizensnpcs.api.event.NPCDespawnEvent;
 import net.citizensnpcs.api.event.NPCRemoveEvent;
+import net.citizensnpcs.api.event.NPCSpawnEvent;
 
 import org.mozilla.javascript.ContextFactory.Listener;
 
@@ -34,8 +39,9 @@ import com.google.common.collect.Maps;
 
 public abstract class AbstractNPC implements NPC {
     private final AI ai;
-    protected final Map<Class<? extends Attachment>, Attachment> attachments = Maps.newHashMap();
-    protected EntityController controller;
+    private final Map<Class<? extends Attachment>, Attachment> attachments = Maps.newHashMap();
+    private Entity entity;
+    private EntityFactory factory;
     private final int id;
     protected String name;
     private final NPCRegistry registeredWith;
@@ -61,7 +67,7 @@ public abstract class AbstractNPC implements NPC {
         }
 
         if (attachment instanceof Listener) {
-            CitizensAPI.getServer().registerEvents((Listener) attachment);
+            CitizensAPI.getServer().registerEvents(attachment);
         }
         attachments.put(attachment.getClass(), attachment);
     }
@@ -78,12 +84,23 @@ public abstract class AbstractNPC implements NPC {
     }
 
     @Override
+    public boolean despawn() {
+        if (!isSpawned()) {
+            return false;
+        }
+        CitizensAPI.getServer().callEvent(new NPCDespawnEvent(this));
+        entity.remove();
+
+        return true;
+    }
+
+    @Override
     public void destroy() {
         CitizensAPI.getServer().callEvent(new NPCRemoveEvent(this));
         runnables.clear();
         for (Attachment attached : attachments.values()) {
             if (attached instanceof Listener) {
-                CitizensAPI.getServer().unregisterAll((Listener) attached);
+                CitizensAPI.getServer().unregisterAll(attached);
             }
         }
         attachments.clear();
@@ -118,6 +135,11 @@ public abstract class AbstractNPC implements NPC {
     protected abstract Attachment getAttachmentFor(Class<? extends Attachment> clazz);
 
     @Override
+    public LivingEntity getEntity() {
+        return (LivingEntity) entity;
+    }
+
+    @Override
     public int getId() {
         return id;
     }
@@ -141,13 +163,42 @@ public abstract class AbstractNPC implements NPC {
     }
 
     @Override
+    public boolean isSpawned() {
+        return entity != null;
+    }
+
+    @Override
     public void rename(String name) {
         this.name = name;
     }
 
     @Override
-    public void setEntityController(EntityController controller) {
-        this.controller = controller;
+    public void setEntityFactory(EntityFactory factory) {
+        this.factory = factory;
+    }
+
+    @Override
+    public boolean spawn(WorldVector at) {
+        if (at == null)
+            throw new IllegalArgumentException("at cannot be null");
+        if (factory == null)
+            throw new IllegalStateException("no factory set");
+        if (isSpawned())
+            return false;
+        NPCSpawnEvent spawnEvent = new NPCSpawnEvent(this, at);
+        CitizensAPI.getServer().callEvent(spawnEvent);
+        if (spawnEvent.isCancelled())
+            return false;
+
+        entity = factory.create(this, at);
+
+        // Set the spawned state
+        getAttachment(CurrentLocation.class).setLocation(at);
+
+        // Modify NPC using traits after the entity has been created
+        for (Attachment attached : attachments.values())
+            attached.onSpawn();
+        return true;
     }
 
     public void update() {

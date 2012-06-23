@@ -29,7 +29,11 @@ public interface Entity {
 
     World getWorld();
 
+    boolean isDead();
+
     void remove();
 
     void setRotation(double yaw, double pitch);
+
+    void teleport(WorldVector to);
 }

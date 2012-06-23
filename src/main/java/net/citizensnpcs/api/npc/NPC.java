@@ -18,7 +18,7 @@
 package net.citizensnpcs.api.npc;
 
 import net.citizensnpcs.api.abstraction.WorldVector;
-import net.citizensnpcs.api.abstraction.entity.EntityController;
+import net.citizensnpcs.api.abstraction.entity.EntityFactory;
 import net.citizensnpcs.api.abstraction.entity.LivingEntity;
 import net.citizensnpcs.api.ai.AI;
 
@@ -34,7 +34,7 @@ public interface NPC extends Attachable {
     public boolean despawn();
 
     /**
-     * Permanently destroys this NPC.
+     * Permanently despawns and destroys this NPC, removing all data.
      */
     public void destroy();
 
@@ -82,12 +82,12 @@ public interface NPC extends Attachable {
     public void rename(String name);
 
     /**
-     * Sets the {@link EntityController} of this NPC.
+     * Sets the {@link EntityFactory} of this NPC.
      * 
      * @param controller
-     *            The new entity controller.
+     *            The new entity factory.
      */
-    public void setEntityController(EntityController controller);
+    public void setEntityFactory(EntityFactory factory);
 
     /**
      * Attempts to spawn this NPC.

@@ -21,6 +21,8 @@ import net.citizensnpcs.api.abstraction.CommandSender;
 import net.citizensnpcs.api.abstraction.ItemStack;
 
 public interface Player extends LivingEntity, CommandSender, Equipable {
+    ItemStack getItemInHand();
+
     boolean isOnline();
 
     void setArmor(ItemStack[] armor);
