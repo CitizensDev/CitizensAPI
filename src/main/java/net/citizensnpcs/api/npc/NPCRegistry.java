@@ -1,5 +1,7 @@
 package net.citizensnpcs.api.npc;
 
+import java.util.List;
+
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 
@@ -58,4 +60,14 @@ public interface NPCRegistry extends Iterable<NPC> {
      * @return Whether the given entity is an NPC
      */
     public boolean isNPC(Entity entity);
+    
+    /**
+     * Get a list of all NPCs
+     * 
+     * 
+     *        
+     * @return a list of npcs
+     */
+    public List<NPC> getNPCs();
+    
 }
