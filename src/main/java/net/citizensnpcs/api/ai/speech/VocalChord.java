@@ -2,16 +2,17 @@ package net.citizensnpcs.api.ai.speech;
 
 public interface VocalChord {
     /**
-     * Called when an NPC's {@link SpeechController} needs to output some text.
+     * Called when an NPC's {@link SpeechController} needs to output some text to a
+     * {@link Talkable} entity.
      * 
-     * @param tongue
-     * 			The {@link Tongue} with talk information
+     * @param context
+     * 			The {@link SpeechContext} with talk information
      * 
      */
-    public void talk(Tongue tongue);
+    public void talk(SpeechContext context);
     
     /**
-     * Should return the name of the vocal chord used in the registration process
+     * Returns the name of the vocal chord used in the registration process.
      * 
      * @returns name of the VocalChord
      */

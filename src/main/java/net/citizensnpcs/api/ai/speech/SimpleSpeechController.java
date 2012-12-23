@@ -7,6 +7,11 @@ import net.citizensnpcs.api.ai.speech.event.NPCSpeechEvent;
 import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.trait.trait.Speech;
 
+/**
+ * Simple implementation of SpeechController which allows a NPC to speak with any
+ * registered {@link VocalChord}.
+ *
+ */
 public class SimpleSpeechController implements SpeechController {
 
 	NPC npc;
@@ -16,21 +21,17 @@ public class SimpleSpeechController implements SpeechController {
 	}
 
 	@Override
-	public void speak(Tongue tongue) {
-		tongue.setTalker(new TalkableEntity(npc));
-		NPCSpeechEvent event = new NPCSpeechEvent(tongue, npc.getTrait(Speech.class).getDefaultVocalChord());
-		Bukkit.getServer().getPluginManager().callEvent(event);
-		if (event.isCancelled()) return;
-		CitizensAPI.getSpeechFactory().getVocalChord(event.getVocalChordName()).talk(tongue);
+	public void speak(SpeechContext context) {
+		speak(context, npc.getTrait(Speech.class).getDefaultVocalChord());
 	}
 
 	@Override
-	public void speak(Tongue tongue, Class<VocalChord> vocalChordClass) {
-		tongue.setTalker(new TalkableEntity(npc));
-		NPCSpeechEvent event = new NPCSpeechEvent(tongue, CitizensAPI.getSpeechFactory().getVocalChordName(vocalChordClass));
+	public void speak(SpeechContext context, String vocalChordName) {
+		context.setTalker(new TalkableEntity(npc));
+		NPCSpeechEvent event = new NPCSpeechEvent(context, vocalChordName);
 		Bukkit.getServer().getPluginManager().callEvent(event);
 		if (event.isCancelled()) return;
-		CitizensAPI.getSpeechFactory().getVocalChord(event.getVocalChordName()).talk(tongue);		
+		CitizensAPI.getSpeechFactory().getVocalChord(event.getVocalChordName()).talk(context);		
 	}
 	
 }

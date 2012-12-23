@@ -1,27 +1,27 @@
 package net.citizensnpcs.api.ai.speech.event;
 
 import net.citizensnpcs.api.CitizensAPI;
-import net.citizensnpcs.api.ai.speech.Tongue;
+import net.citizensnpcs.api.ai.speech.SpeechContext;
 import net.citizensnpcs.api.event.NPCEvent;
 
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 
 /**
- * Represents an event where an NPC speaks with a {@link Tongue}. This event
- * takes place before the being sent to the {@link VocalChord}.
+ * Represents an event where an NPC speaks, with {@link SpeechContext}. This event
+ * takes place before being sent to the {@link VocalChord}. 
  * 
  */
 public class NPCSpeechEvent extends NPCEvent implements Cancellable {
     
 	private boolean cancelled = false;
 
-    Tongue tongue;
+    SpeechContext context;
     String vocalChord;
 	
-    public NPCSpeechEvent(Tongue tongue, String vocalChordName) {
-		super(CitizensAPI.getNPCRegistry().getNPC(tongue.getTalker().getEntity()));
-		this.tongue = tongue;
+    public NPCSpeechEvent(SpeechContext context, String vocalChordName) {
+		super(CitizensAPI.getNPCRegistry().getNPC(context.getTalker().getEntity()));
+		this.context = context;
 	}
 
     @Override
@@ -34,8 +34,8 @@ public class NPCSpeechEvent extends NPCEvent implements Cancellable {
      * 
      * @returns the Tongue
      */
-    public Tongue getTongue() {
-    	return tongue;
+    public SpeechContext getContext() {
+    	return context;
     }
     
     /**

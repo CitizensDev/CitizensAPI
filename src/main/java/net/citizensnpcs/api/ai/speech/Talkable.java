@@ -3,10 +3,10 @@ package net.citizensnpcs.api.ai.speech;
 import org.bukkit.entity.LivingEntity;
 
 /**
- * Talkable provides an for talking to Players, Entities and NPCs in a single
- * format, with information about the Talker.
+ * Talkable provides an interface for talking to Players, Entities and NPCs.
+ * 
  */
-public interface Talkable {
+public interface Talkable extends Comparable<Object> {
 	
     /**
      * Called by a {@link VocalChord} when talking to this Talkable Entity
@@ -14,11 +14,11 @@ public interface Talkable {
      * 
      * @param talker
      *            The {@link Talkable} entity doing the talking
-     * @param text
+     * @param message
      *            The text to talk
      * 
      */
-    public void talkTo(Tongue context, String text, VocalChord vocalChord);
+    public void talkTo(SpeechContext context, String message, VocalChord vocalChord);
 
     /**
      * Called by a {@link VocalChord} when talking near this Talkable Entity
@@ -27,25 +27,24 @@ public interface Talkable {
      * @param talker
      *            The {@link Talkable} entity doing the talking
      * @param text
-     *            The text to talk
+     *            The message to talk
      * 
      */
-    public void talkNear(Tongue context, String text, VocalChord vocalChord);
-    
-    /**
-     * Gets the Bukkit LivingEntity of the Talkable.
-     * 
-     * @returns a LivingEntity
-     * 
-     */
-    public LivingEntity getEntity();
-    
+    public void talkNear(SpeechContext context, String message, VocalChord vocalChord);
+
     /**
      * Gets the name of the Talkable LivingEntity
      * 
      * @return name
      */
     public String getName();
+    
+    /**
+     * Gets the LivingEntity associated with this Talkable
+     * 
+     * @return a LivingEntity
+     */
+    public LivingEntity getEntity();
     
     
 }
