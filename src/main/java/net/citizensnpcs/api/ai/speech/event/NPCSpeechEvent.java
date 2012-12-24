@@ -16,42 +16,42 @@ public class NPCSpeechEvent extends NPCEvent implements Cancellable {
     
 	private boolean cancelled = false;
 
-    SpeechContext context;
-    String vocalChord;
+    private SpeechContext context;
+    private String vocalChordName;
 	
+    private static final HandlerList handlers = new HandlerList();
+
+    public static HandlerList getHandlerList() {
+        return handlers;
+    }
+    
     public NPCSpeechEvent(SpeechContext context, String vocalChordName) {
-		super(CitizensAPI.getNPCRegistry().getNPC(context.getTalker().getEntity()));
+    	super(CitizensAPI.getNPCRegistry().getNPC(context.getTalker().getEntity()));
+		this.vocalChordName = vocalChordName;
 		this.context = context;
 	}
-
+    
+    /**
+     * Returns the {@link SpeechContext} that will be sent to the VocalChord.
+     * 
+     * @return the SpeechContext
+     */
+    public SpeechContext getContext() {
+    	return context;
+    }
+    
     @Override
     public HandlerList getHandlers() {
         return handlers;
     }
     
     /**
-     * Returns the tongue that will be sent to the VocalChord.
-     * 
-     * @returns the Tongue
-     */
-    public SpeechContext getContext() {
-    	return context;
-    }
-    
-    /**
-     * Returns the name of the VocalChord that will be used.
+     * @return the name of the VocalChord that will be used.
      */
     public String getVocalChordName() {
-    	return vocalChord;
+    	return vocalChordName;
     }
-    
-    /**
-     * Sets the name of the VocalChord to be used.
-     */
-    public void setVocalChord(String vocalChordName) {
-    	vocalChord = vocalChordName;
-    }
-    
+
     @Override
     public boolean isCancelled() {
         return cancelled;
@@ -62,9 +62,13 @@ public class NPCSpeechEvent extends NPCEvent implements Cancellable {
         this.cancelled = cancelled;
     }
 
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlerList() {
-        return handlers;
+    /**
+     * Sets the name of the {@link VocalChord} to be used.
+     * 
+     * @param vocalChordName
+     * 			A valid registered VocalChord name
+     */
+    public void setVocalChord(String name) {
+    	this.vocalChordName = vocalChordName;
     }
 }

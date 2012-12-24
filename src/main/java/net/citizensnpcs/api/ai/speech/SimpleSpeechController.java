@@ -8,7 +8,7 @@ import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.trait.trait.Speech;
 
 /**
- * Simple implementation of SpeechController which allows a NPC to speak with any
+ * Simple implementation of {@link SpeechController} which allows a NPC to speak with any
  * registered {@link VocalChord}.
  *
  */

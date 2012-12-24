@@ -9,16 +9,18 @@ import org.bukkit.entity.LivingEntity;
 public interface Talkable extends Comparable<Object> {
 	
     /**
-     * Called by a {@link VocalChord} when talking to this Talkable Entity
-     * to provide a universal method to getting an event/output.
+     * Gets the LivingEntity associated with this Talkable
      * 
-     * @param talker
-     *            The {@link Talkable} entity doing the talking
-     * @param message
-     *            The text to talk
-     * 
+     * @return a LivingEntity
      */
-    public void talkTo(SpeechContext context, String message, VocalChord vocalChord);
+    public LivingEntity getEntity();
+
+    /**
+     * Gets the name of the Talkable LivingEntity
+     * 
+     * @return name
+     */
+    public String getName();
 
     /**
      * Called by a {@link VocalChord} when talking near this Talkable Entity
@@ -31,20 +33,17 @@ public interface Talkable extends Comparable<Object> {
      * 
      */
     public void talkNear(SpeechContext context, String message, VocalChord vocalChord);
-
-    /**
-     * Gets the name of the Talkable LivingEntity
-     * 
-     * @return name
-     */
-    public String getName();
     
     /**
-     * Gets the LivingEntity associated with this Talkable
+     * Called by a {@link VocalChord} when talking to this Talkable Entity
+     * to provide a universal method to getting an event/output.
      * 
-     * @return a LivingEntity
+     * @param talker
+     *            The {@link Talkable} entity doing the talking
+     * @param message
+     *            The text to talk
+     * 
      */
-    public LivingEntity getEntity();
-    
+    public void talkTo(SpeechContext context, String message, VocalChord vocalChord);
     
 }

@@ -21,13 +21,28 @@ public class SpeechEvent extends Event implements Cancellable {
     String message;
     Talkable target;
 	
+    private static final HandlerList handlers = new HandlerList();
+
+    public static HandlerList getHandlerList() {
+        return handlers;
+    }
+    
     public SpeechEvent(Talkable target, SpeechContext context, String message, VocalChord vocalChord) {
 		this.target = target;
     	this.context = context;
 		this.vocalChord = vocalChord;
 		this.message = message;
 	}
-
+    
+    /**
+     * Gets the {@link SpeechContext} associated with the SpeechEvent.
+     * 
+     * @return the SpeechContext
+     */
+    public SpeechContext getContext() {
+    	return context;
+    }
+    
     @Override
     public HandlerList getHandlers() {
         return handlers;
@@ -37,38 +52,21 @@ public class SpeechEvent extends Event implements Cancellable {
      * The final message to be sent to the bystander. Note: This may differ from
      * the message contained in the SpeechContext, as formatting may have occurred.
      * 
-     * @returns the message to be sent to the {@link Talkable} bystander.
+     * @return the message to be sent to the {@link Talkable} bystander.
      */
     public String getMessage() {
     	return message;
     }
     
     /**
-     * Sets the message to be sent to the bystander. Note: This may differ from
-     * the message contained in the SpeechContext, as formatting may have occurred.
+     * Returns the name of the {@link VocalChord} that called this event.
      * 
-     * @returns the message to be sent
-     */
-    public void setMessage(String formattedMessage) {
-    	this.message = formattedMessage;
-    }
-    
-    /**
-     * Gets the {@link SpeechContext} associated with the SpeechEvent.
-     * 
-     * @returns context
-     */
-    public SpeechContext getContext() {
-    	return context;
-    }
-    
-    /**
-     * Returns the name of the VocalChord that called this event.
+     * @return name of the VocalChord being used
      */
     public String getVocalChordName() {
     	return vocalChord.getName();
     }
-    
+
     @Override
     public boolean isCancelled() {
         return cancelled;
@@ -79,9 +77,13 @@ public class SpeechEvent extends Event implements Cancellable {
         this.cancelled = cancelled;
     }
 
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlerList() {
-        return handlers;
+    /**
+     * Sets the message to be sent to the bystander. Note: This may differ from
+     * the message contained in the SpeechContext, as formatting may have occurred.
+     * 
+     * @return the message to be sent
+     */
+    public void setMessage(String formattedMessage) {
+    	this.message = formattedMessage;
     }
 }

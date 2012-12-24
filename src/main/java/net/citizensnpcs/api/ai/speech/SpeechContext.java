@@ -1,39 +1,42 @@
 package net.citizensnpcs.api.ai.speech;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import org.bukkit.entity.LivingEntity;
+
 import net.citizensnpcs.api.npc.NPC;
 
 /**
- * SpeechContext contains information about a SpeechEvent, including
- * the {@link Talkable} talker, recipients, and a message.
+ * SpeechContext contains information about a {@link NPCSpeechEvent}, including
+ * the {@link Talkable} talker, recipients, and message.
  *
  */
 public class SpeechContext implements Iterable<Talkable> {
 
-	private Talkable talker;
-	private List<Talkable> recipients;
+	private Talkable talker = null;
+	private List<Talkable> recipients = Collections.emptyList();
 	private String message;
 
 	public SpeechContext(NPC talker, String message) {
-		this.talker = new TalkableEntity(talker);
+		if (talker != null) setTalker(new TalkableEntity(talker));
 		this.message = message;
-		this.recipients = Collections.emptyList();
+	}
+
+	public SpeechContext(NPC talker, String message, TalkableEntity recipient) {
+		this(talker, message);
+		if (recipient != null) addRecipient(recipient);
 	}
 	
 	public SpeechContext(String message) {
-		this(null, message);
+		this.message = message;
 	}
 	
-	public SpeechContext(String message, Talkable recipient) {
-		this(null, message, recipient);
-	}
-	
-	public SpeechContext(NPC talker, String message, Talkable recipient) {
-		this(talker, message);
-		recipients.add(recipient);
+	public SpeechContext(String message, LivingEntity recipient) {
+		this.message = message;
+		if (recipient != null) addRecipient(new TalkableEntity(recipient));
 	}
 	
 	/**
@@ -43,10 +46,11 @@ public class SpeechContext implements Iterable<Talkable> {
 	 * message.
 	 * 
 	 * @param talkable Talkable entity
-	 * @returns the speech context
+	 * @return the speech context
 	 * 
 	 */
 	public SpeechContext addRecipient(Talkable talkable) {
+		if (recipients.isEmpty()) recipients = new ArrayList<Talkable>();
 		recipients.add(talkable);
 		return this;
 	}
@@ -58,23 +62,13 @@ public class SpeechContext implements Iterable<Talkable> {
 	 * message.
 	 * 
 	 * @param talkable Talkable entity
-	 * @returns the Tongue
+	 * @return the Tongue
 	 * 
 	 */
 	public SpeechContext addRecipients(List<Talkable> talkables) {
+		if (recipients.isEmpty()) recipients = new ArrayList<Talkable>();
 		recipients.addAll(talkables);
 		return this;
-	}
-	
-	/**
-	 * Sets the text message sent. Overrides text set with the constructor.
-	 * 
-	 * @param message
-	 * 			The text to send.
-	 * 
-	 */
-	public void setMessage(String message) {
-		this.message = message;
 	}
 	
 	/**
@@ -84,8 +78,8 @@ public class SpeechContext implements Iterable<Talkable> {
     public String getMessage() {
     	return message;
     }
-    
-    /**
+	
+	/**
      * Gets the talker.
      * 
      * @return NPC doing the talking
@@ -96,6 +90,39 @@ public class SpeechContext implements Iterable<Talkable> {
     }
     
     /**
+     * Checks if there are any recipients. If none, this {@link SpeechContext}
+     * is not targeted.
+     * 
+     * @return true if recipients are specified.
+     */
+    public boolean hasRecipients() {
+    	return (recipients.isEmpty()) ? false : true;
+    }
+    
+    /**
+     * Gets direct recipients, if any.
+     * 
+     * @return recipients Iterator
+     * 
+     */
+ 	@Override
+	public Iterator<Talkable> iterator() {
+ 		final Iterator<Talkable> itr = recipients.iterator();
+        return itr;
+	}
+       
+    /**
+	 * Sets the text message sent. Overrides text set with the constructor.
+	 * 
+	 * @param message
+	 * 			The text to send.
+	 * 
+	 */
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+    /**
      * Sets the talker.
      * 
      * @param talker 
@@ -105,35 +132,12 @@ public class SpeechContext implements Iterable<Talkable> {
     public void setTalker(Talkable talker) {
     	this.talker = talker;
     }
-       
-    /**
-     * Checks if there are any recipients. If none, this {@link SpeechContext}
-     * is not targeted.
-     * 
-     * @returns true if recipients are specified.
-     */
-    public boolean hasRecipients() {
-    	return recipients.isEmpty() ? false : true;
-    }
-
-    /**
-     * Gets direct recipients, if any.
-     * 
-     * @return recipients
-     * 
-     */
- 	@Override
-	public Iterator<Talkable> iterator() {
-        final Iterator<Talkable> itr = recipients.iterator();
-        return itr;
-	}
  	
  	/**
- 	 * @returns number of recipients.
+ 	 * @return number of recipients.
  	 */
  	public int size() {
  		return recipients.size();
  	}
  	
-    
 }

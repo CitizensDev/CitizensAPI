@@ -34,7 +34,7 @@ public class Speech extends Trait {
     public void setDefaultVocalChord(Class<VocalChord> clazz) {
         defaultVocalChord = CitizensAPI.getSpeechFactory().getVocalChordName(clazz);
     }
-
+    
     @Override
     public String toString() {
         return "DefaultVocalChord{" + defaultVocalChord + "}";

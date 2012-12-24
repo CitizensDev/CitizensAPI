@@ -12,6 +12,6 @@ public class SpeechTargetedEvent extends SpeechEvent {
 
 	public SpeechTargetedEvent(Talkable target, SpeechContext context, String message, VocalChord vocalChord) {
 		super(target, context, message, vocalChord);
-		}
-   
+	}
+
 }

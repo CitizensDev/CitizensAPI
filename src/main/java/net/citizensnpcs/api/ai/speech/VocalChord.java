@@ -14,7 +14,7 @@ public interface VocalChord {
     /**
      * Returns the name of the vocal chord used in the registration process.
      * 
-     * @returns name of the VocalChord
+     * @return name of the VocalChord
      */
     public String getName();
 
