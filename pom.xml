@@ -11,7 +11,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<bukkit.version>1.4.5-R1.0</bukkit.version>
+		<bukkit.version>LATEST</bukkit.version>
 		<rhino.version>1.7R2</rhino.version>
 		<powermock.version>1.4.12</powermock.version>
 		<uncommons-math.version>LATEST</uncommons-math.version>
