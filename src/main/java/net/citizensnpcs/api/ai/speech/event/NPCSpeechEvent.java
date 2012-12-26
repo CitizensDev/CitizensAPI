@@ -69,6 +69,6 @@ public class NPCSpeechEvent extends NPCEvent implements Cancellable {
      * 			A valid registered VocalChord name
      */
     public void setVocalChord(String name) {
-    	this.vocalChordName = vocalChordName;
+    	this.vocalChordName = name;
     }
 }

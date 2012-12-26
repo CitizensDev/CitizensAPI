@@ -27,7 +27,7 @@ public class SimpleSpeechController implements SpeechController {
 
 	@Override
 	public void speak(SpeechContext context, String vocalChordName) {
-		context.setTalker(new TalkableEntity(npc));
+		context.setTalker(npc.getBukkitEntity());
 		NPCSpeechEvent event = new NPCSpeechEvent(context, vocalChordName);
 		Bukkit.getServer().getPluginManager().callEvent(event);
 		if (event.isCancelled()) return;
