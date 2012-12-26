@@ -20,6 +20,11 @@ public class SpeechContext implements Iterable<Talkable> {
 	private List<Talkable> recipients = Collections.emptyList();
 	private String message;
 
+	public SpeechContext() {
+		// Must set talker/message (and recipients, if any) 
+		// with supplied methods.
+	}
+	
 	public SpeechContext(NPC talker, String message) {
 		if (talker != null) setTalker(new TalkableEntity(talker));
 		this.message = message;
