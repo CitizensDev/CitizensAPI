@@ -2,7 +2,9 @@ package net.citizensnpcs.api.npc;
 
 import java.util.UUID;
 
+import net.citizensnpcs.api.exception.NotPlayerNPCException;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -256,6 +258,40 @@ public interface NPC extends Agent, Cloneable {
      *            Whether the NPC should be protected
      */
     public void setProtected(boolean isProtected);
+
+    /**
+     * This method sets the skin of a player NPC given a player name
+     *
+     * @param playerName
+     *            The name of a player
+     */
+    public void setSkin(String playerName) throws NotPlayerNPCException;
+
+    /**
+     * This method sets the skin of a player NPC given a player UUID
+     *
+     * @param playerUUID
+     *            The UUID of a player
+     */
+    public void setSkin(UUID playerUUID) throws NotPlayerNPCException;
+
+    /**
+     * This method sets the skin of a player NPC given a OfflinePlayer
+     *
+     * @param player
+     *            An OfflinePlayer
+     */
+    public void setSkin(OfflinePlayer player) throws NotPlayerNPCException;
+
+    /**
+     * This method sets the skin of a player NPC given a texture string and it's signature
+     *
+     * @param skin
+     *            The skin string
+     * @param signature
+     *            The skin signature
+     */
+    public void setSkin(String skin, String signature) throws NotPlayerNPCException;
 
     /**
      * Attempts to spawn this NPC.

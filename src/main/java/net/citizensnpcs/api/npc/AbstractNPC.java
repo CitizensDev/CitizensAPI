@@ -1,36 +1,18 @@
 package net.citizensnpcs.api.npc;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
-import org.bukkit.metadata.FixedMetadataValue;
-
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.ai.GoalController;
 import net.citizensnpcs.api.ai.SimpleGoalController;
 import net.citizensnpcs.api.ai.speech.SimpleSpeechController;
 import net.citizensnpcs.api.ai.speech.SpeechController;
-import net.citizensnpcs.api.event.DespawnReason;
-import net.citizensnpcs.api.event.NPCAddTraitEvent;
-import net.citizensnpcs.api.event.NPCRemoveEvent;
-import net.citizensnpcs.api.event.NPCRemoveTraitEvent;
-import net.citizensnpcs.api.event.NPCTeleportEvent;
+import net.citizensnpcs.api.event.*;
+import net.citizensnpcs.api.exception.NotPlayerNPCException;
 import net.citizensnpcs.api.persistence.PersistenceLoader;
 import net.citizensnpcs.api.trait.Trait;
 import net.citizensnpcs.api.trait.trait.MobType;
@@ -39,6 +21,20 @@ import net.citizensnpcs.api.util.Colorizer;
 import net.citizensnpcs.api.util.DataKey;
 import net.citizensnpcs.api.util.MemoryDataKey;
 import net.citizensnpcs.api.util.Messaging;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
+import org.bukkit.metadata.FixedMetadataValue;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 public abstract class AbstractNPC implements NPC {
     private final GoalController goalController = new SimpleGoalController();
@@ -378,6 +374,53 @@ public abstract class AbstractNPC implements NPC {
     @Override
     public void setProtected(boolean isProtected) {
         data().setPersistent(NPC.DEFAULT_PROTECTED_METADATA, isProtected);
+    }
+
+    @Override
+    public void setSkin(String playerName) throws NotPlayerNPCException {
+        setSkin(Bukkit.getOfflinePlayer(playerName).getUniqueId());
+    }
+
+    @Override
+    public void setSkin(UUID playerUUID) throws NotPlayerNPCException {
+        if (this.getEntity().getType() != EntityType.PLAYER) {
+            throw new NotPlayerNPCException("The NPC needs to be a player to set its skin");
+        }
+
+        this.data().setPersistent(NPC.PLAYER_SKIN_UUID_METADATA, playerUUID.toString());
+
+        if (this.isSpawned()){
+            this.despawn(DespawnReason.PENDING_RESPAWN);
+            this.spawn(this.getStoredLocation());
+        }
+    }
+
+    @Override
+    public void setSkin(OfflinePlayer player) throws NotPlayerNPCException {
+        setSkin(player.getUniqueId());
+    }
+
+    @Override
+    public void setSkin(String skin, String signature) throws NotPlayerNPCException {
+        if (this.getEntity().getType() != EntityType.PLAYER) {
+            throw new NotPlayerNPCException("The NPC needs to be a player to set its skin");
+        }
+
+        this.data().setPersistent(NPC.PLAYER_SKIN_USE_LATEST, false);
+
+        this.data().setPersistent(NPC.PLAYER_SKIN_TEXTURE_PROPERTIES_METADATA, skin);
+        this.data().setPersistent(NPC.PLAYER_SKIN_TEXTURE_PROPERTIES_SIGN_METADATA, signature);
+
+        if (this.data().get(NPC.PLAYER_SKIN_UUID_METADATA) == null)
+            this.data().setPersistent(NPC.PLAYER_SKIN_UUID_METADATA, this.getUniqueId().toString());
+
+        if (this.data().get("cached-skin-uuid-name") == null)
+            this.data().setPersistent("cached-skin-uuid-name", this.getUniqueId().toString());
+
+        if (this.isSpawned()){
+            this.despawn(DespawnReason.PENDING_RESPAWN);
+            this.spawn(this.getStoredLocation());
+        }
     }
 
     private void teleport(final Entity entity, Location location, int delay) {
