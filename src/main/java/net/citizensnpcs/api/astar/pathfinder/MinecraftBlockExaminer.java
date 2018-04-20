@@ -46,7 +46,7 @@ public class MinecraftBlockExaminer implements BlockExaminer {
         }
         if ((isClimbable(above) && isClimbable(in)) || (isClimbable(in) && isClimbable(below))) {
             point.addCallback(new LadderClimber());
-        } else if (!canStandIn(above) || !canStandIn(in)) {
+        } else if (!canStandIn(above) || (!canStandIn(in) && !isHalfBlock(in))) {
             return PassableState.UNPASSABLE;
         }
         if (!canJumpOn(below)) {
@@ -144,22 +144,13 @@ public class MinecraftBlockExaminer implements BlockExaminer {
         }
         return location;
     }
-    
-    public static void fixHalfBlocks(Block block, Vector vector){
-    	if (HALF_BLOCKS.contains(block.getType()) && (vector.getY() - (double)vector.getBlockY()) < 0.5) {
-        	vector.setY(vector.getY() + 0.5);
-        	return;
-    	}
-    	if (block.getType() == Material.AIR) {
-	    	Block below = block.getRelative(BlockFace.DOWN);
-	    	if (HALF_BLOCKS.contains(below.getType())) {
-	    		vector.setY(below.getY() + 0.5);
-	    	}
-    	}
-    }
 
     public static boolean isDoor(Material in) {
         return DOORS.contains(in);
+    }
+    
+    public static boolean isHalfBlock(Material in) {
+    	return HALF_BLOCKS.contains(in);
     }
 
     public static boolean isLiquid(Material... materials) {

@@ -3,6 +3,7 @@ package net.citizensnpcs.api.astar.pathfinder;
 import java.util.List;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
 import com.google.common.collect.Lists;
@@ -48,7 +49,9 @@ public class VectorNode extends AStarNode implements PathPoint {
 
     @Override
     public VectorNode createAtOffset(Vector mod) {
-        return new VectorNode(this, mod, info);
+    	VectorNode node = new VectorNode(this, mod, info);
+    	node.fixHalfBlocks();
+    	return node;
     }
 
     public float distance(VectorNode to) {
@@ -82,6 +85,14 @@ public class VectorNode extends AStarNode implements PathPoint {
             }
         }
         return blockCost;
+    }
+    
+    
+    private void fixHalfBlocks() {
+        Material type = info.blockSource.getMaterialAt(location);
+        if (MinecraftBlockExaminer.isHalfBlock(type)) {
+        	location.setY(location.getBlockY() + 0.5);
+        }
     }
 
     @Override
