@@ -146,8 +146,15 @@ public class MinecraftBlockExaminer implements BlockExaminer {
     }
     
     public static void fixHalfBlocks(Block block, Vector vector){
-    	if(HALF_BLOCKS.contains(block.getType()) && (vector.getY() - (double)vector.getBlockY()) < 0.5){
+    	if (HALF_BLOCKS.contains(block.getType()) && (vector.getY() - (double)vector.getBlockY()) < 0.5) {
         	vector.setY(vector.getY() + 0.5);
+        	return;
+    	}
+    	if (block.getType() == Material.AIR) {
+	    	Block below = block.getRelative(BlockFace.DOWN);
+	    	if (HALF_BLOCKS.contains(below.getType())) {
+	    		vector.setY(below.getY() + 0.5);
+	    	}
     	}
     }
 
@@ -173,6 +180,6 @@ public class MinecraftBlockExaminer implements BlockExaminer {
             Material.JUNGLE_FENCE, Material.ACACIA_FENCE, Material.DARK_OAK_FENCE);
     private static final Set<Material> UNWALKABLE = EnumSet.of(Material.AIR, Material.LAVA, Material.STATIONARY_LAVA,
             Material.CACTUS);
-    private static final Set<Material> HALF_BLOCKS = EnumSet.of(Material.BED_BLOCK);
+    private static final Set<Material> HALF_BLOCKS = EnumSet.of(Material.BED_BLOCK, Material.STEP, Material.STONE_SLAB2, Material.WOOD_STEP);
     private static final Vector UP = new Vector(0, 1, 0);
 }
