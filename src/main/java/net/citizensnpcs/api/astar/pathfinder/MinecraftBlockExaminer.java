@@ -149,6 +149,13 @@ public class MinecraftBlockExaminer implements BlockExaminer {
         return DOORS.contains(in);
     }
     
+    public static float getMaterialHeight(Material material) {
+    	if (isHalfBlock(material)) {
+    		return 0.5F;
+    	}
+    	return 0F;
+    }
+    
     public static boolean isHalfBlock(Material in) {
     	return HALF_BLOCKS.contains(in);
     }
