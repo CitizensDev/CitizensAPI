@@ -23,7 +23,8 @@ public class VectorNode extends AStarNode implements PathPoint {
 
     public VectorNode(VectorNode parent, Vector location, PathInfo info) {
         super(parent);
-        this.location = location.setX(location.getBlockX()).setY(location.getBlockY()).setZ(location.getBlockZ());
+        float height = MinecraftBlockExaminer.getMaterialHeight(info.blockSource.getMaterialAt(location));
+        this.location = location.setX(location.getBlockX()).setY(location.getBlockY() + height).setZ(location.getBlockZ());
         this.info = info;
     }
 
@@ -48,7 +49,7 @@ public class VectorNode extends AStarNode implements PathPoint {
 
     @Override
     public VectorNode createAtOffset(Vector mod) {
-        return new VectorNode(this, mod, info);
+    	return new VectorNode(this, mod, info);
     }
 
     public float distance(VectorNode to) {

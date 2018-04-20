@@ -46,7 +46,7 @@ public class MinecraftBlockExaminer implements BlockExaminer {
         }
         if ((isClimbable(above) && isClimbable(in)) || (isClimbable(in) && isClimbable(below))) {
             point.addCallback(new LadderClimber());
-        } else if (!canStandIn(above) || !canStandIn(in)) {
+        } else if (!canStandIn(above) || (!canStandIn(in) && !isHalfBlock(in))) {
             return PassableState.UNPASSABLE;
         }
         if (!canJumpOn(below)) {
@@ -148,6 +148,17 @@ public class MinecraftBlockExaminer implements BlockExaminer {
     public static boolean isDoor(Material in) {
         return DOORS.contains(in);
     }
+    
+    public static float getMaterialHeight(Material material) {
+    	if (isHalfBlock(material)) {
+    		return 0.5F;
+    	}
+    	return 0F;
+    }
+    
+    public static boolean isHalfBlock(Material in) {
+    	return HALF_BLOCKS.contains(in);
+    }
 
     public static boolean isLiquid(Material... materials) {
         return contains(materials, Material.WATER, Material.STATIONARY_WATER, Material.LAVA, Material.STATIONARY_LAVA);
@@ -167,5 +178,6 @@ public class MinecraftBlockExaminer implements BlockExaminer {
             Material.JUNGLE_FENCE, Material.ACACIA_FENCE, Material.DARK_OAK_FENCE);
     private static final Set<Material> UNWALKABLE = EnumSet.of(Material.AIR, Material.LAVA, Material.STATIONARY_LAVA,
             Material.CACTUS);
+    private static final Set<Material> HALF_BLOCKS = EnumSet.of(Material.BED_BLOCK, Material.STEP, Material.STONE_SLAB2, Material.WOOD_STEP);
     private static final Vector UP = new Vector(0, 1, 0);
 }
