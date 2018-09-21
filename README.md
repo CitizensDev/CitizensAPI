@@ -19,11 +19,11 @@ Include CitizensAPI in your pom.xml like this (set the artifactId to citizens if
     <groupId>net.citizensnpcs</groupId>
     <artifactId>citizensapi</artifactId>
     <version>CITIZENS_VERSION</version>
-    <scope>scope</scope>
+    <scope>provided</scope>
 </dependency>
 ```
 
-The correct CITIZENS_VERSION to use can depend on your minecraft version. A list can be found here http://repo.citizensnpcs.co/net/citizensnpcs/citizensapi/ - or you can use the version listed in the Citizens2 JAR you downloaded (e.g. `2.0.22-SNAPSHOT`).
+The correct CITIZENS_VERSION to use can depend on your minecraft version. A list can be found here http://repo.citizensnpcs.co/net/citizensnpcs/citizensapi/ - or you can use the version listed in the Citizens2 JAR you downloaded (e.g. `2.0.24-SNAPSHOT`).
 
 Javadoc
 =======
