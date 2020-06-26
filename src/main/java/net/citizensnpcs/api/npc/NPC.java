@@ -389,22 +389,22 @@ public interface NPC extends Agent, Cloneable {
      */
     public static final String PATHFINDER_OPEN_DOORS_METADATA = "pathfinder-open-doors";
     /**
-     * @see SkinTrait
+     * Take a look at the SkinTrait in the main module
      */
     @Deprecated
     public static final String PLAYER_SKIN_TEXTURE_PROPERTIES_METADATA = "player-skin-textures";
     /**
-     * @see SkinTrait
+     * Take a look at the SkinTrait in the main module
      */
     @Deprecated
     public static final String PLAYER_SKIN_TEXTURE_PROPERTIES_SIGN_METADATA = "player-skin-signature";
     /**
-     * @see SkinTrait
+     * Take a look at the SkinTrait in the main module
      */
     @Deprecated
     public static final String PLAYER_SKIN_USE_LATEST = "player-skin-use-latest-skin";
     /**
-     * @see SkinTrait
+     * Take a look at the SkinTrait in the main module
      */
     @Deprecated
     public static final String PLAYER_SKIN_UUID_METADATA = "player-skin-name";

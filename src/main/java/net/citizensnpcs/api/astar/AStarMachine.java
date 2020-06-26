@@ -27,9 +27,9 @@ public class AStarMachine<N extends AStarNode, P extends Plan> {
     }
 
     /**
-     * Creates an {@link AStarState} that can be reused across multiple invocations of {{@link #run(AStarState, int)}.
+     * Creates an {@link AStarState} that can be reused across multiple invocations of {@link #run(AStarMachine.AStarState, int)}.
      *
-     * @see #run(AStarState, int)
+     * @see #run(AStarMachine.AStarState, int)
      * @param goal
      *            The {@link AStarGoal} state
      * @param start
@@ -43,7 +43,7 @@ public class AStarMachine<N extends AStarNode, P extends Plan> {
     /**
      * Runs the {@link AStarState} until a plan is found.
      *
-     * @see #run(AStarState)
+     * @see #run(AStarMachine.AStarState)
      * @param state
      *            The state to use
      * @return The generated {@link Plan}, or <code>null</code>

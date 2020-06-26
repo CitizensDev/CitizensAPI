@@ -6,7 +6,7 @@ import org.bukkit.util.Vector;
 import net.citizensnpcs.api.ai.event.CancelReason;
 
 /**
- * A pathfinding strategy directed at a target. Has two states: pathfinding -> cancelled represented by
+ * A pathfinding strategy directed at a target. Has two states: pathfinding -&gt; cancelled represented by
  * {@link #getCancelReason()}.
  */
 public interface PathStrategy {
