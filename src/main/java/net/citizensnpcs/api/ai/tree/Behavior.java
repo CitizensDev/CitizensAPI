@@ -10,7 +10,7 @@ import net.citizensnpcs.api.ai.Goal;
  * for AI that is easy for designers to use. It is a simple state machine using {@link BehaviorStatus} as the separate
  * states.
  *
- * This can be represented as shouldExecute() returning true -> RUNNING -> FAILURE | SUCCESS. The graph is made up of
+ * This can be represented as shouldExecute() returning true -&gt; RUNNING -&gt; FAILURE | SUCCESS. The graph is made up of
  * many {@link Selector}s and {@link Sequence}s, with the leaf nodes being concrete actions.
  *
  * @see <a href=
