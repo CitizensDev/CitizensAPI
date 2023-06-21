@@ -49,33 +49,43 @@ public class TargetNearbyEntityGoal extends BehaviorGoalAdapter {
         if (finished) {
             return reason == null ? BehaviorStatus.SUCCESS : BehaviorStatus.FAILURE;
         }
+
+        if (target == null) {
+            target = findTarget();
+        }
+
+        Navigator nav = npc.getNavigator();
+        nav.setTarget(target, aggressive);
+        nav.getLocalParameters().addSingleUseCallback(new NavigatorCallback() {
+            @Override
+            public void onCompletion(CancelReason cancelReason) {
+                reason = cancelReason;
+                finished = true;
+            }
+        });
+
         return BehaviorStatus.RUNNING;
+    }
+
+    private Entity findTarget() {
+        Collection<Entity> nearby = npc.getEntity().getNearbyEntities(radius, radius, radius);
+        for(Entity possible : nearby) {
+            if (targets.contains(possible.getType())) {
+                return possible;
+            }
+        }
+
+        return null;
     }
 
     @Override
     public boolean shouldExecute() {
-        if (targets.size() == 0 || !npc.isSpawned())
+        if (targets.size() == 0 || !npc.isSpawned()) {
             return false;
-        Collection<Entity> nearby = npc.getEntity().getNearbyEntities(radius, radius, radius);
-        this.target = null;
-        for (Entity entity : nearby) {
-            if (targets.contains(entity.getType())) {
-                target = entity;
-                break;
-            }
         }
-        if (target != null) {
-            npc.getNavigator().setTarget(target, aggressive);
-            npc.getNavigator().getLocalParameters().addSingleUseCallback(new NavigatorCallback() {
-                @Override
-                public void onCompletion(CancelReason cancelReason) {
-                    reason = cancelReason;
-                    finished = true;
-                }
-            });
-            return true;
-        }
-        return false;
+
+        target = findTarget();
+        return target != null;
     }
 
     public static class Builder {
