@@ -1,7 +1,6 @@
 package net.citizensnpcs.api.event;
 
 import org.bukkit.block.Block;
-import org.bukkit.event.HandlerList;
 import org.bukkit.event.entity.EntityCombustByBlockEvent;
 
 import net.citizensnpcs.api.npc.NPC;
@@ -24,15 +23,4 @@ public class NPCCombustByBlockEvent extends NPCCombustEvent {
     public Block getCombuster() {
         return event.getCombuster();
     }
-
-    @Override
-    public HandlerList getHandlers() {
-        return handlers;
-    }
-
-    public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    private static final HandlerList handlers = new HandlerList();
 }
