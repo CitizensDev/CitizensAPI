@@ -379,6 +379,12 @@ public interface NPC extends Agent, Cloneable {
     public void setName(String name);
 
     /**
+     * Force an update of custom name.
+     * Currently used by per-player hologram.
+     */
+    public void updateCustomName();
+
+    /**
      * A helper method to set the NPC as protected or not protected from damage/entity target events. Equivalent to
      * <code>npc.data().set(NPC.Metadata#DEFAULT_PROTECTED_METADATA, isProtected);</code>
      *
