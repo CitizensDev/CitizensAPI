@@ -8,17 +8,16 @@ import java.time.temporal.ChronoUnit;
 import java.util.Locale;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Keyed;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
@@ -277,6 +276,18 @@ public class SpigotUtil {
         return base;
     }
 
+    public static CompletableFuture<Boolean> teleportAsync(Entity entity, Location location) {
+        return ASYNC_TELEPORT ? entity.teleportAsync(location) : CompletableFuture.completedFuture(entity.teleport(location));
+    }
+
+    public static CompletableFuture<Boolean> teleportAsync(Entity entity, Location location, PlayerTeleportEvent.TeleportCause cause) {
+        return ASYNC_TELEPORT ? entity.teleportAsync(location, cause) : CompletableFuture.completedFuture(entity.teleport(location, cause));
+    }
+
+    public static boolean isFoliaServer() {
+        return FOLIA_SERVER;
+    }
+
     private static ChronoUnit toChronoUnit(TimeUnit tu) {
         switch (tu) {
             case NANOSECONDS:
@@ -306,12 +317,26 @@ public class SpigotUtil {
     private static boolean SUPPORT_WORLD_HEIGHT = true;
     private static boolean SUPPORTS_KEYED;
     private static Boolean using1_13API;
+    private static boolean FOLIA_SERVER = false;
+    private static boolean ASYNC_TELEPORT = false;
 
     static {
         try {
             Class.forName("org.bukkit.Keyed");
             SUPPORTS_KEYED = true;
         } catch (ClassNotFoundException e) {
+        }
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            FOLIA_SERVER = true;
+        } catch (ClassNotFoundException ignored) {
+            FOLIA_SERVER = false;
+        }
+        try {
+            Entity.class.getMethod("teleportAsync", Location.class, PlayerTeleportEvent.TeleportCause.class);
+            ASYNC_TELEPORT = true;
+        } catch (NoSuchMethodException exception) {
+            ASYNC_TELEPORT = false;
         }
     }
 }

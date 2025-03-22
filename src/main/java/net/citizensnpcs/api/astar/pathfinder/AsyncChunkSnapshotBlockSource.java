@@ -2,6 +2,8 @@ package net.citizensnpcs.api.astar.pathfinder;
 
 import java.util.concurrent.Callable;
 
+import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.util.SpigotUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.Location;
@@ -24,10 +26,11 @@ public class AsyncChunkSnapshotBlockSource extends CachingChunkBlockSource<Chunk
         // TODO: pre-load multiple chunks on cache miss
         Callable<ChunkSnapshot> call = () -> world.getChunkAt(x, z).getChunkSnapshot(false, false, false);
         try {
-            if (!Bukkit.isPrimaryThread()) {
+            if (!SpigotUtil.isFoliaServer() && !Bukkit.isPrimaryThread()) {
                 return Bukkit.getScheduler().callSyncMethod(null, call).get();
-            } else
-                return call.call();
+            }
+            return call.call();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
