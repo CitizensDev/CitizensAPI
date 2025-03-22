@@ -37,32 +37,32 @@ public class SpigotScheduler implements SchedulerAdapter {
     }
 
     @Override
-    public SchedulerTask runRegion(Plugin plugin, Location location, Runnable runnable) {
+    public SchedulerTask runRegion(Location location, Runnable runnable) {
         return runGlobal(runnable);
     }
 
     @Override
-    public SchedulerTask runRegionLater(Plugin plugin, Location location, Runnable runnable, long delayTicks) {
+    public SchedulerTask runRegionLater(Location location, Runnable runnable, long delayTicks) {
         return runGlobalLater(runnable, delayTicks);
     }
 
     @Override
-    public SchedulerTask runRegionTimer(Plugin plugin, Location location, Runnable runnable, long delayTicks, long periodTicks) {
+    public SchedulerTask runRegionTimer(Location location, Runnable runnable, long delayTicks, long periodTicks) {
         return runGlobalTimer(runnable, delayTicks, periodTicks);
     }
 
     @Override
-    public SchedulerTask runRegion(Plugin plugin, World world, int chunkX, int chunkZ, Runnable runnable) {
+    public SchedulerTask runRegion(World world, int chunkX, int chunkZ, Runnable runnable) {
         return runGlobal(runnable);
     }
 
     @Override
-    public SchedulerTask runRegionLater(Plugin plugin, World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks) {
+    public SchedulerTask runRegionLater(World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks) {
         return runGlobalLater(runnable, delayTicks);
     }
 
     @Override
-    public SchedulerTask runRegionTimer(Plugin plugin, World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks, long periodTicks) {
+    public SchedulerTask runRegionTimer(World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks, long periodTicks) {
         return runGlobalTimer(runnable, delayTicks, periodTicks);
     }
 
@@ -82,17 +82,17 @@ public class SpigotScheduler implements SchedulerAdapter {
     }
 
     @Override
-    public SchedulerTask runTaskAsynchronously(Plugin plugin, Runnable runnable) {
+    public SchedulerTask runTaskAsynchronously(Runnable runnable) {
         return wrap(Bukkit.getScheduler().runTaskAsynchronously(plugin, runnable));
     }
 
     @Override
-    public SchedulerTask runTaskLaterAsynchronously(Plugin plugin, Runnable runnable, long delayTicks) {
+    public SchedulerTask runTaskLaterAsynchronously(Runnable runnable, long delayTicks) {
         return wrap(Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, runnable, delayTicks));
     }
 
     @Override
-    public SchedulerTask runTaskTimerAsynchronously(Plugin plugin, Runnable runnable, long delayTicks, long periodTicks) {
+    public SchedulerTask runTaskTimerAsynchronously(Runnable runnable, long delayTicks, long periodTicks) {
         return wrap(Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, runnable, delayTicks, periodTicks));
     }
 }

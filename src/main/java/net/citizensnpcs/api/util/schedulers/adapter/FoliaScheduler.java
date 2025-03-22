@@ -55,37 +55,37 @@ public class FoliaScheduler implements SchedulerAdapter {
     }
 
     @Override
-    public SchedulerTask runRegion(Plugin plugin, Location location, Runnable runnable) {
+    public SchedulerTask runRegion(Location location, Runnable runnable) {
         ScheduledTask task = regionScheduler.run(plugin, location, scheduledTask -> runnable.run());
         return wrap(task);
     }
 
     @Override
-    public SchedulerTask runRegionLater(Plugin plugin, Location location, Runnable runnable, long delayTicks) {
+    public SchedulerTask runRegionLater(Location location, Runnable runnable, long delayTicks) {
         ScheduledTask task = regionScheduler.runDelayed(plugin, location, scheduledTask -> runnable.run(), Math.max(1, delayTicks));
         return wrap(task);
     }
 
     @Override
-    public SchedulerTask runRegionTimer(Plugin plugin, Location location, Runnable runnable, long delayTicks, long periodTicks) {
+    public SchedulerTask runRegionTimer(Location location, Runnable runnable, long delayTicks, long periodTicks) {
         ScheduledTask task = regionScheduler.runAtFixedRate(plugin, location, scheduledTask -> runnable.run(), Math.max(1, delayTicks), Math.max(1, periodTicks));
         return wrap(task);
     }
 
     @Override
-    public SchedulerTask runRegion(Plugin plugin, World world, int chunkX, int chunkZ, Runnable runnable) {
+    public SchedulerTask runRegion(World world, int chunkX, int chunkZ, Runnable runnable) {
         ScheduledTask task = regionScheduler.run(plugin, world, chunkX, chunkZ, scheduledTask -> runnable.run());
         return wrap(task);
     }
 
     @Override
-    public SchedulerTask runRegionLater(Plugin plugin, World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks) {
+    public SchedulerTask runRegionLater(World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks) {
         ScheduledTask task = regionScheduler.runDelayed(plugin, world, chunkX, chunkZ, scheduledTask -> runnable.run(), Math.max(1, delayTicks));
         return wrap(task);
     }
 
     @Override
-    public SchedulerTask runRegionTimer(Plugin plugin, World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks, long periodTicks) {
+    public SchedulerTask runRegionTimer(World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks, long periodTicks) {
         ScheduledTask task = regionScheduler.runAtFixedRate(plugin, world, chunkX, chunkZ, scheduledTask -> runnable.run(), Math.max(1, delayTicks), Math.max(1, periodTicks));
         return wrap(task);
     }
@@ -109,19 +109,19 @@ public class FoliaScheduler implements SchedulerAdapter {
     }
 
     @Override
-    public SchedulerTask runTaskAsynchronously(Plugin plugin, Runnable runnable) {
+    public SchedulerTask runTaskAsynchronously(Runnable runnable) {
         ScheduledTask task = asyncScheduler.runNow(plugin, scheduledTask -> runnable.run());
         return wrap(task);
     }
 
     @Override
-    public SchedulerTask runTaskLaterAsynchronously(Plugin plugin, Runnable runnable, long delayTicks) {
+    public SchedulerTask runTaskLaterAsynchronously(Runnable runnable, long delayTicks) {
         ScheduledTask task = asyncScheduler.runDelayed(plugin, scheduledTask -> runnable.run(), ticksToMillis(Math.max(1, delayTicks)), TimeUnit.MILLISECONDS);
         return wrap(task);
     }
 
     @Override
-    public SchedulerTask runTaskTimerAsynchronously(Plugin plugin, Runnable runnable, long delayTicks, long periodTicks) {
+    public SchedulerTask runTaskTimerAsynchronously(Runnable runnable, long delayTicks, long periodTicks) {
         ScheduledTask task = asyncScheduler.runAtFixedRate(plugin, scheduledTask -> runnable.run(), ticksToMillis(Math.max(1, delayTicks)), ticksToMillis(Math.max(1, periodTicks)), TimeUnit.MILLISECONDS);
         return wrap(task);
     }

@@ -37,7 +37,7 @@ public interface SchedulerAdapter {
      * Executes a task associated with a specific region or chunk.
      * On Spigot, this defaults to the global thread.
      */
-    SchedulerTask runRegion(Plugin plugin, Location location, Runnable runnable);
+    SchedulerTask runRegion(Location location, Runnable runnable);
 
     /**
      * Executes a task associated with a specific region or chunk after a delay.
@@ -45,7 +45,7 @@ public interface SchedulerAdapter {
      *
      * @param delayTicks Delay before execution, measured in ticks.
      */
-    SchedulerTask runRegionLater(Plugin plugin, Location location, Runnable runnable, long delayTicks);
+    SchedulerTask runRegionLater(Location location, Runnable runnable, long delayTicks);
 
     /**
      * Executes a repeating task associated with a specific region or chunk.
@@ -54,13 +54,13 @@ public interface SchedulerAdapter {
      * @param delayTicks  Initial delay before the first execution (in ticks).
      * @param periodTicks Period between each subsequent execution (in ticks).
      */
-    SchedulerTask runRegionTimer(Plugin plugin, Location location, Runnable runnable, long delayTicks, long periodTicks);
+    SchedulerTask runRegionTimer(Location location, Runnable runnable, long delayTicks, long periodTicks);
 
     /**
      * Executes a task associated with a specific region or chunk.
      * On Spigot, this defaults to the global thread.
      */
-    SchedulerTask runRegion(Plugin plugin, World world, int chunkX, int chunkZ, Runnable runnable);
+    SchedulerTask runRegion(World world, int chunkX, int chunkZ, Runnable runnable);
 
     /**
      * Executes a task associated with a specific region or chunk after a delay.
@@ -68,7 +68,7 @@ public interface SchedulerAdapter {
      *
      * @param delayTicks Delay before execution, measured in ticks.
      */
-    SchedulerTask runRegionLater(Plugin plugin, World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks);
+    SchedulerTask runRegionLater(World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks);
 
     /**
      * Executes a repeating task associated with a specific region or chunk.
@@ -77,7 +77,7 @@ public interface SchedulerAdapter {
      * @param delayTicks  Initial delay before the first execution (in ticks).
      * @param periodTicks Period between each subsequent execution (in ticks).
      */
-    SchedulerTask runRegionTimer(Plugin plugin, World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks, long periodTicks);
+    SchedulerTask runRegionTimer(World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks, long periodTicks);
 
     /**
      * Executes a task specifically linked to an entity immediately.
@@ -105,14 +105,14 @@ public interface SchedulerAdapter {
     /**
      * Executes a task asynchronously immediately, off the main server thread.
      */
-    SchedulerTask runTaskAsynchronously(Plugin plugin, Runnable runnable);
+    SchedulerTask runTaskAsynchronously(Runnable runnable);
 
     /**
      * Executes an asynchronous task after a specified delay.
      *
      * @param delayTicks Delay before execution, measured in ticks.
      */
-    SchedulerTask runTaskLaterAsynchronously(Plugin plugin, Runnable runnable, long delayTicks);
+    SchedulerTask runTaskLaterAsynchronously(Runnable runnable, long delayTicks);
 
     /**
      * Executes an asynchronous repeating task.
@@ -120,5 +120,5 @@ public interface SchedulerAdapter {
      * @param delayTicks  Initial delay before the first execution (in ticks).
      * @param periodTicks Period between each subsequent execution (in ticks).
      */
-    SchedulerTask runTaskTimerAsynchronously(Plugin plugin, Runnable runnable, long delayTicks, long periodTicks);
+    SchedulerTask runTaskTimerAsynchronously(Runnable runnable, long delayTicks, long periodTicks);
 }
