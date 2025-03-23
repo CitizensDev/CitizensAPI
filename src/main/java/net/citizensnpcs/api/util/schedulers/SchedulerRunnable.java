@@ -98,8 +98,8 @@ public abstract class SchedulerRunnable implements Runnable {
         return isFolia() ? new FoliaSchedulerRunnableImpl(this).runRegionTaskTimer(plugin, world, chunkX, chunkZ, delayTicks, periodTicks) : new SpigotSchedulerRunnableImpl(this).runRegionTaskTimer(plugin, world, chunkX, chunkZ, delayTicks, periodTicks);
     }
 
-    public SchedulerTask runEntity(Plugin plugin, Entity entity, Runnable retired) {
-        return isFolia() ? new FoliaSchedulerRunnableImpl(this).runEntity(plugin, entity, retired) : new SpigotSchedulerRunnableImpl(this).runEntity(plugin, entity, retired);
+    public SchedulerTask runEntityTask(Plugin plugin, Entity entity, Runnable retired) {
+        return isFolia() ? new FoliaSchedulerRunnableImpl(this).runEntityTask(plugin, entity, retired) : new SpigotSchedulerRunnableImpl(this).runEntityTask(plugin, entity, retired);
     }
 
     public SchedulerTask runEntityTaskLater(Plugin plugin, Entity entity, Runnable retired, long delayTicks) {

@@ -438,7 +438,7 @@ public class InventoryMenu implements Listener, Runnable {
 
     private void runViewerModifier(Runnable run) {
         if (delayViewerChanges) {
-            CitizensAPI.getScheduler().runGlobal(run);
+            CitizensAPI.getScheduler().runTask(run);
         } else {
             run.run();
         }

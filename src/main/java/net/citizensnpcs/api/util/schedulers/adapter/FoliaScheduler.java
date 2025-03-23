@@ -37,73 +37,73 @@ public class FoliaScheduler implements SchedulerAdapter {
     }
 
     @Override
-    public SchedulerTask runGlobal(Runnable runnable) {
+    public SchedulerTask runTask(Runnable runnable) {
         ScheduledTask task = globalScheduler.run(plugin, scheduledTask -> runnable.run());
         return wrap(task);
     }
 
     @Override
-    public SchedulerTask runGlobalLater(Runnable runnable, long delayTicks) {
+    public SchedulerTask runTaskLater(Runnable runnable, long delayTicks) {
         ScheduledTask task = globalScheduler.runDelayed(plugin, scheduledTask -> runnable.run(), Math.max(1, delayTicks));
         return wrap(task);
     }
 
     @Override
-    public SchedulerTask runGlobalTimer(Runnable runnable, long delayTicks, long periodTicks) {
+    public SchedulerTask runTaskTimer(Runnable runnable, long delayTicks, long periodTicks) {
         ScheduledTask task = globalScheduler.runAtFixedRate(plugin, scheduledTask -> runnable.run(), Math.max(1, delayTicks), Math.max(1, periodTicks));
         return wrap(task);
     }
 
     @Override
-    public SchedulerTask runRegion(Location location, Runnable runnable) {
+    public SchedulerTask runRegionTask(Location location, Runnable runnable) {
         ScheduledTask task = regionScheduler.run(plugin, location, scheduledTask -> runnable.run());
         return wrap(task);
     }
 
     @Override
-    public SchedulerTask runRegionLater(Location location, Runnable runnable, long delayTicks) {
+    public SchedulerTask runRegionTaskLater(Location location, Runnable runnable, long delayTicks) {
         ScheduledTask task = regionScheduler.runDelayed(plugin, location, scheduledTask -> runnable.run(), Math.max(1, delayTicks));
         return wrap(task);
     }
 
     @Override
-    public SchedulerTask runRegionTimer(Location location, Runnable runnable, long delayTicks, long periodTicks) {
+    public SchedulerTask runRegionTaskTimer(Location location, Runnable runnable, long delayTicks, long periodTicks) {
         ScheduledTask task = regionScheduler.runAtFixedRate(plugin, location, scheduledTask -> runnable.run(), Math.max(1, delayTicks), Math.max(1, periodTicks));
         return wrap(task);
     }
 
     @Override
-    public SchedulerTask runRegion(World world, int chunkX, int chunkZ, Runnable runnable) {
+    public SchedulerTask runRegionTask(World world, int chunkX, int chunkZ, Runnable runnable) {
         ScheduledTask task = regionScheduler.run(plugin, world, chunkX, chunkZ, scheduledTask -> runnable.run());
         return wrap(task);
     }
 
     @Override
-    public SchedulerTask runRegionLater(World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks) {
+    public SchedulerTask runRegionTaskLater(World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks) {
         ScheduledTask task = regionScheduler.runDelayed(plugin, world, chunkX, chunkZ, scheduledTask -> runnable.run(), Math.max(1, delayTicks));
         return wrap(task);
     }
 
     @Override
-    public SchedulerTask runRegionTimer(World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks, long periodTicks) {
+    public SchedulerTask runRegionTaskTimer(World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks, long periodTicks) {
         ScheduledTask task = regionScheduler.runAtFixedRate(plugin, world, chunkX, chunkZ, scheduledTask -> runnable.run(), Math.max(1, delayTicks), Math.max(1, periodTicks));
         return wrap(task);
     }
 
     @Override
-    public SchedulerTask runEntity(Entity entity, Runnable runnable) {
+    public SchedulerTask runEntityTask(Entity entity, Runnable runnable) {
         ScheduledTask task = entity.getScheduler().run(plugin, scheduledTask -> runnable.run(), null);
         return wrap(task);
     }
 
     @Override
-    public SchedulerTask runEntityLater(Entity entity, Runnable runnable, long delayTicks) {
+    public SchedulerTask runEntityTaskLater(Entity entity, Runnable runnable, long delayTicks) {
         ScheduledTask task = entity.getScheduler().runDelayed(plugin, scheduledTask -> runnable.run(), null, Math.max(1, delayTicks));
         return wrap(task);
     }
 
     @Override
-    public SchedulerTask runEntityTimer(Entity entity, Runnable runnable, long delayTicks, long periodTicks) {
+    public SchedulerTask runEntityTaskTimer(Entity entity, Runnable runnable, long delayTicks, long periodTicks) {
         ScheduledTask task = entity.getScheduler().runAtFixedRate(plugin, scheduledTask -> runnable.run(), null, Math.max(1, delayTicks), Math.max(1, periodTicks));
         return wrap(task);
     }

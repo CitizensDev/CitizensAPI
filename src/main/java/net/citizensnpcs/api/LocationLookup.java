@@ -123,7 +123,7 @@ public class LocationLookup extends SchedulerRunnable {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public void onJoin(PlayerJoinEvent event) {
-        CitizensAPI.getScheduler().runEntity(event.getPlayer(), () -> {
+        CitizensAPI.getScheduler().runEntityTask(event.getPlayer(), () -> {
             updateWorld(event.getPlayer().getWorld());
             for (PerPlayerMetadata meta : metadata.values()) {
                 if (meta.onJoin != null) {
@@ -134,7 +134,7 @@ public class LocationLookup extends SchedulerRunnable {
     }
 
     public void onQuit(PlayerQuitEvent event) {
-        CitizensAPI.getScheduler().runEntity(event.getPlayer(), () -> {
+        CitizensAPI.getScheduler().runEntityTask(event.getPlayer(), () -> {
             updateWorld(event.getPlayer().getWorld());
             for (PerPlayerMetadata<?> meta : metadata.values()) {
                 meta.sent.remove(event.getPlayer().getUniqueId());
@@ -173,7 +173,7 @@ public class LocationLookup extends SchedulerRunnable {
             Map<UUID, Collection<TreeFactory.Node<NPC>>> map = Maps.newHashMap();
             Location loc = new Location(null, 0, 0, 0);
             for (NPC npc : sourceRegistry) {
-                CitizensAPI.getScheduler().runEntity(npc.getEntity(), () -> {
+                CitizensAPI.getScheduler().runEntityTask(npc.getEntity(), () -> {
                     if (!npc.isSpawned())
                         return;
                     npc.getEntity().getLocation(loc);

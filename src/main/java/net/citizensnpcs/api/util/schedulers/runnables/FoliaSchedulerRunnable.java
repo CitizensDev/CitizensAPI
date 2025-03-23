@@ -75,7 +75,7 @@ public abstract class FoliaSchedulerRunnable extends SchedulerRunnable {
     }
 
     @Override
-    public SchedulerTask runEntity(Plugin plugin, Entity entity, Runnable retired) {
+    public SchedulerTask runEntityTask(Plugin plugin, Entity entity, Runnable retired) {
         return setupTask(new FoliaSchedulerTask(entity.getScheduler().run(plugin, task -> run(), retired)));
     }
 

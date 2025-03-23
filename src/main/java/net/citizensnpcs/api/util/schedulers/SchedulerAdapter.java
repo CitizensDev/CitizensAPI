@@ -16,14 +16,14 @@ public interface SchedulerAdapter {
     /**
      * Executes a task on the global server thread.
      */
-    SchedulerTask runGlobal(Runnable runnable);
+    SchedulerTask runTask(Runnable runnable);
 
     /**
      * Executes a task on the global server thread after a specified delay.
      *
      * @param delayTicks Delay before execution, measured in server ticks (1 tick = 50ms).
      */
-    SchedulerTask runGlobalLater(Runnable runnable, long delayTicks);
+    SchedulerTask runTaskLater(Runnable runnable, long delayTicks);
 
     /**
      * Executes a repeating task on the global server thread.
@@ -31,13 +31,13 @@ public interface SchedulerAdapter {
      * @param delayTicks  Initial delay before the first execution (in ticks).
      * @param periodTicks Period between each subsequent execution (in ticks).
      */
-    SchedulerTask runGlobalTimer(Runnable runnable, long delayTicks, long periodTicks);
+    SchedulerTask runTaskTimer(Runnable runnable, long delayTicks, long periodTicks);
 
     /**
      * Executes a task associated with a specific region or chunk.
      * On Spigot, this defaults to the global thread.
      */
-    SchedulerTask runRegion(Location location, Runnable runnable);
+    SchedulerTask runRegionTask(Location location, Runnable runnable);
 
     /**
      * Executes a task associated with a specific region or chunk after a delay.
@@ -45,7 +45,7 @@ public interface SchedulerAdapter {
      *
      * @param delayTicks Delay before execution, measured in ticks.
      */
-    SchedulerTask runRegionLater(Location location, Runnable runnable, long delayTicks);
+    SchedulerTask runRegionTaskLater(Location location, Runnable runnable, long delayTicks);
 
     /**
      * Executes a repeating task associated with a specific region or chunk.
@@ -54,13 +54,13 @@ public interface SchedulerAdapter {
      * @param delayTicks  Initial delay before the first execution (in ticks).
      * @param periodTicks Period between each subsequent execution (in ticks).
      */
-    SchedulerTask runRegionTimer(Location location, Runnable runnable, long delayTicks, long periodTicks);
+    SchedulerTask runRegionTaskTimer(Location location, Runnable runnable, long delayTicks, long periodTicks);
 
     /**
      * Executes a task associated with a specific region or chunk.
      * On Spigot, this defaults to the global thread.
      */
-    SchedulerTask runRegion(World world, int chunkX, int chunkZ, Runnable runnable);
+    SchedulerTask runRegionTask(World world, int chunkX, int chunkZ, Runnable runnable);
 
     /**
      * Executes a task associated with a specific region or chunk after a delay.
@@ -68,7 +68,7 @@ public interface SchedulerAdapter {
      *
      * @param delayTicks Delay before execution, measured in ticks.
      */
-    SchedulerTask runRegionLater(World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks);
+    SchedulerTask runRegionTaskLater(World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks);
 
     /**
      * Executes a repeating task associated with a specific region or chunk.
@@ -77,13 +77,13 @@ public interface SchedulerAdapter {
      * @param delayTicks  Initial delay before the first execution (in ticks).
      * @param periodTicks Period between each subsequent execution (in ticks).
      */
-    SchedulerTask runRegionTimer(World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks, long periodTicks);
+    SchedulerTask runRegionTaskTimer(World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks, long periodTicks);
 
     /**
      * Executes a task specifically linked to an entity immediately.
      * On Spigot, this defaults to the global thread.
      */
-    SchedulerTask runEntity(Entity entity, Runnable runnable);
+    SchedulerTask runEntityTask(Entity entity, Runnable runnable);
 
     /**
      * Executes a task specifically linked to an entity after a delay.
@@ -91,7 +91,7 @@ public interface SchedulerAdapter {
      *
      * @param delayTicks Delay before execution, measured in ticks.
      */
-    SchedulerTask runEntityLater(Entity entity, Runnable runnable, long delayTicks);
+    SchedulerTask runEntityTaskLater(Entity entity, Runnable runnable, long delayTicks);
 
     /**
      * Executes a repeating task specifically linked to an entity.
@@ -100,7 +100,7 @@ public interface SchedulerAdapter {
      * @param delayTicks  Initial delay before the first execution (in ticks).
      * @param periodTicks Period between each subsequent execution (in ticks).
      */
-    SchedulerTask runEntityTimer(Entity entity, Runnable runnable, long delayTicks, long periodTicks);
+    SchedulerTask runEntityTaskTimer(Entity entity, Runnable runnable, long delayTicks, long periodTicks);
 
     /**
      * Executes a task asynchronously immediately, off the main server thread.

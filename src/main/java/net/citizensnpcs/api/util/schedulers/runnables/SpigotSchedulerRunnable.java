@@ -71,7 +71,7 @@ public abstract class SpigotSchedulerRunnable extends SchedulerRunnable {
     }
 
     @Override
-    public SchedulerTask runEntity(Plugin plugin, Entity entity, Runnable retired) {
+    public SchedulerTask runEntityTask(Plugin plugin, Entity entity, Runnable retired) {
         return runTask(plugin);
     }
 
