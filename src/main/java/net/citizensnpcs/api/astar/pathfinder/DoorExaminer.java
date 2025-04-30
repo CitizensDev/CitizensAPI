@@ -2,6 +2,7 @@ package net.citizensnpcs.api.astar.pathfinder;
 
 import java.util.List;
 
+import net.citizensnpcs.api.util.schedulers.SchedulerRunnable;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -86,7 +87,7 @@ public class DoorExaminer implements BlockExaminer {
         @Override
         public void onReached(NPC npc, Block point) {
             Location doorCentre = point.getLocation().add(0.5, 0, 0.5);
-            new BukkitRunnable() {
+            new SchedulerRunnable() {
                 @Override
                 public void run() {
                     if (!npc.getNavigator().isNavigating()) {
@@ -101,7 +102,7 @@ public class DoorExaminer implements BlockExaminer {
                         cancel();
                     }
                 }
-            }.runTaskTimer(CitizensAPI.getPlugin(), 3, 1);
+            }.runRegionTaskTimer(CitizensAPI.getPlugin(), doorCentre, 3, 1);
         }
 
         private void open(NPC npc, Block point, Material type) {
