@@ -2,6 +2,8 @@ package net.citizensnpcs.api;
 
 import java.io.File;
 
+import net.citizensnpcs.api.util.SpigotUtil;
+import net.citizensnpcs.api.util.schedulers.SchedulerAdapter;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
@@ -20,6 +22,9 @@ import net.citizensnpcs.api.trait.TraitFactory;
  * Contains methods used in order to utilize the Citizens API.
  */
 public final class CitizensAPI {
+
+    private static SchedulerAdapter scheduler;
+
     private CitizensAPI() {
     }
 
@@ -193,6 +198,21 @@ public final class CitizensAPI {
             getImplementation().onImplementationChanged();
         }
         instance = implementation;
+    }
+
+    /**
+     * The new scheduler that works on Folia and Spigot
+     * @return scheduler Folia or Spigot
+     */
+    public static SchedulerAdapter getScheduler() {
+        if (scheduler == null) {
+            if (SpigotUtil.isFoliaServer()) {
+                scheduler = new net.citizensnpcs.api.util.schedulers.adapter.FoliaScheduler(getPlugin());
+            } else {
+                scheduler = new net.citizensnpcs.api.util.schedulers.adapter.SpigotScheduler(getPlugin());
+            }
+        }
+        return scheduler;
     }
 
     /**
