@@ -448,17 +448,17 @@ public abstract class AbstractNPC implements NPC {
         final Entity passenger = entity.getPassenger();
         entity.eject();
         if (!location.getWorld().equals(entity.getWorld())) {
-            Bukkit.getScheduler().scheduleSyncDelayedTask(CitizensAPI.getPlugin(),
-                    () -> entity.teleport(location, cause), delay++);
+            CitizensAPI.getScheduler().runEntityTaskLater(entity,
+                    () -> SpigotUtil.teleportAsync(entity, location, cause), delay++);
         } else {
-            entity.teleport(location, cause);
+            SpigotUtil.teleportAsync(entity, location, cause);
         }
         if (passenger == null)
             return;
         teleport(passenger, location, delay++, cause);
         Runnable task = () -> entity.setPassenger(passenger);
         if (!location.getWorld().equals(entity.getWorld())) {
-            Bukkit.getScheduler().scheduleSyncDelayedTask(CitizensAPI.getPlugin(), task, delay);
+            CitizensAPI.getScheduler().runEntityTaskLater(entity, task, delay);
         } else {
             task.run();
         }
