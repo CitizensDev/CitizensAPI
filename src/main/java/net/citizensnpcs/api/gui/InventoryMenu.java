@@ -281,6 +281,7 @@ public class InventoryMenu implements Listener, Runnable {
                 if (!ev.isCancelled()) {
                     dest.setItem(i, merging);
                     event.setCurrentItem(null);
+                    break;
                 }
                 if (!toNPC)
                     break;
