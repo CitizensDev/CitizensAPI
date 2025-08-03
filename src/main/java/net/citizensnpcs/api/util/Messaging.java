@@ -34,6 +34,7 @@ import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
+import net.kyori.adventure.platform.bukkit.MinecraftComponentSerializer;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -85,7 +86,7 @@ public class Messaging {
         if (CitizensAPI.getPlugin() != null) {
             MESSAGE_SENDER = messageSender;
             try {
-                if (TemporaryMinecraftComponentSerializer.isSupported()) {
+                if (MinecraftComponentSerializer.isSupported()) {
                     AUDIENCES = BukkitAudiences.create(CitizensAPI.getPlugin());
                 } else {
                     Messaging.severe(
@@ -168,8 +169,7 @@ public class Messaging {
 
     public static Object minecraftComponentFromRawMessage(String raw) {
         if (AUDIENCES != null && MINIMESSAGE != null)
-            return TemporaryMinecraftComponentSerializer.get()
-                    .serialize(MINIMESSAGE.deserialize(convertLegacyCodes(raw)));
+            return MinecraftComponentSerializer.get().serialize(MINIMESSAGE.deserialize(convertLegacyCodes(raw)));
 
         return null;
     }
