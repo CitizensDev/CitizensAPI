@@ -439,7 +439,7 @@ public class InventoryMenu implements Listener, Runnable {
 
     private void runViewerModifier(Runnable run) {
         if (delayViewerChanges) {
-            Bukkit.getScheduler().scheduleSyncDelayedTask(CitizensAPI.getPlugin(), run);
+            CitizensAPI.getScheduler().runTask(run);
         } else {
             run.run();
         }
