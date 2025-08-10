@@ -32,12 +32,12 @@ import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.npc.NPCRegistry;
 
 public class LocationLookup extends SchedulerRunnable {
-    private final Map<String, PerPlayerMetadata<?>> metadata = Maps.newHashMap();
+    private final Map<String, PerPlayerMetadata<?>> metadata = new java.util.concurrent.ConcurrentHashMap<>();
     private Future<Map<UUID, PhTreeF<NPC>>> npcFuture = null;
-    private Map<UUID, PhTreeF<NPC>> npcWorlds = Maps.newHashMap();
+    private Map<UUID, PhTreeF<NPC>> npcWorlds = new java.util.concurrent.ConcurrentHashMap<>();
     private Future<Map<UUID, PhTreeF<Player>>> playerFuture = null;
     private final NPCRegistry sourceRegistry;
-    private Map<UUID, PhTreeF<Player>> worlds = Maps.newHashMap();
+    private Map<UUID, PhTreeF<Player>> worlds = new java.util.concurrent.ConcurrentHashMap<>();
 
     public LocationLookup() {
         this(CitizensAPI.getNPCRegistry());
@@ -170,7 +170,7 @@ public class LocationLookup extends SchedulerRunnable {
             npcFuture = null;
         }
         if (npcFuture == null) {
-            Map<UUID, Collection<TreeFactory.Node<NPC>>> map = Maps.newHashMap();
+            Map<UUID, Collection<TreeFactory.Node<NPC>>> map = new java.util.concurrent.ConcurrentHashMap<>();
             Location loc = new Location(null, 0, 0, 0);
             for (NPC npc : sourceRegistry) {
                 if (npc.getEntity() == null) continue;
@@ -179,7 +179,7 @@ public class LocationLookup extends SchedulerRunnable {
                         return;
                     npc.getEntity().getLocation(loc);
                     Collection<TreeFactory.Node<NPC>> nodes = map.computeIfAbsent(npc.getEntity().getWorld().getUID(),
-                            uid -> Lists.newArrayList());
+                            uid -> new java.util.concurrent.CopyOnWriteArrayList<>());
                     nodes.add(new TreeFactory.Node<>(new double[] { loc.getX(), loc.getY(), loc.getZ() }, npc));
                 });
             }
@@ -200,10 +200,10 @@ public class LocationLookup extends SchedulerRunnable {
                 Collection<Player> players = Collections2.filter(world.getPlayers(), p -> !p.hasMetadata("NPC"));
                 if (players.isEmpty())
                     continue;
-                map.put(world.getUID(), Collections2.transform(players, p -> {
+                map.put(world.getUID(), com.google.common.collect.Lists.newArrayList(Collections2.transform(players, p -> {
                     p.getLocation(loc);
                     return new TreeFactory.Node<>(new double[] { loc.getX(), loc.getY(), loc.getZ() }, p);
-                }));
+                })));
             }
             playerFuture = ForkJoinPool.commonPool().submit(new TreeFactory<>(map));
         }
