@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -118,19 +119,24 @@ public class YamlStorage implements Storage {
     }
 
     private void transformListsToMapsInConfig(ConfigurationSection root) {
-        List<ConfigurationSection> list = Lists.newArrayList(root);
-        while (list.size() > 0) {
-            ConfigurationSection section = list.remove(list.size() - 1);
+        List<ConfigurationSection> queue = Lists.newArrayList(root);
+        while (queue.size() > 0) {
+            ConfigurationSection section = queue.remove(queue.size() - 1);
             for (String key : section.getKeys(false)) {
                 Object value = section.get(key);
                 if (value instanceof Collection) {
-                    ConfigurationSection listified = section.createSection(key);
+                    ConfigurationSection synthetic = section.createSection(key);
                     int i = 0;
-                    for (Iterator<?> itr = ((Collection) value).iterator(); itr.hasNext();) {
-                        listified.set(Integer.toString(i++), itr.next());
+                    for (Iterator<?> itr = ((Collection<?>) value).iterator(); itr.hasNext();) {
+                        Object next = itr.next();
+                        if (next instanceof Map) {
+                            queue.add(synthetic.createSection(Integer.toString(i++), (Map<?, ?>) next));
+                        } else {
+                            synthetic.set(Integer.toString(i++), next);
+                        }
                     }
                 } else if (value instanceof ConfigurationSection) {
-                    list.add((ConfigurationSection) value);
+                    queue.add((ConfigurationSection) value);
                 }
             }
         }
@@ -153,7 +159,7 @@ public class YamlStorage implements Storage {
         outer: for (Tuple t : convert) {
             List<Integer> ints = t.parent.getConfigurationSection(t.key).getKeys(false).stream()
                     .map(i -> Ints.tryParse(i)).collect(Collectors.toList());
-            if (ints.size() == 0)
+            if (ints.size() == 0 || ints.get(0) == null || ints.get(0) != 0)
                 continue;
 
             int sum = 0;
@@ -163,11 +169,11 @@ public class YamlStorage implements Storage {
 
                 sum += i;
             }
-            if (sum == ints.size() * (ints.get(0) + ints.get(ints.size() - 1) / 2) && ints.get(0) == 0) {
-                t.parent.set(t.key,
-                        ints.stream().map(i -> t.parent.getConfigurationSection(t.key).get(Integer.toString(i)))
-                                .collect(Collectors.toList()));
-            }
+            if (sum != ints.size() * (ints.get(0) + ints.get(ints.size() - 1) / 2))
+                continue;
+
+            t.parent.set(t.key, ints.stream().map(i -> t.parent.getConfigurationSection(t.key).get(Integer.toString(i)))
+                    .collect(Collectors.toList()));
         }
     }
 
