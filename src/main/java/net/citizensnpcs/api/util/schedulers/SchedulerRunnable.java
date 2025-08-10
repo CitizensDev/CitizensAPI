@@ -118,6 +118,12 @@ public abstract class SchedulerRunnable implements Runnable {
         }
 
         @Override
+        protected SchedulerTask setupTask(SchedulerTask task) {
+            delegate.setupTask(task);
+            return task;
+        }
+
+        @Override
         public void run() {
             delegate.run();
         }
@@ -128,6 +134,12 @@ public abstract class SchedulerRunnable implements Runnable {
 
         private SpigotSchedulerRunnableImpl(SchedulerRunnable delegate) {
             this.delegate = delegate;
+        }
+
+        @Override
+        protected SchedulerTask setupTask(SchedulerTask task) {
+            delegate.setupTask(task);
+            return task;
         }
 
         @Override
