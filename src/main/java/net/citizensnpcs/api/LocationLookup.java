@@ -173,6 +173,7 @@ public class LocationLookup extends SchedulerRunnable {
             Map<UUID, Collection<TreeFactory.Node<NPC>>> map = Maps.newHashMap();
             Location loc = new Location(null, 0, 0, 0);
             for (NPC npc : sourceRegistry) {
+                if (npc.getEntity() == null) continue;
                 CitizensAPI.getScheduler().runEntityTask(npc.getEntity(), () -> {
                     if (!npc.isSpawned())
                         return;
