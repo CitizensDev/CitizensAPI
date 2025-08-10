@@ -600,7 +600,7 @@ public class PersistenceLoader {
             root.removeKey(field.key);
             for (Map.Entry<Object, Object> entry : map.entrySet()) {
                 String mapKey = "";
-                if (entry.getKey() != null && SpigotUtil.isRegistryKeyed(entry.getKey().getClass())) {
+                if (SUPPORTS_KEYED && entry.getKey() != null && entry.getKey() instanceof Keyed) {
                     NamespacedKey nskey = ((Keyed) entry.getKey()).getKey();
                     mapKey = nskey.getNamespace() + ":" + nskey.getKey().replace('.', ',');
                 } else {
@@ -645,7 +645,7 @@ public class PersistenceLoader {
         }
         if (field.delegate != null) {
             ((Persister<Object>) field.delegate).save(value, root);
-        } else if (SpigotUtil.isRegistryKeyed(field.getValueType()) || SpigotUtil.isRegistryKeyed(value.getClass())) {
+        } else if (SUPPORTS_KEYED && value instanceof Keyed) {
             NamespacedKey nskey = ((Keyed) value).getKey();
             root.setRaw("", nskey.getNamespace() + ":" + nskey.getKey());
         } else if (value instanceof Enum) {
