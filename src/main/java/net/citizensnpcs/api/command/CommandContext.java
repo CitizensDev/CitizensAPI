@@ -19,6 +19,7 @@
 package net.citizensnpcs.api.command;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -342,8 +343,15 @@ public class CommandContext {
     }
 
     public EulerAngle parseEulerAngle(String input) {
-        List<Double> pose = Lists.newArrayList(Iterables.transform(Splitter.on(',').split(input), Double::parseDouble));
-        return new EulerAngle(pose.get(0), pose.get(1), pose.get(2));
+        Iterator<Double> itr = Splitter.on(',').splitToStream(input).map(s -> {
+            if (s.endsWith("d"))
+                return Math.toRadians(Double.parseDouble(s.substring(0, s.length() - 1)));
+            if (s.endsWith("r")) {
+                s = s.substring(0, s.length() - 1);
+            }
+            return Double.parseDouble(s);
+        }).iterator();
+        return new EulerAngle(itr.next(), itr.next(), itr.next());
     }
 
     public int parseTicks(String dur) {
