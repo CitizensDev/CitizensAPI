@@ -39,105 +39,105 @@ public class FoliaScheduler implements SchedulerAdapter {
     @Override
     public SchedulerTask runTask(Runnable runnable) {
         if (!plugin.isEnabled()) return null;
-        ScheduledTask task = globalScheduler.run(plugin, scheduledTask -> runnable.run());
+        ScheduledTask task = globalScheduler.run(plugin, t -> runnable.run());
         return wrap(task);
     }
 
     @Override
     public SchedulerTask runTaskLater(Runnable runnable, long delayTicks) {
         if (!plugin.isEnabled()) return null;
-        ScheduledTask task = globalScheduler.runDelayed(plugin, scheduledTask -> runnable.run(), Math.max(1, delayTicks));
+        ScheduledTask task = globalScheduler.runDelayed(plugin, t -> runnable.run(), Math.max(1, delayTicks));
         return wrap(task);
     }
 
     @Override
     public SchedulerTask runTaskTimer(Runnable runnable, long delayTicks, long periodTicks) {
         if (!plugin.isEnabled()) return null;
-        ScheduledTask task = globalScheduler.runAtFixedRate(plugin, scheduledTask -> runnable.run(), Math.max(1, delayTicks), Math.max(1, periodTicks));
+        ScheduledTask task = globalScheduler.runAtFixedRate(plugin, t -> runnable.run(), Math.max(1, delayTicks), Math.max(1, periodTicks));
         return wrap(task);
     }
 
     @Override
     public SchedulerTask runRegionTask(Location location, Runnable runnable) {
         if (!plugin.isEnabled()) return null;
-        ScheduledTask task = regionScheduler.run(plugin, location, scheduledTask -> runnable.run());
+        ScheduledTask task = regionScheduler.run(plugin, location, t -> runnable.run());
         return wrap(task);
     }
 
     @Override
     public SchedulerTask runRegionTaskLater(Location location, Runnable runnable, long delayTicks) {
         if (!plugin.isEnabled()) return null;
-        ScheduledTask task = regionScheduler.runDelayed(plugin, location, scheduledTask -> runnable.run(), Math.max(1, delayTicks));
+        ScheduledTask task = regionScheduler.runDelayed(plugin, location, t -> runnable.run(), Math.max(1, delayTicks));
         return wrap(task);
     }
 
     @Override
     public SchedulerTask runRegionTaskTimer(Location location, Runnable runnable, long delayTicks, long periodTicks) {
         if (!plugin.isEnabled()) return null;
-        ScheduledTask task = regionScheduler.runAtFixedRate(plugin, location, scheduledTask -> runnable.run(), Math.max(1, delayTicks), Math.max(1, periodTicks));
+        ScheduledTask task = regionScheduler.runAtFixedRate(plugin, location, t -> runnable.run(), Math.max(1, delayTicks), Math.max(1, periodTicks));
         return wrap(task);
     }
 
     @Override
     public SchedulerTask runRegionTask(World world, int chunkX, int chunkZ, Runnable runnable) {
         if (!plugin.isEnabled()) return null;
-        ScheduledTask task = regionScheduler.run(plugin, world, chunkX, chunkZ, scheduledTask -> runnable.run());
+        ScheduledTask task = regionScheduler.run(plugin, world, chunkX, chunkZ, t -> runnable.run());
         return wrap(task);
     }
 
     @Override
     public SchedulerTask runRegionTaskLater(World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks) {
         if (!plugin.isEnabled()) return null;
-        ScheduledTask task = regionScheduler.runDelayed(plugin, world, chunkX, chunkZ, scheduledTask -> runnable.run(), Math.max(1, delayTicks));
+        ScheduledTask task = regionScheduler.runDelayed(plugin, world, chunkX, chunkZ, t -> runnable.run(), Math.max(1, delayTicks));
         return wrap(task);
     }
 
     @Override
     public SchedulerTask runRegionTaskTimer(World world, int chunkX, int chunkZ, Runnable runnable, long delayTicks, long periodTicks) {
         if (!plugin.isEnabled()) return null;
-        ScheduledTask task = regionScheduler.runAtFixedRate(plugin, world, chunkX, chunkZ, scheduledTask -> runnable.run(), Math.max(1, delayTicks), Math.max(1, periodTicks));
+        ScheduledTask task = regionScheduler.runAtFixedRate(plugin, world, chunkX, chunkZ, t -> runnable.run(), Math.max(1, delayTicks), Math.max(1, periodTicks));
         return wrap(task);
     }
 
     @Override
     public SchedulerTask runEntityTask(Entity entity, Runnable runnable) {
         if (!plugin.isEnabled()) return null;
-        ScheduledTask task = entity.getScheduler().run(plugin, scheduledTask -> runnable.run(), null);
+        ScheduledTask task = entity.getScheduler().run(plugin, t -> runnable.run(), null);
         return wrap(task);
     }
 
     @Override
     public SchedulerTask runEntityTaskLater(Entity entity, Runnable runnable, long delayTicks) {
         if (!plugin.isEnabled()) return null;
-        ScheduledTask task = entity.getScheduler().runDelayed(plugin, scheduledTask -> runnable.run(), null, Math.max(1, delayTicks));
+        ScheduledTask task = entity.getScheduler().runDelayed(plugin, t -> runnable.run(), null, Math.max(1, delayTicks));
         return wrap(task);
     }
 
     @Override
     public SchedulerTask runEntityTaskTimer(Entity entity, Runnable runnable, long delayTicks, long periodTicks) {
         if (!plugin.isEnabled()) return null;
-        ScheduledTask task = entity.getScheduler().runAtFixedRate(plugin, scheduledTask -> runnable.run(), null, Math.max(1, delayTicks), Math.max(1, periodTicks));
+        ScheduledTask task = entity.getScheduler().runAtFixedRate(plugin, t -> runnable.run(), null, Math.max(1, delayTicks), Math.max(1, periodTicks));
         return wrap(task);
     }
 
     @Override
     public SchedulerTask runTaskAsynchronously(Runnable runnable) {
         if (!plugin.isEnabled()) return null;
-        ScheduledTask task = asyncScheduler.runNow(plugin, scheduledTask -> runnable.run());
+        ScheduledTask task = asyncScheduler.runNow(plugin, t -> runnable.run());
         return wrap(task);
     }
 
     @Override
     public SchedulerTask runTaskLaterAsynchronously(Runnable runnable, long delayTicks) {
         if (!plugin.isEnabled()) return null;
-        ScheduledTask task = asyncScheduler.runDelayed(plugin, scheduledTask -> runnable.run(), ticksToMillis(Math.max(1, delayTicks)), TimeUnit.MILLISECONDS);
+        ScheduledTask task = asyncScheduler.runDelayed(plugin, t -> runnable.run(), ticksToMillis(Math.max(1, delayTicks)), TimeUnit.MILLISECONDS);
         return wrap(task);
     }
 
     @Override
     public SchedulerTask runTaskTimerAsynchronously(Runnable runnable, long delayTicks, long periodTicks) {
         if (!plugin.isEnabled()) return null;
-        ScheduledTask task = asyncScheduler.runAtFixedRate(plugin, scheduledTask -> runnable.run(), ticksToMillis(Math.max(1, delayTicks)), ticksToMillis(Math.max(1, periodTicks)), TimeUnit.MILLISECONDS);
+        ScheduledTask task = asyncScheduler.runAtFixedRate(plugin, t -> runnable.run(), ticksToMillis(Math.max(1, delayTicks)), ticksToMillis(Math.max(1, periodTicks)), TimeUnit.MILLISECONDS);
         return wrap(task);
     }
 }
