@@ -18,7 +18,10 @@ public class PotionEffectPersister implements Persister<PotionEffect> {
 
     @Override
     public void save(PotionEffect effect, DataKey root) {
-        root.setString("type", effect.getType().getKeyOrNull().toString());
+        String effectTypeKey = effect.getType().getKey() != null
+                ? effect.getType().getKey().toString()
+                : null;
+        root.setString("type", effectTypeKey);
         root.setInt("amplifier", effect.getAmplifier());
         root.setInt("duration", effect.getDuration());
         root.setBoolean("particles", effect.hasParticles());

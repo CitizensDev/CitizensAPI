@@ -255,7 +255,7 @@ public class InputMenus {
                 HandlerList.unregisterAll(this);
                 String chat = event.getMessage();
                 event.setCancelled(true);
-                Bukkit.getScheduler().scheduleSyncDelayedTask(CitizensAPI.getPlugin(), () -> {
+                CitizensAPI.getScheduler().runEntityTask(event.getPlayer(), () -> {
                     if (chat.equals("\"\"") || chat.equals("''") || chat.equals("null")) {
                         callback.accept("");
                     } else {

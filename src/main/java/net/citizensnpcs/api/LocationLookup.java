@@ -10,6 +10,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 
+import net.citizensnpcs.api.util.schedulers.SchedulerRunnable;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -20,7 +21,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
@@ -31,13 +31,13 @@ import ch.ethz.globis.phtree.PhTreeF;
 import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.npc.NPCRegistry;
 
-public class LocationLookup extends BukkitRunnable {
-    private final Map<String, PerPlayerMetadata<?>> metadata = Maps.newHashMap();
+public class LocationLookup extends SchedulerRunnable {
+    private final Map<String, PerPlayerMetadata<?>> metadata = new java.util.concurrent.ConcurrentHashMap<>();
     private Future<Map<UUID, PhTreeF<NPC>>> npcFuture = null;
-    private Map<UUID, PhTreeF<NPC>> npcWorlds = Maps.newHashMap();
+    private Map<UUID, PhTreeF<NPC>> npcWorlds = new java.util.concurrent.ConcurrentHashMap<>();
     private Future<Map<UUID, PhTreeF<Player>>> playerFuture = null;
     private final NPCRegistry sourceRegistry;
-    private Map<UUID, PhTreeF<Player>> worlds = Maps.newHashMap();
+    private Map<UUID, PhTreeF<Player>> worlds = new java.util.concurrent.ConcurrentHashMap<>();
 
     public LocationLookup() {
         this(CitizensAPI.getNPCRegistry());
@@ -123,7 +123,7 @@ public class LocationLookup extends BukkitRunnable {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public void onJoin(PlayerJoinEvent event) {
-        Bukkit.getScheduler().scheduleSyncDelayedTask(CitizensAPI.getPlugin(), () -> {
+        CitizensAPI.getScheduler().runEntityTask(event.getPlayer(), () -> {
             updateWorld(event.getPlayer().getWorld());
             for (PerPlayerMetadata meta : metadata.values()) {
                 if (meta.onJoin != null) {
@@ -134,7 +134,7 @@ public class LocationLookup extends BukkitRunnable {
     }
 
     public void onQuit(PlayerQuitEvent event) {
-        Bukkit.getScheduler().scheduleSyncDelayedTask(CitizensAPI.getPlugin(), () -> {
+        CitizensAPI.getScheduler().runEntityTask(event.getPlayer(), () -> {
             updateWorld(event.getPlayer().getWorld());
             for (PerPlayerMetadata<?> meta : metadata.values()) {
                 meta.sent.remove(event.getPlayer().getUniqueId());
@@ -170,15 +170,18 @@ public class LocationLookup extends BukkitRunnable {
             npcFuture = null;
         }
         if (npcFuture == null) {
-            Map<UUID, Collection<TreeFactory.Node<NPC>>> map = Maps.newHashMap();
+            Map<UUID, Collection<TreeFactory.Node<NPC>>> map = new java.util.concurrent.ConcurrentHashMap<>();
             Location loc = new Location(null, 0, 0, 0);
             for (NPC npc : sourceRegistry) {
-                if (!npc.isSpawned())
-                    continue;
-                npc.getEntity().getLocation(loc);
-                Collection<TreeFactory.Node<NPC>> nodes = map.computeIfAbsent(npc.getEntity().getWorld().getUID(),
-                        uid -> Lists.newArrayList());
-                nodes.add(new TreeFactory.Node<>(new double[] { loc.getX(), loc.getY(), loc.getZ() }, npc));
+                if (npc.getEntity() == null) continue;
+                CitizensAPI.getScheduler().runEntityTask(npc.getEntity(), () -> {
+                    if (!npc.isSpawned())
+                        return;
+                    npc.getEntity().getLocation(loc);
+                    Collection<TreeFactory.Node<NPC>> nodes = map.computeIfAbsent(npc.getEntity().getWorld().getUID(),
+                            uid -> Lists.newArrayList());
+                    nodes.add(new TreeFactory.Node<>(new double[] { loc.getX(), loc.getY(), loc.getZ() }, npc));
+                });
             }
             npcFuture = ForkJoinPool.commonPool().submit(new TreeFactory<>(map));
         }
