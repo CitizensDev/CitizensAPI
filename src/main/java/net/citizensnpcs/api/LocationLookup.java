@@ -179,7 +179,7 @@ public class LocationLookup extends SchedulerRunnable {
                         return;
                     npc.getEntity().getLocation(loc);
                     Collection<TreeFactory.Node<NPC>> nodes = map.computeIfAbsent(npc.getEntity().getWorld().getUID(),
-                            uid -> new java.util.concurrent.CopyOnWriteArrayList<>());
+                            uid -> Lists.newArrayList());
                     nodes.add(new TreeFactory.Node<>(new double[] { loc.getX(), loc.getY(), loc.getZ() }, npc));
                 });
             }
@@ -200,10 +200,10 @@ public class LocationLookup extends SchedulerRunnable {
                 Collection<Player> players = Collections2.filter(world.getPlayers(), p -> !p.hasMetadata("NPC"));
                 if (players.isEmpty())
                     continue;
-                map.put(world.getUID(), com.google.common.collect.Lists.newArrayList(Collections2.transform(players, p -> {
+                map.put(world.getUID(), Collections2.transform(players, p -> {
                     p.getLocation(loc);
                     return new TreeFactory.Node<>(new double[] { loc.getX(), loc.getY(), loc.getZ() }, p);
-                })));
+                }));
             }
             playerFuture = ForkJoinPool.commonPool().submit(new TreeFactory<>(map));
         }
