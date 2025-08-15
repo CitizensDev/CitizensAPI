@@ -10,7 +10,6 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 
-import net.citizensnpcs.api.util.schedulers.SchedulerRunnable;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -30,6 +29,7 @@ import com.google.common.collect.Maps;
 import ch.ethz.globis.phtree.PhTreeF;
 import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.npc.NPCRegistry;
+import net.citizensnpcs.api.util.schedulers.SchedulerRunnable;
 
 public class LocationLookup extends SchedulerRunnable {
     private final Map<String, PerPlayerMetadata<?>> metadata = new java.util.concurrent.ConcurrentHashMap<>();
@@ -173,15 +173,12 @@ public class LocationLookup extends SchedulerRunnable {
             Map<UUID, Collection<TreeFactory.Node<NPC>>> map = new java.util.concurrent.ConcurrentHashMap<>();
             Location loc = new Location(null, 0, 0, 0);
             for (NPC npc : sourceRegistry) {
-                if (npc.getEntity() == null) continue;
-                CitizensAPI.getScheduler().runEntityTask(npc.getEntity(), () -> {
-                    if (!npc.isSpawned())
-                        return;
-                    npc.getEntity().getLocation(loc);
-                    Collection<TreeFactory.Node<NPC>> nodes = map.computeIfAbsent(npc.getEntity().getWorld().getUID(),
-                            uid -> Lists.newArrayList());
-                    nodes.add(new TreeFactory.Node<>(new double[] { loc.getX(), loc.getY(), loc.getZ() }, npc));
-                });
+                if (npc.getEntity() == null)
+                    continue;
+                npc.getEntity().getLocation(loc);
+                Collection<TreeFactory.Node<NPC>> nodes = map.computeIfAbsent(npc.getEntity().getWorld().getUID(),
+                        uid -> Lists.newArrayList());
+                nodes.add(new TreeFactory.Node<>(new double[] { loc.getX(), loc.getY(), loc.getZ() }, npc));
             }
             npcFuture = ForkJoinPool.commonPool().submit(new TreeFactory<>(map));
         }
