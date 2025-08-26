@@ -12,7 +12,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Keyed;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -213,6 +218,10 @@ public class SpigotUtil {
         return BUKKIT_VERSION;
     }
 
+    public static boolean isFoliaServer() {
+        return FOLIA_SERVER;
+    }
+
     public static boolean isRegistryKeyed(Class<?> clazz) {
         if (NON_REGISTRY_CLASSES.containsKey(clazz))
             return false;
@@ -265,7 +274,10 @@ public class SpigotUtil {
         String[] parts = Iterables.toArray(Splitter.on(',').split(item), String.class);
         if (parts.length == 0)
             return base;
-        base.setType(Material.matchMaterial(parts[0]));
+        Material material = Material.matchMaterial(parts[0]);
+        if (material != null) {
+            base.setType(material);
+        }
         if (parts.length > 1) {
             base.setAmount(Ints.tryParse(parts[1]));
         }
@@ -277,15 +289,14 @@ public class SpigotUtil {
     }
 
     public static CompletableFuture<Boolean> teleportAsync(Entity entity, Location location) {
-        return ASYNC_TELEPORT ? entity.teleportAsync(location) : CompletableFuture.completedFuture(entity.teleport(location));
+        return ASYNC_TELEPORT ? entity.teleportAsync(location)
+                : CompletableFuture.completedFuture(entity.teleport(location));
     }
 
-    public static CompletableFuture<Boolean> teleportAsync(Entity entity, Location location, PlayerTeleportEvent.TeleportCause cause) {
-        return ASYNC_TELEPORT ? entity.teleportAsync(location, cause) : CompletableFuture.completedFuture(entity.teleport(location, cause));
-    }
-
-    public static boolean isFoliaServer() {
-        return FOLIA_SERVER;
+    public static CompletableFuture<Boolean> teleportAsync(Entity entity, Location location,
+            PlayerTeleportEvent.TeleportCause cause) {
+        return ASYNC_TELEPORT ? entity.teleportAsync(location, cause)
+                : CompletableFuture.completedFuture(entity.teleport(location, cause));
     }
 
     private static ChronoUnit toChronoUnit(TimeUnit tu) {
@@ -309,16 +320,16 @@ public class SpigotUtil {
         }
     }
 
+    private static boolean ASYNC_TELEPORT = false;
     private static int[] BUKKIT_VERSION = null;
     private static final Pattern DAY_MATCHER = Pattern.compile("(\\d+d)");
+    private static boolean FOLIA_SERVER = false;
     private static String MINECRAFT_PACKAGE;
     private static final Map<Class<?>, Boolean> NON_REGISTRY_CLASSES = new WeakHashMap<Class<?>, Boolean>();
     private static final Pattern NUMBER_MATCHER = Pattern.compile("(\\d+)");
     private static boolean SUPPORT_WORLD_HEIGHT = true;
     private static boolean SUPPORTS_KEYED;
     private static Boolean using1_13API;
-    private static boolean FOLIA_SERVER = false;
-    private static boolean ASYNC_TELEPORT = false;
 
     static {
         try {
