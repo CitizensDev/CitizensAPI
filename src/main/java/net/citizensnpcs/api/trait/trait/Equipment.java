@@ -38,8 +38,8 @@ import net.citizensnpcs.api.util.SpigotUtil;
  */
 @TraitName("equipment")
 public class Equipment extends Trait {
-    private final ItemStack[] cosmetic = new ItemStack[7];
-    private final ItemStack[] equipment = new ItemStack[7];
+    private final ItemStack[] cosmetic = new ItemStack[8];
+    private final ItemStack[] equipment = new ItemStack[8];
 
     public Equipment() {
         super("equipment");
@@ -209,9 +209,11 @@ public class Equipment extends Trait {
             if (SUPPORT_OFFHAND) {
                 equipment[5] = clone(equip.getItemInOffHand());
             }
-            if (SUPPORT_BODY
-                    && (npc.getEntity().getType() == EntityType.WOLF || npc.getEntity() instanceof AbstractHorse)) {
+            if (SUPPORT_BODY && supportsBodySlot()) {
                 equipment[6] = clone(equip.getItem(org.bukkit.inventory.EquipmentSlot.BODY));
+            }
+            if (SUPPORT_SADDLE && supportsSaddleSlot()) {
+                equipment[7] = clone(equip.getItem(org.bukkit.inventory.EquipmentSlot.SADDLE));
             }
         }
     }
@@ -288,9 +290,13 @@ public class Equipment extends Trait {
                     }
                     break;
                 case 6:
-                    if (SUPPORT_BODY && (npc.getEntity().getType() == EntityType.WOLF
-                            || npc.getEntity() instanceof AbstractHorse)) {
+                    if (SUPPORT_BODY && supportsBodySlot()) {
                         equip.setItem(org.bukkit.inventory.EquipmentSlot.BODY, item);
+                    }
+                    break;
+                case 7:
+                    if (SUPPORT_SADDLE && supportsSaddleSlot()) {
+                        equip.setItem(org.bukkit.inventory.EquipmentSlot.SADDLE, item);
                     }
                     break;
                 default:
@@ -314,6 +320,16 @@ public class Equipment extends Trait {
         cosmetic[slot.getIndex()] = stack == null ? null : stack.clone();
     }
 
+    private boolean supportsBodySlot() {
+        return npc.getEntity().getType().name().equals("HAPPY_GHAST") || npc.getEntity().getType() == EntityType.WOLF
+                || npc.getEntity() instanceof AbstractHorse;
+    }
+
+    private boolean supportsSaddleSlot() {
+        return npc.getEntity().getType().name().equals("STRIDER") || npc.getEntity().getType() == EntityType.PIG
+                || npc.getEntity() instanceof AbstractHorse;
+    }
+
     public enum EquipmentSlot {
         BODY(6),
         BOOTS(4),
@@ -321,7 +337,8 @@ public class Equipment extends Trait {
         HAND(0),
         HELMET(1),
         LEGGINGS(3),
-        OFF_HAND(5);
+        OFF_HAND(5),
+        SADDLE(7);
 
         private final int index;
 
@@ -337,6 +354,8 @@ public class Equipment extends Trait {
             switch (this) {
                 case BODY:
                     return org.bukkit.inventory.EquipmentSlot.BODY;
+                case SADDLE:
+                    return org.bukkit.inventory.EquipmentSlot.SADDLE;
                 case BOOTS:
                     return org.bukkit.inventory.EquipmentSlot.FEET;
                 case CHESTPLATE:
@@ -391,6 +410,7 @@ public class Equipment extends Trait {
             .of(org.bukkit.inventory.EquipmentSlot.HAND, new ItemStack(Material.AIR, 1));
     private static boolean SUPPORT_BODY = false;
     private static boolean SUPPORT_OFFHAND = true;
+    private static boolean SUPPORT_SADDLE = false;
     static {
         try {
             EntityEquipment.class.getMethod("setItemInOffHand", ItemStack.class);
@@ -400,7 +420,9 @@ public class Equipment extends Trait {
         for (org.bukkit.inventory.EquipmentSlot value : org.bukkit.inventory.EquipmentSlot.values()) {
             if (value.name().equals("BODY")) {
                 SUPPORT_BODY = true;
-                break;
+            }
+            if (value.name().equals("SADDLE")) {
+                SUPPORT_SADDLE = true;
             }
         }
     }
