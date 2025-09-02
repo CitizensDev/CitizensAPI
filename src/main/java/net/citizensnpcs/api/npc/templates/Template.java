@@ -47,6 +47,9 @@ public class Template {
         if (key.keyExists("yaml_replace")) {
             template.addAction(PersistenceLoader.load(YamlReplacementAction.class, key.getRelative("yaml_replace")));
         }
+        if (key.keyExists("traits")) {
+            template.addAction(new TraitLoaderAction(key.getRelative("traits")));
+        }
         if (key.keyExists("commands")) {
             loadCommands(template, workspace, key.getRelative("commands"));
         }

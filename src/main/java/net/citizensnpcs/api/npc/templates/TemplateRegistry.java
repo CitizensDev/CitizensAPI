@@ -2,8 +2,11 @@ package net.citizensnpcs.api.npc.templates;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
@@ -14,6 +17,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 
+import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.util.DataKey;
 import net.citizensnpcs.api.util.Messaging;
@@ -29,6 +33,12 @@ public class TemplateRegistry {
         this.baseFolder = folder;
         if (!folder.toFile().exists()) {
             folder.toFile().mkdir();
+            try {
+                Files.copy(Paths.get(CitizensAPI.class.getResource("/templates/citizens").toURI()), folder,
+                        StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException | URISyntaxException e) {
+                e.printStackTrace();
+            }
         }
         loadTemplates(baseFolder);
     }

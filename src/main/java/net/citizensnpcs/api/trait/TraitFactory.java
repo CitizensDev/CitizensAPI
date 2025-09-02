@@ -28,6 +28,14 @@ public interface TraitFactory {
     Collection<TraitInfo> getRegisteredTraits();
 
     /**
+     * Gets the {@link TraitTemplateParser} with the given trait name or null if not found.
+     *
+     * @param name
+     * @return the trait template parser
+     */
+    TraitTemplateParser getTemplateParser(String name);
+
+    /**
      * Gets a trait with the given class.
      *
      * @param clazz

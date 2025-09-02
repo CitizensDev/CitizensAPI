@@ -4,7 +4,6 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Locale;
@@ -21,6 +20,7 @@ import org.bukkit.plugin.RegisteredListener;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.event.NPCEvent;
 import net.citizensnpcs.api.npc.NPC;
+import net.citizensnpcs.api.persistence.PersistenceLoader;
 import net.citizensnpcs.api.trait.TraitEventHandler.NPCEventExtractor;
 import net.citizensnpcs.api.util.Messaging;
 
@@ -30,6 +30,17 @@ import net.citizensnpcs.api.util.Messaging;
 public final class TraitInfo {
     private boolean defaultTrait;
     private String name;
+    private TraitTemplateParser parser = new TraitTemplateParser() {
+        @Override
+        public ShortTemplateParser getShortTemplateParser() {
+            return null;
+        }
+
+        @Override
+        public TemplateParser getTemplateParser() {
+            return (npc, key) -> PersistenceLoader.load(trait, key);
+        }
+    };
     private Supplier<? extends Trait> supplier;
     private boolean trackStats;
     private final Class<? extends Trait> trait;
@@ -68,6 +79,10 @@ public final class TraitInfo {
                 throw new IllegalArgumentException("Trait class must have a no-arguments constructor");
             }
         }
+    }
+
+    public TraitTemplateParser getParser() {
+        return parser;
     }
 
     public Class<? extends Trait> getTraitClass() {
@@ -162,6 +177,12 @@ public final class TraitInfo {
 
     public TraitInfo withSupplier(Supplier<? extends Trait> supplier) {
         this.supplier = supplier;
+        return this;
+    }
+
+    public TraitInfo withTemplateParser(TraitTemplateParser parser) {
+        Objects.requireNonNull(parser);
+        this.parser = parser;
         return this;
     }
 
