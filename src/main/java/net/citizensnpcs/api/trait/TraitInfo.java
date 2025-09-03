@@ -20,7 +20,6 @@ import org.bukkit.plugin.RegisteredListener;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.event.NPCEvent;
 import net.citizensnpcs.api.npc.NPC;
-import net.citizensnpcs.api.persistence.PersistenceLoader;
 import net.citizensnpcs.api.trait.TraitEventHandler.NPCEventExtractor;
 import net.citizensnpcs.api.util.Messaging;
 
@@ -30,23 +29,14 @@ import net.citizensnpcs.api.util.Messaging;
 public final class TraitInfo {
     private boolean defaultTrait;
     private String name;
-    private TraitTemplateParser parser = new TraitTemplateParser() {
-        @Override
-        public ShortTemplateParser getShortTemplateParser() {
-            return null;
-        }
-
-        @Override
-        public TemplateParser getTemplateParser() {
-            return (npc, key) -> PersistenceLoader.load(trait, key);
-        }
-    };
+    private TraitTemplateParser parser;
     private Supplier<? extends Trait> supplier;
     private boolean trackStats;
     private final Class<? extends Trait> trait;
 
     private TraitInfo(Class<? extends Trait> trait) {
         this.trait = trait;
+        this.parser = TraitTemplateParser.createDefault(trait);
         TraitName anno = trait.getAnnotation(TraitName.class);
         if (anno != null) {
             name = anno.value().toLowerCase(Locale.ROOT);

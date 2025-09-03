@@ -87,9 +87,7 @@ public class SimpleNPCDataStore implements NPCDataStore {
 
     @Override
     public void saveToDisk() {
-        new Thread(() -> {
-            root.save();
-        }).start();
+        root.saveAsync();
     }
 
     @Override
@@ -113,7 +111,6 @@ public class SimpleNPCDataStore implements NPCDataStore {
         return new SimpleNPCDataStore(storage);
     }
 
-    @SuppressWarnings("deprecation")
     private static EntityType matchEntityType(String toMatch) {
         EntityType type;
         try {

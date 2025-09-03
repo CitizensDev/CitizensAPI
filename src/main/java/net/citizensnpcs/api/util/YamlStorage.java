@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 import org.bukkit.configuration.ConfigurationSection;
@@ -92,25 +93,37 @@ public class YamlStorage implements Storage {
 
     @Override
     public void save() {
+        YamlConfiguration copy = new YamlConfiguration();
+        for (String key : config.getKeys(false)) {
+            copy.set(key, config.get(key));
+        }
+        save(copy);
+    }
+
+    private void save(YamlConfiguration from) {
         try {
             Files.createParentDirs(file);
             File temporaryFile = File.createTempFile(file.getName(), null, file.getParentFile());
             temporaryFile.deleteOnExit();
-            FileConfiguration save = config;
             if (transformLists) {
-                save = new YamlConfiguration();
-                for (String key : config.getKeys(false)) {
-                    save.set(key, config.get(key));
-                }
-                transformMapsToListsInConfig(save);
+                transformMapsToListsInConfig(from);
             }
-            save.save(temporaryFile);
+            from.save(temporaryFile);
             file.delete();
             temporaryFile.renameTo(file);
             temporaryFile.delete();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    @Override
+    public void saveAsync() {
+        YamlConfiguration copy = new YamlConfiguration();
+        for (String key : config.getKeys(false)) {
+            copy.set(key, config.get(key));
+        }
+        ForkJoinPool.commonPool().submit(() -> save(copy));
     }
 
     @Override
