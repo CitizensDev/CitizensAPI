@@ -1,8 +1,11 @@
 package net.citizensnpcs.api.astar.pathfinder;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,7 +33,6 @@ public class Path implements Plan {
     }
 
     Path(Iterable<VectorNode> unfiltered, Vector goal) {
-        // possibly expose cullability in an API
         List<PathEntry> path = Lists.newArrayList();
         for (VectorNode node : unfiltered) {
             for (Vector vector : node.getPathVectors()) {
@@ -45,6 +47,8 @@ public class Path implements Plan {
         } else {
             path.add(goalEntry);
         }
+        path = ramerDouglasPeucker(path, 0.75);
+
         this.path = path.toArray(new PathEntry[path.size()]);
     }
 
@@ -125,5 +129,80 @@ public class Path implements Plan {
         public String toString() {
             return vector.toString();
         }
+    }
+
+    private static List<PathEntry> ramerDouglasPeucker(List<PathEntry> points, double epsilon) {
+        if (points.size() < 3)
+            return points;
+
+        int n = points.size();
+        boolean[] keep = new boolean[n];
+        keep[0] = true;
+        keep[n - 1] = true;
+
+        Deque<int[]> stack = new ArrayDeque<>();
+        stack.push(new int[] { 0, n - 1 });
+
+        while (!stack.isEmpty()) {
+            int[] range = stack.pop();
+            int start = range[0];
+            int end = range[1];
+
+            double dmax = 0;
+            int found = -1;
+
+            Vector a = points.get(start).vector;
+            Vector b = points.get(end).vector;
+
+            double abx = b.getX() - a.getX();
+            double aby = b.getY() - a.getY();
+            double abz = b.getZ() - a.getZ();
+
+            double length = abx * abx + aby * aby + abz * abz;
+
+            for (int i = start + 1; i < end; i++) {
+                Vector p = points.get(i).vector;
+                double d;
+
+                if (length < 1e-9) {
+                    // Degenerate segment (a == b)
+                    double dx = p.getX() - a.getX();
+                    double dy = p.getY() - a.getY();
+                    double dz = p.getZ() - a.getZ();
+                    d = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                } else {
+                    double apx = p.getX() - a.getX();
+                    double apy = p.getY() - a.getY();
+                    double apz = p.getZ() - a.getZ();
+
+                    double cx = apy * abz - apz * aby;
+                    double cy = apz * abx - apx * abz;
+                    double cz = apx * aby - apy * abx;
+
+                    double crossProductLength = cx * cx + cy * cy + cz * cz;
+
+                    if (crossProductLength <= epsilon * epsilon * length)
+                        continue;
+
+                    d = Math.sqrt(crossProductLength / length);
+                }
+                if (d > dmax) {
+                    dmax = d;
+                    found = i;
+                }
+            }
+            if (dmax > epsilon && found != -1) {
+                keep[found] = true;
+                stack.push(new int[] { start, found });
+                stack.push(new int[] { found, end });
+            }
+        }
+        List<PathEntry> result = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            if (keep[i]) {
+                result.add(points.get(i));
+            }
+        }
+        return result;
     }
 }

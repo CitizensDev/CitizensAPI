@@ -21,5 +21,5 @@ public class Empty extends BehaviorGoalAdapter {
         return false;
     }
 
-    public static Empty INSTANCE = new Empty();
+    public static final Empty INSTANCE = new Empty();
 }

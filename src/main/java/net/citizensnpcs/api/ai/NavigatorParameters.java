@@ -1,7 +1,6 @@
 package net.citizensnpcs.api.ai;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
@@ -318,7 +317,7 @@ public class NavigatorParameters implements Cloneable {
      * @return An array of all current examiners
      */
     public BlockExaminer[] examiners() {
-        return examiners.toArray(new BlockExaminer[examiners.size()]);
+        return examiners.size() == 0 ? EMPTY_EXAMINERS : examiners.toArray(new BlockExaminer[examiners.size()]);
     }
 
     public int fallDistance() {
@@ -331,7 +330,7 @@ public class NavigatorParameters implements Cloneable {
     }
 
     public boolean hasExaminer(Class<? extends BlockExaminer> clazz) {
-        return Arrays.asList(examiners).stream().anyMatch(e -> clazz.isAssignableFrom(e.getClass()));
+        return examiners.stream().anyMatch(e -> clazz.isAssignableFrom(e.getClass()));
     }
 
     /**
@@ -600,4 +599,6 @@ public class NavigatorParameters implements Cloneable {
     }
 
     private static final Function<org.bukkit.entity.Entity, Location> DEFAULT_MAPPER = Entity::getLocation;
+
+    private static final BlockExaminer[] EMPTY_EXAMINERS = new BlockExaminer[] {};
 }

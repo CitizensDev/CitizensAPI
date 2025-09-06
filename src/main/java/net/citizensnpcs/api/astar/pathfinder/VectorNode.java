@@ -9,6 +9,7 @@ import org.bukkit.util.Vector;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
+import net.citizensnpcs.api.ai.NavigatorParameters;
 import net.citizensnpcs.api.astar.AStarNode;
 import net.citizensnpcs.api.astar.Plan;
 import net.citizensnpcs.api.astar.pathfinder.BlockExaminer.PassableState;
@@ -22,8 +23,8 @@ public class VectorNode extends AStarNode implements PathPoint {
     Vector locationCache;
     List<Vector> pathVectors;
 
-    public VectorNode(VectorGoal goal, Location location, BlockSource source, BlockExaminer... examiners) {
-        this(null, goal, location.toVector(), source, examiners);
+    public VectorNode(VectorGoal goal, Location location, BlockSource source, NavigatorParameters params) {
+        this(null, goal, location.toVector(), source, params);
     }
 
     public VectorNode(VectorNode parent, Vector location, PathInfo info) {
@@ -33,8 +34,8 @@ public class VectorNode extends AStarNode implements PathPoint {
     }
 
     public VectorNode(VectorNode parent, VectorGoal goal, Vector location, BlockSource source,
-            BlockExaminer... examiners) {
-        this(parent, location, new PathInfo(source, examiners == null ? EMPTY_BLOCK_EXAMINER : examiners, goal));
+            NavigatorParameters params) {
+        this(parent, location, new PathInfo(source, params, goal));
     }
 
     @Override
@@ -74,7 +75,7 @@ public class VectorNode extends AStarNode implements PathPoint {
     private float getBlockCost() {
         if (blockCost == -1) {
             blockCost = 0;
-            for (BlockExaminer examiner : info.examiners) {
+            for (BlockExaminer examiner : info.params.examiners()) {
                 blockCost += examiner.getCost(info.blockSource, this);
             }
         }
@@ -89,7 +90,7 @@ public class VectorNode extends AStarNode implements PathPoint {
     @Override
     public Iterable<AStarNode> getNeighbours() {
         List<PathPoint> neighbours = null;
-        for (BlockExaminer examiner : info.examiners) {
+        for (BlockExaminer examiner : info.params.examiners()) {
             if (examiner instanceof NeighbourGeneratorBlockExaminer) {
                 neighbours = ((NeighbourGeneratorBlockExaminer) examiner).getNeighbours(info.blockSource, this);
                 break;
@@ -121,9 +122,9 @@ public class VectorNode extends AStarNode implements PathPoint {
                         continue;
                     }
                     int modY = location.getBlockY() + y;
-                    if (!SpigotUtil.checkYSafe(modY, source.getWorld())) {
+                    if (!SpigotUtil.checkYSafe(modY, source.getWorld()))
                         continue;
-                    }
+
                     Vector mod = new Vector(location.getX() + x, modY, location.getZ() + z);
                     if (mod.equals(location)) {
                         continue;
@@ -171,11 +172,11 @@ public class VectorNode extends AStarNode implements PathPoint {
 
     private boolean isPassable(PathPoint mod) {
         boolean passable = false;
-        for (BlockExaminer examiner : info.examiners) {
+        for (BlockExaminer examiner : info.params.examiners()) {
             PassableState state = examiner.isPassable(info.blockSource, mod);
-            if (state == PassableState.IGNORE) {
+            if (state == PassableState.IGNORE)
                 continue;
-            }
+
             passable = state == PassableState.PASSABLE ? true : false;
         }
         return passable;
@@ -193,16 +194,15 @@ public class VectorNode extends AStarNode implements PathPoint {
 
     private static class PathInfo {
         private final BlockSource blockSource;
-        private final BlockExaminer[] examiners;
         private final VectorGoal goal;
+        private final NavigatorParameters params;
 
-        private PathInfo(BlockSource source, BlockExaminer[] examiners, VectorGoal goal) {
+        private PathInfo(BlockSource source, NavigatorParameters params, VectorGoal goal) {
             this.blockSource = source;
-            this.examiners = examiners;
+            this.params = params;
             this.goal = goal;
         }
     }
 
-    private static final BlockExaminer[] EMPTY_BLOCK_EXAMINER = new BlockExaminer[] {};
     private static final float TIEBREAKER = 1.001f;
 }
