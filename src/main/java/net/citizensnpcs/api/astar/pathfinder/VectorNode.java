@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.bukkit.Location;
+import org.bukkit.util.BlockVector;
 import org.bukkit.util.Vector;
 
 import com.google.common.collect.ImmutableList;
@@ -28,7 +29,7 @@ public class VectorNode extends AStarNode implements PathPoint {
 
     public VectorNode(VectorNode parent, Vector location, PathInfo info) {
         super(parent);
-        this.location = new Vector(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+        this.location = new BlockVector(location.getBlockX(), location.getBlockY(), location.getBlockZ());
         this.info = info;
     }
 

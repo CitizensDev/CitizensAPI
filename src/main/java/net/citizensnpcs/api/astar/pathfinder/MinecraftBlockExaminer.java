@@ -49,17 +49,19 @@ public class MinecraftBlockExaminer implements BlockExaminer {
         if (!source.isYWithinBounds(pos.getBlockY()))
             return PassableState.UNPASSABLE;
 
-        Material above = source.getMaterialAt(pos.getBlockX(), pos.getBlockY() + 1, pos.getBlockZ());
         Material below = source.getMaterialAt(pos.getBlockX(), pos.getBlockY() - 1, pos.getBlockZ());
         Material in = source.getMaterialAt(pos);
-        boolean canStand = (canStandIn(in) && canStandIn(above) && canStandOn(below)) || isLiquid(in, below)
+        boolean canStand = canStandOn(below,
+                source.getBlockDataAt(pos.getBlockX(), pos.getBlockY() - 1, pos.getBlockZ())) || isLiquid(in, below)
                 || isClimbable(below);
         if (!canStand)
             return PassableState.UNPASSABLE;
 
+        Material above = source.getMaterialAt(pos.getBlockX(), pos.getBlockY() + 1, pos.getBlockZ());
         if (isClimbable(in) && (isClimbable(above) || isClimbable(below))) {
             point.addCallback(new LadderClimber());
-        } else if (!canStandIn(above) || !canStandIn(in))
+        } else if (!canStandIn(in, source.getBlockDataAt(pos.getBlockX(), pos.getBlockY(), pos.getBlockZ()))
+                || !canStandIn(above, source.getBlockDataAt(pos.getBlockX(), pos.getBlockY() + 1, pos.getBlockZ())))
             return PassableState.UNPASSABLE;
         if (!canJumpOn(below)) {
             if (point.getParentPoint() == null)
