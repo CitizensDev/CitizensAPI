@@ -31,7 +31,7 @@ public class MinecraftBlockExaminer implements BlockExaminer {
         Material in = source.getMaterialAt(pos);
         if (above == WEB || in == WEB || below == Material.SOUL_SAND || below == Material.ICE)
             return 2F;
-        if (isLiquidOrInLiquid(source.getWorld().getBlockAt(pos.getBlockX(), pos.getBlockY(), pos.getBlockZ()))) {
+        if (isLiquidOrWaterlogged(source.getMaterialAt(pos), source.getBlockDataAt(pos))) {
             if (in == Material.LAVA)
                 return 4F;
             return 2F;
@@ -46,17 +46,18 @@ public class MinecraftBlockExaminer implements BlockExaminer {
     @Override
     public PassableState isPassable(BlockSource source, PathPoint point) {
         Vector pos = point.getVector();
-        if (!SpigotUtil.checkYSafe(pos.getBlockY(), source.getWorld()))
+        if (!source.isYWithinBounds(pos.getBlockY()))
             return PassableState.UNPASSABLE;
 
-        Block above = source.getBlockAt(pos.getBlockX(), pos.getBlockY() + 1, pos.getBlockZ());
+        Material above = source.getMaterialAt(pos.getBlockX(), pos.getBlockY() + 1, pos.getBlockZ());
         Material below = source.getMaterialAt(pos.getBlockX(), pos.getBlockY() - 1, pos.getBlockZ());
-        Block in = source.getBlockAt(pos);
-        boolean canStand = canStandOn(below) || isLiquid(in.getType(), below) || isClimbable(below);
+        Material in = source.getMaterialAt(pos);
+        boolean canStand = (canStandIn(in) && canStandIn(above) && canStandOn(below)) || isLiquid(in, below)
+                || isClimbable(below);
         if (!canStand)
             return PassableState.UNPASSABLE;
 
-        if (isClimbable(in.getType()) && (isClimbable(above.getType()) || isClimbable(below))) {
+        if (isClimbable(in) && (isClimbable(above) || isClimbable(below))) {
             point.addCallback(new LadderClimber());
         } else if (!canStandIn(above) || !canStandIn(in))
             return PassableState.UNPASSABLE;
@@ -131,18 +132,9 @@ public class MinecraftBlockExaminer implements BlockExaminer {
     public static boolean canStandIn(Block... blocks) {
         boolean passable = true;
         for (Block block : blocks) {
-            passable &= !block.getType().isSolid();
-            if (SpigotUtil.isUsing1_13API()) {
-                if (block.getBlockData() instanceof Slab) {
-                    Slab slab = (Slab) block.getBlockData();
-                    if (slab.getType() != Slab.Type.BOTTOM) {
-                        passable = false;
-                    }
-                } else if (block.getBlockData() instanceof TrapDoor) {
-                    TrapDoor trapdoor = (TrapDoor) block.getBlockData();
-                    passable &= trapdoor.isOpen();
-                }
-            }
+            passable = canStandIn(block.getType(), block.getBlockData());
+            if (!passable)
+                break;
         }
         return passable;
     }
@@ -155,18 +147,40 @@ public class MinecraftBlockExaminer implements BlockExaminer {
         return passable;
     }
 
-    public static boolean canStandOn(Block block) {
-        Block up = block.getRelative(BlockFace.UP);
-        boolean standable = canStandOn(block.getType());
-        if (SpigotUtil.isUsing1_13API() && block.getBlockData() instanceof TrapDoor) {
-            TrapDoor trapdoor = (TrapDoor) block.getBlockData();
-            standable = !trapdoor.isOpen();
+    public static boolean canStandIn(Material mat, BlockData data) {
+        boolean passable = !mat.isSolid();
+        if (SpigotUtil.isUsing1_13API()) {
+            if (data instanceof Slab) {
+                Slab slab = (Slab) data;
+                if (slab.getType() != Slab.Type.BOTTOM) {
+                    passable = false;
+                }
+            } else if (data instanceof TrapDoor) {
+                TrapDoor trapdoor = (TrapDoor) data;
+                passable &= trapdoor.isOpen();
+            }
         }
-        return standable && canStandIn(up, up.getRelative(BlockFace.UP));
+        return passable;
+    }
+
+    public static boolean canStandOn(Block block) {
+        boolean standable = canStandOn(block.getType(), block.getBlockData());
+        if (!standable)
+            return false;
+        Block up = block.getRelative(BlockFace.UP);
+        return canStandIn(up, up.getRelative(BlockFace.UP));
     }
 
     public static boolean canStandOn(Material mat) {
         return !UNWALKABLE.contains(mat) && mat.isSolid();
+    }
+
+    public static boolean canStandOn(Material mat, BlockData data) {
+        boolean stand = canStandOn(mat);
+        if (!stand && SpigotUtil.isUsing1_13API() && data instanceof TrapDoor) {
+            stand = !((TrapDoor) data).isOpen();
+        }
+        return stand;
     }
 
     public static Location findRandomValidLocation(Location base, int xrange, int yrange) {
@@ -189,9 +203,9 @@ public class MinecraftBlockExaminer implements BlockExaminer {
             }
             Block block = base.getWorld().getBlockAt(x, y, z);
             if (canStandOn(block)) {
-                if (filter != null && !filter.apply(block)) {
+                if (filter != null && !filter.apply(block))
                     continue;
-                }
+
                 return block.getLocation().add(0, 1, 0);
             }
         }
@@ -255,27 +269,24 @@ public class MinecraftBlockExaminer implements BlockExaminer {
         return false;
     }
 
-    public static boolean isLiquidOrInLiquid(Block block) {
-        if (isLiquid(block.getType()))
+    public static boolean isLiquidOrWaterlogged(Block block) {
+        return isLiquidOrWaterlogged(block.getType(), block.getBlockData());
+    }
+
+    public static boolean isLiquidOrWaterlogged(Material type, BlockData data) {
+        if (isLiquid(type))
             return true;
-        if (!SUPPORT_WATERLOGGED)
+        if (!SpigotUtil.isUsing1_13API())
             return false;
-        try {
-            BlockData data = block.getBlockData();
-            return data instanceof Waterlogged && ((Waterlogged) data).isWaterlogged();
-        } catch (Throwable t) {
-            SUPPORT_WATERLOGGED = false;
-            return false;
-        }
+        return data instanceof Waterlogged && ((Waterlogged) data).isWaterlogged();
     }
 
     private static final Set<Material> CLIMBABLE = EnumSet.of(Material.LADDER, Material.VINE);
     private static final Set<Material> LIQUIDS = EnumSet.of(Material.WATER, Material.LAVA);
     private static final Set<Material> NOT_JUMPABLE = EnumSet.of(Material.SPRUCE_FENCE, Material.BIRCH_FENCE,
             Material.JUNGLE_FENCE, Material.ACACIA_FENCE, Material.DARK_OAK_FENCE);
-    private static boolean SUPPORT_WATERLOGGED = true;
     private static final Set<Material> UNWALKABLE = EnumSet.of(Material.AIR, Material.CACTUS);
-    private static Material WEB = SpigotUtil.isUsing1_13API() ? Material.COBWEB : Material.valueOf("WEB");
+    private static final Material WEB = SpigotUtil.isUsing1_13API() ? Material.COBWEB : Material.valueOf("WEB");
 
     static {
         if (!SpigotUtil.isUsing1_13API()) {

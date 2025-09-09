@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 
 import net.citizensnpcs.api.util.BoundingBox;
 
@@ -15,6 +16,11 @@ public class ChunkBlockSource extends CachingChunkBlockSource<Chunk> {
 
     public ChunkBlockSource(World world, int x, int z, float radius) {
         super(world, x, z, radius);
+    }
+
+    @Override
+    protected BlockData getBlockData(Chunk chunk, int x, int y, int z) {
+        return chunk.getBlock(x & 15, y, z & 15).getBlockData();
     }
 
     @Override

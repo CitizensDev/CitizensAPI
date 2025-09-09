@@ -2,7 +2,6 @@ package net.citizensnpcs.api.astar.pathfinder;
 
 import java.util.List;
 
-import net.citizensnpcs.api.util.schedulers.SchedulerRunnable;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -18,7 +17,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.material.MaterialData;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.astar.pathfinder.PathPoint.PathCallback;
@@ -26,6 +24,7 @@ import net.citizensnpcs.api.event.NPCOpenDoorEvent;
 import net.citizensnpcs.api.event.NPCOpenGateEvent;
 import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.util.SpigotUtil;
+import net.citizensnpcs.api.util.schedulers.SchedulerRunnable;
 
 public class DoorExaminer implements BlockExaminer {
     @Override
@@ -38,10 +37,10 @@ public class DoorExaminer implements BlockExaminer {
         if (!MinecraftBlockExaminer.canStandOn(source.getMaterialAt(point.getVector().getBlockX(),
                 point.getVector().getBlockY() - 1, point.getVector().getBlockZ())))
             return PassableState.IGNORE;
-        Block in = source.getBlockAt(point.getVector());
+        Material in = source.getMaterialAt(point.getVector());
+        BlockData inData = source.getBlockDataAt(point.getVector());
 
-        if (MinecraftBlockExaminer.isDoor(in.getType()) && isBottomDoor(in)
-                || MinecraftBlockExaminer.isGate(in.getType())) {
+        if (MinecraftBlockExaminer.isDoor(in) && isBottomDoor(inData) || MinecraftBlockExaminer.isGate(in)) {
             point.addCallback(new DoorOpener());
             return PassableState.PASSABLE;
         }
@@ -188,18 +187,16 @@ public class DoorExaminer implements BlockExaminer {
         return bottom ? point : point.getRelative(BlockFace.DOWN);
     }
 
-    private static boolean isBottomDoor(Block point) {
-        if (SpigotUtil.isUsing1_13API()) {
-            BlockData bd = point.getBlockData();
-            if (!(bd instanceof Bisected))
-                return false;
-            return ((Bisected) bd).getHalf() == Half.BOTTOM;
-        }
+    private static boolean isBottomDoor(BlockData bd) {
+        if (!(bd instanceof Bisected))
+            return false;
+        return ((Bisected) bd).getHalf() == Half.BOTTOM;
+        /*
         MaterialData data = point.getState().getData();
         if (!(data instanceof org.bukkit.material.Door))
-            return false;
-
+        return false;
+        
         org.bukkit.material.Door door = (org.bukkit.material.Door) data;
-        return !door.isTopHalf();
+        return !door.isTopHalf();*/
     }
 }

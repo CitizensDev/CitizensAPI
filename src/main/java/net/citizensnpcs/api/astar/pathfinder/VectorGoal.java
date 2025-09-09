@@ -14,8 +14,7 @@ public class VectorGoal implements AStarGoal<VectorNode> {
             dest = MinecraftBlockExaminer.findValidLocationAbove(dest, 2);
         }
         this.leeway = range;
-        this.goal = dest.toVector();
-        goal.setX(goal.getBlockX()).setY(goal.getBlockY()).setZ(goal.getBlockZ());
+        this.goal = dest.toVector().setX(dest.getBlockX()).setY(dest.getBlockY()).setZ(dest.getBlockZ());
     }
 
     @Override

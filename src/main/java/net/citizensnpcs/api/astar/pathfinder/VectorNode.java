@@ -13,7 +13,6 @@ import net.citizensnpcs.api.ai.NavigatorParameters;
 import net.citizensnpcs.api.astar.AStarNode;
 import net.citizensnpcs.api.astar.Plan;
 import net.citizensnpcs.api.astar.pathfinder.BlockExaminer.PassableState;
-import net.citizensnpcs.api.util.SpigotUtil;
 
 public class VectorNode extends AStarNode implements PathPoint {
     private float blockCost = -1;
@@ -118,17 +117,14 @@ public class VectorNode extends AStarNode implements PathPoint {
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
                 for (int z = -1; z <= 1; z++) {
-                    if (x == 0 && y == 0 && z == 0) {
+                    if (x == 0 && y == 0 && z == 0)
                         continue;
-                    }
+
                     int modY = location.getBlockY() + y;
-                    if (!SpigotUtil.checkYSafe(modY, source.getWorld()))
+                    if (!source.isYWithinBounds(modY))
                         continue;
 
                     Vector mod = new Vector(location.getX() + x, modY, location.getZ() + z);
-                    if (mod.equals(location)) {
-                        continue;
-                    }
                     if (x != 0 && z != 0 && checkPassable) {
                         if (!isPassable(point.createAtOffset(new Vector(location.getX() + x, modY, location.getZ())))
                                 || !isPassable(

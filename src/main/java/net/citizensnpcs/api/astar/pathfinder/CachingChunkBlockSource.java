@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 
 import com.google.common.collect.Maps;
 
@@ -41,11 +42,23 @@ public abstract class CachingChunkBlockSource<T> extends BlockSource {
         }
     }
 
+    protected abstract BlockData getBlockData(T chunk, int x, int y, int z);
+
+    @Override
+    public BlockData getBlockDataAt(int x, int y, int z) {
+        if (!isYWithinBounds(y))
+            return null;
+        T chunk = getSpecific(x, z);
+        if (chunk != null)
+            return getBlockData(chunk, x, y, z);
+        return world.getBlockData(x, y, z);
+    }
+
     protected abstract T getChunkObject(int x, int z);
 
     @Override
     public BoundingBox getCollisionBox(int x, int y, int z) {
-        if (!SpigotUtil.checkYSafe(y, world))
+        if (!isYWithinBounds(y))
             return BoundingBox.EMPTY;
         T chunk = getSpecific(x, z);
         if (chunk != null)
@@ -61,7 +74,7 @@ public abstract class CachingChunkBlockSource<T> extends BlockSource {
 
     @Override
     public Material getMaterialAt(int x, int y, int z) {
-        if (!SpigotUtil.checkYSafe(y, world))
+        if (!isYWithinBounds(y))
             return Material.AIR;
         T chunk = getSpecific(x, z);
         if (chunk != null)
@@ -92,8 +105,8 @@ public abstract class CachingChunkBlockSource<T> extends BlockSource {
     protected abstract Material getType(T chunk, int x, int y, int z);
 
     @Override
-    public World getWorld() {
-        return world;
+    public boolean isYWithinBounds(int y) {
+        return SpigotUtil.checkYSafe(y, world);
     }
 
     private class ChunkCache {
@@ -121,8 +134,7 @@ public abstract class CachingChunkBlockSource<T> extends BlockSource {
 
         @Override
         public int hashCode() {
-            int result = 31 * x;
-            return 31 * result + z;
+            return 31 * (31 * x) + z;
         }
     }
 

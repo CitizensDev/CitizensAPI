@@ -1,7 +1,6 @@
 package net.citizensnpcs.api.astar.pathfinder;
 
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Squid;
 import org.bukkit.entity.WaterMob;
@@ -26,7 +25,8 @@ public class SwimmingExaminer implements BlockExaminer {
     public float getCost(BlockSource source, PathPoint point) {
         // penalise non water blocks for fish
         if (isWaterMob(npc.getEntity())
-                && !MinecraftBlockExaminer.isLiquidOrInLiquid(source.getBlockAt(point.getVector())))
+                && !MinecraftBlockExaminer.isLiquidOrWaterlogged(source.getMaterialAt(point.getVector()),
+                        source.getBlockDataAt(point.getVector())))
             return 1F;
         return 0;
     }
@@ -34,15 +34,16 @@ public class SwimmingExaminer implements BlockExaminer {
     @Override
     public PassableState isPassable(BlockSource source, PathPoint point) {
         Vector vector = point.getVector();
-        if (!MinecraftBlockExaminer.isLiquidOrInLiquid(
-                source.getWorld().getBlockAt(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ())))
+        if (!MinecraftBlockExaminer.isLiquidOrWaterlogged(source.getMaterialAt(vector), source.getBlockDataAt(vector)))
             return PassableState.IGNORE;
 
         if (isWaterMob(npc.getEntity()))
             return PassableState.PASSABLE;
 
-        Block block = source.getBlockAt(vector.clone().add(UP));
-        return isSwimmableLiquid(block.getType()) || MinecraftBlockExaminer.canStandIn(block) ? PassableState.PASSABLE
+        Vector above = vector.clone().add(UP);
+        Material aboveMat = source.getMaterialAt(above);
+        return isSwimmableLiquid(aboveMat) || MinecraftBlockExaminer.canStandIn(aboveMat, source.getBlockDataAt(above))
+                ? PassableState.PASSABLE
                 : PassableState.UNPASSABLE;
     }
 

@@ -213,7 +213,9 @@ public class HPAGraph {
     public boolean walkable(int x, int y, int z) {
         if (y == 0)
             return false;
-        return MinecraftBlockExaminer.canStandOn(blockSource.getWorld().getBlockAt(x, y - 1, z));
+        return MinecraftBlockExaminer.canStandIn(blockSource.getMaterialAt(x, y, z))
+                && MinecraftBlockExaminer.canStandIn(blockSource.getMaterialAt(x, y + 1, z))
+                && MinecraftBlockExaminer.canStandOn(blockSource.getMaterialAt(x, y - 1, z));
     }
 
     private static int BASE_CLUSTER_SIZE = (int) (2 * Math.pow(2, 3));

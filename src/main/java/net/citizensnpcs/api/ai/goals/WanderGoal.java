@@ -52,8 +52,8 @@ public class WanderGoal extends BehaviorGoalAdapter implements Listener {
         this.picker = picker;
         this.filter = filter == null ? block -> {
             if (npc.getNavigator().getDefaultParameters().avoidWater()
-                    && (MinecraftBlockExaminer.isLiquidOrInLiquid(block.getRelative(BlockFace.UP))
-                            || MinecraftBlockExaminer.isLiquidOrInLiquid(block.getRelative(0, 2, 0))))
+                    && (MinecraftBlockExaminer.isLiquidOrWaterlogged(block.getRelative(BlockFace.UP))
+                            || MinecraftBlockExaminer.isLiquidOrWaterlogged(block.getRelative(0, 2, 0))))
                 return false;
             if (worldguardRegion != null) {
                 Object region = worldguardRegion.get();

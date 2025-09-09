@@ -3,7 +3,6 @@ package net.citizensnpcs.api.astar.pathfinder;
 import java.util.List;
 
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
 
 import com.google.common.collect.Lists;
@@ -44,9 +43,9 @@ public class FlyingBlockExaminer implements NeighbourGeneratorBlockExaminer {
     @Override
     public PassableState isPassable(BlockSource source, PathPoint point) {
         Vector pos = point.getVector();
-        Block above = source.getBlockAt(pos.clone().add(UP));
-        Block in = source.getBlockAt(pos);
-        if (MinecraftBlockExaminer.isLiquid(above.getType(), in.getType()))
+        Material above = source.getMaterialAt(pos.clone().add(UP));
+        Material in = source.getMaterialAt(pos);
+        if (MinecraftBlockExaminer.isLiquid(above, in))
             return PassableState.UNPASSABLE;
 
         return MinecraftBlockExaminer.canStandIn(above, in) ? PassableState.PASSABLE : PassableState.UNPASSABLE;
