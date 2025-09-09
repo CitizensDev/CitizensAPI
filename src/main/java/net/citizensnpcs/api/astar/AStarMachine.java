@@ -36,8 +36,8 @@ public class AStarMachine<N extends AStarNode, P extends Plan> {
      *            The starting {@link AStarNode}
      * @return The created state
      */
-    public AStarState getStateFor(AStarGoal<N> goal, N start) {
-        return new AStarState(goal, start, getInitialisedStorage(goal, start));
+    public AStarState<N> getStateFor(AStarGoal<N> goal, N start) {
+        return new AStarState<N>(goal, start, getInitialisedStorage(goal, start));
     }
 
     /**
@@ -48,7 +48,7 @@ public class AStarMachine<N extends AStarNode, P extends Plan> {
      *            The state to use
      * @return The generated {@link Plan}, or <code>null</code>
      */
-    public P run(AStarState state) {
+    public P run(AStarState<N> state) {
         return run(state, -1);
     }
 
@@ -62,7 +62,7 @@ public class AStarMachine<N extends AStarNode, P extends Plan> {
      *            The maximum number of iterations
      * @return The generated {@link Plan}, or <code>null</code> if not found
      */
-    public P run(AStarState state, int maxIterations) {
+    public P run(AStarState<N> state, int maxIterations) {
         return run(state.storage, state.goal, state.start, maxIterations);
     }
 
@@ -128,20 +128,20 @@ public class AStarMachine<N extends AStarNode, P extends Plan> {
         storageSupplier = newSupplier;
     }
 
-    public class AStarState {
-        private final AStarGoal<N> goal;
-        private final N start;
+    public static class AStarState<T extends AStarNode> {
+        private final AStarGoal<T> goal;
+        private final T start;
         private final AStarStorage storage;
 
-        private AStarState(AStarGoal<N> goal, N start, AStarStorage storage) {
+        private AStarState(AStarGoal<T> goal, T start, AStarStorage storage) {
             this.goal = goal;
             this.start = start;
             this.storage = storage;
         }
 
         @SuppressWarnings("unchecked")
-        public N getBestNode() {
-            return (N) storage.getBestNode();
+        public T getBestNode() {
+            return (T) storage.getBestNode();
         }
 
         public boolean isEmpty() {

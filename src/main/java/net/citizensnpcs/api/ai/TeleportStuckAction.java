@@ -38,6 +38,6 @@ public class TeleportStuckAction implements StuckAction {
         return "TeleportStuckAction";
     }
 
-    public static TeleportStuckAction INSTANCE = new TeleportStuckAction();
+    public static final TeleportStuckAction INSTANCE = new TeleportStuckAction();
     private static final int MAX_ITERATIONS = 10;
 }

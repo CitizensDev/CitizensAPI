@@ -3,6 +3,7 @@ package net.citizensnpcs.api;
 import org.bukkit.plugin.Plugin;
 
 import net.citizensnpcs.api.ai.speech.SpeechContext;
+import net.citizensnpcs.api.astar.pathfinder.AsyncChunkCache;
 import net.citizensnpcs.api.command.CommandManager;
 import net.citizensnpcs.api.npc.NPCDataStore;
 import net.citizensnpcs.api.npc.NPCRegistry;
@@ -26,6 +27,8 @@ public interface CitizensPlugin extends Plugin {
      * @return A new NPCRegistry, that can also be retrieved via {@link #getNamedNPCRegistry(String)}
      */
     public NPCRegistry createNamedNPCRegistry(String name, NPCDataStore store);
+
+    public AsyncChunkCache getAsyncChunkCache();
 
     public CommandManager getCommandManager();
 

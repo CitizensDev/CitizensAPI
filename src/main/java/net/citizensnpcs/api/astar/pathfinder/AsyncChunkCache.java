@@ -20,13 +20,20 @@ import java.util.concurrent.TimeUnit;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.util.Vector;
 
 import com.google.common.collect.ImmutableList;
 
-public class AsyncPathfinderService {
+import net.citizensnpcs.api.ai.NavigatorParameters;
+import net.citizensnpcs.api.astar.AStarMachine;
+import net.citizensnpcs.api.util.BoundingBox;
+import net.citizensnpcs.api.util.SpigotUtil;
+
+public class AsyncChunkCache {
     private final ScheduledExecutorService evictionExecutor;
     private final Plugin plugin;
     private final Map<ChunkKey, CompletableFuture<ChunkSnapshot>> snapshotCache = new ConcurrentHashMap<>();
@@ -34,13 +41,15 @@ public class AsyncPathfinderService {
     private final long ttlMillis;
     private final ForkJoinPool workerPool;
 
-    public AsyncPathfinderService(Plugin plugin, int parallelism, long ttlMillis) {
+    public AsyncChunkCache(Plugin plugin, int workerThreads, long cacheTtlMillis) {
         this.plugin = plugin;
-        this.workerPool = new ForkJoinPool(Math.max(1, parallelism));
-        this.ttlMillis = ttlMillis;
-        if (ttlMillis > 0) {
-            evictionExecutor = Executors.newSingleThreadScheduledExecutor();
-            evictionExecutor.scheduleAtFixedRate(this::evictStaleChunks, ttlMillis, ttlMillis, TimeUnit.MILLISECONDS);
+        this.workerPool = new ForkJoinPool(workerThreads);
+        this.ttlMillis = cacheTtlMillis;
+        if (cacheTtlMillis > 0) {
+            evictionExecutor = Executors.newSingleThreadScheduledExecutor(
+                    runnable -> new Thread(runnable, "Citizens Async Pathfinder Cache Eviction Thread"));
+            evictionExecutor.scheduleAtFixedRate(this::evictStaleChunks, cacheTtlMillis, cacheTtlMillis,
+                    TimeUnit.MILLISECONDS);
         } else {
             evictionExecutor = null;
         }
@@ -51,7 +60,7 @@ public class AsyncPathfinderService {
         for (Map.Entry<ChunkKey, Long> e : snapshotCacheExpiry.entrySet()) {
             ChunkKey key = e.getKey();
             long last = e.getValue();
-            if (now - last > ttlMillis) {
+            if (now > last) {
                 CompletableFuture<ChunkSnapshot> cf = snapshotCache.get(key);
                 if (cf != null && cf.isDone()) {
                     snapshotCache.remove(key, cf);
@@ -93,7 +102,7 @@ public class AsyncPathfinderService {
                 }
                 // on main thread
                 try {
-                    snapshotCacheExpiry.put(key, System.currentTimeMillis());
+                    snapshotCacheExpiry.put(key, System.currentTimeMillis() + ttlMillis);
                     future.complete(chunk.getChunkSnapshot());
                 } catch (Throwable t) {
                     future.completeExceptionally(t);
@@ -103,7 +112,7 @@ public class AsyncPathfinderService {
             Bukkit.getScheduler().runTask(plugin, () -> {
                 try {
                     Chunk chunk = world.getChunkAt(cx, cz);
-                    snapshotCacheExpiry.put(key, System.currentTimeMillis());
+                    snapshotCacheExpiry.put(key, System.currentTimeMillis() + ttlMillis);
                     future.complete(chunk.getChunkSnapshot());
                 } catch (Throwable t) {
                     future.completeExceptionally(t);
@@ -138,7 +147,7 @@ public class AsyncPathfinderService {
         for (Rect rect : rects) {
             for (int cx = rect.minX; cx <= rect.maxX; cx++) {
                 for (int cz = rect.minZ; cz <= rect.maxZ; cz++) {
-                    snapshotCache.computeIfAbsent(new ChunkKey(req.world.getUID(), cx, cz),
+                    snapshotCache.computeIfAbsent(new ChunkKey(req.from.getWorld().getUID(), cx, cz),
                             k -> new CompletableFuture<>());
                 }
             }
@@ -146,10 +155,10 @@ public class AsyncPathfinderService {
         @SuppressWarnings("unchecked")
         CompletableFuture<Void>[] futures = new CompletableFuture[rects.size()];
         for (int i = 0; i < rects.size(); i++) {
-            futures[i] = prefetchRectangle(req.world, rects.get(i));
+            futures[i] = prefetchRectangle(req.from.getWorld(), rects.get(i));
         }
         CompletableFuture<Path> workerFuture = CompletableFuture.allOf(futures).thenCompose(v -> CompletableFuture
-                .supplyAsync(() -> runPathfinder(req, new SnapshotProvider(req.world)), workerPool));
+                .supplyAsync(() -> runPathfinder(req, new SnapshotProvider(req.from.getWorld())), workerPool));
 
         CompletableFuture<Path> result = new CompletableFuture<>();
         workerFuture.whenComplete((res, ex) -> {
@@ -213,7 +222,7 @@ public class AsyncPathfinderService {
 
                 try {
                     Chunk chunk = completed.join();
-                    snapshotCacheExpiry.put(key, System.currentTimeMillis());
+                    snapshotCacheExpiry.put(key, System.currentTimeMillis() + ttlMillis);
                     pending.complete(chunk.getChunkSnapshot());
                 } catch (CompletionException ce) {
                     Throwable cause = ce.getCause() != null ? ce.getCause() : ce;
@@ -239,7 +248,7 @@ public class AsyncPathfinderService {
                         if (pending == null || pending.isDone())
                             continue;
                         Chunk chunk = world.getChunkAt(cx, cz);
-                        snapshotCacheExpiry.put(key, System.currentTimeMillis());
+                        snapshotCacheExpiry.put(key, System.currentTimeMillis() + ttlMillis);
                         pending.complete(chunk.getChunkSnapshot());
                     }
                 }
@@ -291,7 +300,29 @@ public class AsyncPathfinderService {
     }
 
     private Path runPathfinder(PathRequest req, SnapshotProvider provider) {
-        throw new UnsupportedOperationException("");
+        VectorGoal goal = new VectorGoal(req.to, (float) req.parameters.pathDistanceMargin());
+        return AStarMachine.<VectorNode, Path> createWithDefaultStorage().runFully(goal,
+                new VectorNode(goal, req.from, new BlockSource() {
+                    @Override
+                    public BlockData getBlockDataAt(int x, int y, int z) {
+                        return provider.get(x >> 4, z >> 4).getBlockData(x & 15, y, z & 15);
+                    }
+
+                    @Override
+                    public BoundingBox getCollisionBox(int x, int y, int z) {
+                        return null;
+                    }
+
+                    @Override
+                    public Material getMaterialAt(int x, int y, int z) {
+                        return provider.get(x >> 4, z >> 4).getBlockType(x & 15, y, z & 15);
+                    }
+
+                    @Override
+                    public boolean isYWithinBounds(int y) {
+                        return SpigotUtil.checkYSafe(y, req.from.getWorld());
+                    }
+                }, req.parameters));
     }
 
     public void shutdown() {
@@ -362,15 +393,15 @@ public class AsyncPathfinderService {
     }
 
     public static final class PathRequest {
-        private final Vector from;
+        private final Location from;
+        private final NavigatorParameters parameters;
         private final int prefetchRadius;
-        private final Vector to;
-        private final World world;
+        private final Location to;
 
-        public PathRequest(World world, Vector from, Vector to, int prefetchRadius) {
-            this.world = world;
+        public PathRequest(Location from, Location to, int prefetchRadius, NavigatorParameters parameters) {
             this.from = from;
             this.to = to;
+            this.parameters = parameters;
             this.prefetchRadius = prefetchRadius;
         }
     }
@@ -390,7 +421,7 @@ public class AsyncPathfinderService {
         }
     }
 
-    public class SnapshotProvider {
+    private class SnapshotProvider {
         private final World world;
 
         SnapshotProvider(World world) {
@@ -399,17 +430,15 @@ public class AsyncPathfinderService {
 
         public ChunkSnapshot get(int cx, int cz) {
             CompletableFuture<ChunkSnapshot> chunk = getAsync(cx, cz);
-            if (Thread.currentThread() instanceof ForkJoinWorkerThread) {
+            if (!chunk.isDone() && Thread.currentThread() instanceof ForkJoinWorkerThread) {
                 try {
                     ForkJoinPool.managedBlock(new CompletableFutureManagedBlocker<>(chunk));
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     throw new CompletionException(e);
                 }
-                return chunk.join();
-            } else {
-                return chunk.join();
             }
+            return chunk.join();
         }
 
         public CompletableFuture<ChunkSnapshot> getAsync(int cx, int cz) {
