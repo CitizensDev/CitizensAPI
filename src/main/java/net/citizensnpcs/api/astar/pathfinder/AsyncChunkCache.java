@@ -43,7 +43,7 @@ public class AsyncChunkCache {
 
     public AsyncChunkCache(Plugin plugin, int workerThreads, long cacheTtlMillis) {
         this.plugin = plugin;
-        this.workerPool = new ForkJoinPool(workerThreads);
+        this.workerPool = new ForkJoinPool(Math.min(Runtime.getRuntime().availableProcessors(), workerThreads));
         this.ttlMillis = cacheTtlMillis;
         if (cacheTtlMillis > 0) {
             evictionExecutor = Executors.newSingleThreadScheduledExecutor(
