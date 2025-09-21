@@ -227,6 +227,5 @@ public final class CitizensAPI {
     }
 
     private static volatile CitizensPlugin instance = null;
-
     private static SchedulerAdapter scheduler;
 }

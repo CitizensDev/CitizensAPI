@@ -5,12 +5,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 import org.bukkit.NamespacedKey;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 
@@ -73,7 +76,17 @@ public class TemplateRegistry {
         if (fullyQualifiedTemplates.containsKey(namespacedKey))
             throw new TemplateLoadException("Duplicate template key " + namespacedKey);
 
-        Template template = Template.load(new TemplateWorkspace(folder), namespacedKey, key);
+        TemplateErrorReporter errors = new TemplateErrorReporter();
+        Template template;
+        try {
+            template = Template.load(errors, new TemplateWorkspace(folder), namespacedKey, key);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            throw new TemplateLoadException(exception.getMessage());
+        }
+        if (errors.errors.size() > 0) {
+            throw new TemplateLoadException(Joiner.on('\n').join(errors.errors));
+        }
         fullyQualifiedTemplates.put(namespacedKey, template);
         templatesByName.put(namespacedKey.getKey(), template);
     }
@@ -150,6 +163,14 @@ public class TemplateRegistry {
         destination.save();
 
         template.renameTo(new File(folder, template.getName() + ".migrated"));
+    }
+
+    public static class TemplateErrorReporter {
+        private final List<String> errors = Lists.newArrayList();
+
+        public void addError(String message) {
+            this.errors.add(message);
+        }
     }
 
     @SuppressWarnings("serial")

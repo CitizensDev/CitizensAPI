@@ -337,6 +337,7 @@ public class AsyncChunkCache {
         } catch (Throwable ignored) {
         }
         snapshotCache.clear();
+        snapshotCacheExpiry.clear();
     }
 
     private static class ChunkKey {

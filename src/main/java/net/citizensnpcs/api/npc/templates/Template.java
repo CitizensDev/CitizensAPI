@@ -10,6 +10,7 @@ import com.google.common.collect.Lists;
 import net.citizensnpcs.api.event.DespawnReason;
 import net.citizensnpcs.api.event.NPCSpawnEvent;
 import net.citizensnpcs.api.npc.NPC;
+import net.citizensnpcs.api.npc.templates.TemplateRegistry.TemplateErrorReporter;
 import net.citizensnpcs.api.persistence.PersistenceLoader;
 import net.citizensnpcs.api.util.DataKey;
 
@@ -42,13 +43,14 @@ public class Template {
         return key;
     }
 
-    public static Template load(TemplateWorkspace workspace, NamespacedKey nkey, DataKey key) {
-        Template template = new Template(nkey);
+    public static Template load(TemplateErrorReporter errors, TemplateWorkspace workspace, NamespacedKey identifier,
+            DataKey key) {
+        Template template = new Template(identifier);
         if (key.keyExists("yaml_replace")) {
             template.addAction(PersistenceLoader.load(YamlReplacementAction.class, key.getRelative("yaml_replace")));
         }
         if (key.keyExists("traits")) {
-            template.addAction(new TraitLoaderAction(key.getRelative("traits")));
+            template.addAction(new TraitLoaderAction(errors, workspace, key.getRelative("traits")));
         }
         if (key.keyExists("commands")) {
             loadCommands(template, workspace, key.getRelative("commands"));

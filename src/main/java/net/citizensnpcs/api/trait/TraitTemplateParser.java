@@ -4,6 +4,7 @@ import java.util.function.BiFunction;
 
 import net.citizensnpcs.api.command.CommandContext;
 import net.citizensnpcs.api.npc.NPC;
+import net.citizensnpcs.api.npc.templates.TemplateWorkspace;
 import net.citizensnpcs.api.persistence.PersistenceLoader;
 import net.citizensnpcs.api.util.DataKey;
 
@@ -12,10 +13,20 @@ public interface TraitTemplateParser {
 
     TemplateParser getTemplateParser();
 
-    public static interface ShortTemplateParser extends BiFunction<NPC, CommandContext, Trait> {
+    public static interface ShortTemplateParser extends BiFunction<TraitParserContext, CommandContext, Trait> {
     }
 
-    public static interface TemplateParser extends BiFunction<NPC, DataKey, Trait> {
+    public static interface TemplateParser extends BiFunction<TraitParserContext, DataKey, Trait> {
+    }
+
+    public static class TraitParserContext {
+        public final NPC npc;
+        public final TemplateWorkspace workspace;
+
+        public TraitParserContext(NPC npc, TemplateWorkspace workspace) {
+            this.npc = npc;
+            this.workspace = workspace;
+        }
     }
 
     static TraitTemplateParser createDefault(Class<? extends Trait> traitClass) {
@@ -27,7 +38,7 @@ public interface TraitTemplateParser {
 
             @Override
             public TemplateParser getTemplateParser() {
-                return (npc, key) -> PersistenceLoader.load(traitClass, key);
+                return (ctx, key) -> PersistenceLoader.load(traitClass, key);
             }
         };
     }

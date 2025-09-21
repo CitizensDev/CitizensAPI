@@ -12,17 +12,18 @@ import com.google.common.collect.Lists;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.command.CommandContext;
 import net.citizensnpcs.api.npc.NPC;
+import net.citizensnpcs.api.npc.templates.TemplateRegistry.TemplateErrorReporter;
 import net.citizensnpcs.api.trait.Trait;
 import net.citizensnpcs.api.trait.TraitTemplateParser;
 import net.citizensnpcs.api.trait.TraitTemplateParser.ShortTemplateParser;
 import net.citizensnpcs.api.trait.TraitTemplateParser.TemplateParser;
+import net.citizensnpcs.api.trait.TraitTemplateParser.TraitParserContext;
 import net.citizensnpcs.api.util.DataKey;
-import net.citizensnpcs.api.util.Messaging;
 
 public class TraitLoaderAction implements Consumer<NPC> {
     private final List<Function<NPC, Trait>> actions = Lists.newArrayList();
 
-    public TraitLoaderAction(DataKey traits) {
+    public TraitLoaderAction(TemplateErrorReporter errors, TemplateWorkspace workspace, DataKey traits) {
         for (DataKey key : traits.getIntegerSubKeys()) {
             List<DataKey> list = ImmutableList.copyOf(key.getSubKeys());
             if (list.isEmpty()) {
@@ -31,31 +32,28 @@ public class TraitLoaderAction implements Consumer<NPC> {
                 String traitNamePartial = parts[0];
                 TraitTemplateParser parser = CitizensAPI.getTraitFactory().getTemplateParser(traitNamePartial);
                 if (parser == null) {
-                    // TODO: this should be reported centrally instead
-                    Messaging.severe("Unknown trait", traitNamePartial);
+                    errors.addError(key.getPath() + ": Unknown trait " + traitNamePartial);
                     continue;
                 }
                 ShortTemplateParser stp = parser.getShortTemplateParser();
                 if (stp != null) {
                     CommandContext ctx = new CommandContext(Bukkit.getConsoleSender(), parts);
-                    actions.add(npc -> stp.apply(npc, ctx));
+                    actions.add(npc -> stp.apply(new TraitParserContext(npc, workspace), ctx));
                 }
             } else {
                 if (!key.keyExists("name")) {
-                    // TODO: this should be reported centrally instead
-                    Messaging.severe("Missing trait name");
+                    errors.addError(key.getPath() + ": Missing trait name");
                     continue;
                 }
                 String traitName = key.getString("name");
                 TraitTemplateParser parser = CitizensAPI.getTraitFactory().getTemplateParser(traitName);
                 if (parser == null) {
-                    // TODO: this should be reported centrally instead
-                    Messaging.severe("Unknown trait", traitName);
+                    errors.addError(key.getPath() + ": Unknown trait " + traitName);
                     continue;
                 }
                 TemplateParser tp = parser.getTemplateParser();
                 if (tp != null) {
-                    actions.add(npc -> tp.apply(npc, key));
+                    actions.add(npc -> tp.apply(new TraitParserContext(npc, workspace), key));
                 }
             }
         }
