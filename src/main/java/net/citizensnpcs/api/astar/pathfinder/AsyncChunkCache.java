@@ -75,7 +75,6 @@ public class AsyncChunkCache {
 
     // guaranteed to complete on main thread, but may throw exception on alternate thread
     private CompletableFuture<ChunkSnapshot> fetchChunkSnapshotAsync(World world, int cx, int cz) {
-        Messaging.debug("AsyncChunkCache: Fetching chunk", world, cx, cz);
         ChunkKey key = new ChunkKey(world.getUID(), cx, cz);
 
         CompletableFuture<ChunkSnapshot> existing = snapshotCache.get(key);
@@ -86,6 +85,7 @@ public class AsyncChunkCache {
         CompletableFuture<ChunkSnapshot> raced = snapshotCache.putIfAbsent(key, future);
         if (raced != null)
             return raced;
+        Messaging.debug("AsyncChunkCache: Fetching chunk", world, cx, cz);
 
         if (WORLD_GET_CHUNK_AT_ASYNC != null) {
             CompletableFuture<Chunk> chunkGetter;
@@ -183,7 +183,6 @@ public class AsyncChunkCache {
     }
 
     private CompletableFuture<Void> prefetchIndividualChunks(World world, Rect rect) {
-        Messaging.debug("AsyncChunkCache: Fetching chunks", world, rect);
         List<CompletableFuture<Chunk>> chunkFutures = new ArrayList<>();
         Map<CompletableFuture<Chunk>, ChunkKey> mapping = new IdentityHashMap<>();
 
@@ -211,6 +210,7 @@ public class AsyncChunkCache {
         }
         if (chunkFutures.isEmpty())
             return CompletableFuture.completedFuture(null);
+        Messaging.debug("AsyncChunkCache: Fetching chunks", world, rect);
 
         CompletableFuture<Void> all = CompletableFuture
                 .allOf(chunkFutures.toArray(new CompletableFuture[chunkFutures.size()]));
