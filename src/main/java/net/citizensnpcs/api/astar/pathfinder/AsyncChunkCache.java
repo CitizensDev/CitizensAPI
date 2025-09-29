@@ -147,19 +147,25 @@ public class AsyncChunkCache {
         } else {
             rects = ImmutableList.of(start, end);
         }
-        // create keys
-        for (Rect rect : rects) {
-            for (int cx = rect.minX; cx <= rect.maxX; cx++) {
-                for (int cz = rect.minZ; cz <= rect.maxZ; cz++) {
-                    snapshotCache.computeIfAbsent(new ChunkKey(req.from.getWorld().getUID(), cx, cz),
-                            k -> new CompletableFuture<>());
-                }
-            }
-        }
         @SuppressWarnings("unchecked")
         CompletableFuture<Void>[] futures = new CompletableFuture[rects.size()];
         for (int i = 0; i < rects.size(); i++) {
-            futures[i] = prefetchRectangle(req.from.getWorld(), rects.get(i));
+            Rect rect = rects.get(i);
+            int chunkCount = 0;
+            for (int cx = rect.minX; cx <= rect.maxX; cx++) {
+                for (int cz = rect.minZ; cz <= rect.maxZ; cz++) {
+                    CompletableFuture<ChunkSnapshot> old = snapshotCache.putIfAbsent(
+                            new ChunkKey(req.from.getWorld().getUID(), cx, cz), new CompletableFuture<ChunkSnapshot>());
+                    if (old == null || !old.isDone()) {
+                        chunkCount++;
+                    }
+                }
+            }
+            if (chunkCount == 0) {
+                futures[i] = CompletableFuture.completedFuture(null);
+            } else {
+                futures[i] = prefetchRectangle(req.from.getWorld(), rect);
+            }
         }
         CompletableFuture<Path> workerFuture = CompletableFuture.allOf(futures).thenCompose(v -> CompletableFuture
                 .supplyAsync(() -> runPathfinder(req, new SnapshotProvider(req.from.getWorld())), workerPool));
@@ -248,11 +254,8 @@ public class AsyncChunkCache {
             for (int cz = rect.minZ; cz <= rect.maxZ; cz++) {
                 ChunkKey key = new ChunkKey(world.getUID(), cx, cz);
                 CompletableFuture<ChunkSnapshot> pending = snapshotCache.get(key);
-                if (pending == null)
-                    throw new IllegalStateException();
-                if (!pending.isDone()) {
+                if (pending == null || !pending.isDone()) {
                     chunksToLoad++;
-                    break;
                 }
             }
         }
