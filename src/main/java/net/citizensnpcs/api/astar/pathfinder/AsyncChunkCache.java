@@ -44,8 +44,7 @@ public class AsyncChunkCache {
 
     public AsyncChunkCache(Plugin plugin, int workerThreads, long cacheTtlMillis) {
         this.plugin = plugin;
-        this.workerPool = ForkJoinPool.commonPool();
-        // this.workerPool = new ForkJoinPool(Math.min(Runtime.getRuntime().availableProcessors(), workerThreads));
+        this.workerPool = new ForkJoinPool(Math.min(Runtime.getRuntime().availableProcessors(), workerThreads));
         this.ttlMillis = cacheTtlMillis;
         if (cacheTtlMillis > 0) {
             evictionExecutor = Executors.newSingleThreadScheduledExecutor(
@@ -322,7 +321,7 @@ public class AsyncChunkCache {
 
     public void shutdown() {
         try {
-            // workerPool.shutdownNow();
+            workerPool.shutdownNow();
         } catch (Throwable ignored) {
         }
         try {
