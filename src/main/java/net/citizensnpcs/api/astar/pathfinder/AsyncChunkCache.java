@@ -3,7 +3,6 @@ package net.citizensnpcs.api.astar.pathfinder;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -95,10 +94,6 @@ public class AsyncChunkCache {
                 future.completeExceptionally(e.getCause() != null ? e.getCause() : e);
                 return future;
             }
-            if (chunkGetter == null) {
-                future.completeExceptionally(new IllegalStateException("getChunkAtAsync returned null"));
-                return future;
-            }
             chunkGetter.whenComplete((chunk, ex) -> {
                 if (ex != null) {
                     future.completeExceptionally(ex);
@@ -115,9 +110,8 @@ public class AsyncChunkCache {
         } else {
             CitizensAPI.getScheduler().runRegionTask(world, cx, cz, () -> {
                 try {
-                    Chunk chunk = world.getChunkAt(cx, cz);
                     snapshotCacheExpiry.put(key, System.currentTimeMillis() + ttlMillis);
-                    future.complete(chunk.getChunkSnapshot());
+                    future.complete(world.getChunkAt(cx, cz).getChunkSnapshot());
                 } catch (Throwable t) {
                     future.completeExceptionally(t);
                 }
@@ -189,8 +183,7 @@ public class AsyncChunkCache {
     }
 
     private CompletableFuture<Void> prefetchIndividualChunks(World world, Rect rect) {
-        List<CompletableFuture<Chunk>> chunkFutures = new ArrayList<>();
-        Map<CompletableFuture<Chunk>, ChunkKey> mapping = new IdentityHashMap<>();
+        List<ChunkFutureRequest> chunkFutures = new ArrayList<>();
 
         for (int cx = rect.minX; cx <= rect.maxX; cx++) {
             for (int cz = rect.minZ; cz <= rect.maxZ; cz++) {
@@ -201,13 +194,7 @@ public class AsyncChunkCache {
                 try {
                     CompletableFuture<Chunk> chunkFuture = (CompletableFuture<Chunk>) WORLD_GET_CHUNK_AT_ASYNC
                             .invoke(world, cx, cz, true, false);
-                    if (chunkFuture == null) {
-                        if (snap != null && !snap.isDone())
-                            snap.completeExceptionally(new IllegalStateException("getChunkAtAsync returned null"));
-                        continue;
-                    }
-                    chunkFutures.add(chunkFuture);
-                    mapping.put(chunkFuture, key);
+                    chunkFutures.add(new ChunkFutureRequest(chunkFuture, key));
                 } catch (Throwable e) {
                     if (snap != null && !snap.isDone())
                         snap.completeExceptionally(e.getCause() != null ? e.getCause() : e);
@@ -222,18 +209,15 @@ public class AsyncChunkCache {
                 .allOf(chunkFutures.toArray(new CompletableFuture[chunkFutures.size()]));
         CompletableFuture<Void> done = new CompletableFuture<>();
         all.whenComplete((v, ex) -> {
-            for (CompletableFuture<Chunk> completed : chunkFutures) {
-                ChunkKey key = mapping.get(completed);
-                if (key == null)
-                    continue;
-                CompletableFuture<ChunkSnapshot> pending = snapshotCache.get(key);
+            for (ChunkFutureRequest request : chunkFutures) {
+                CompletableFuture<ChunkSnapshot> pending = snapshotCache.get(request.key);
                 if (pending == null || pending.isDone())
                     continue;
                 // TODO: it's possible that chunk loading takes some ticks and therefore this will double-load chunks.
 
                 try {
-                    Chunk chunk = completed.join();
-                    snapshotCacheExpiry.put(key, System.currentTimeMillis() + ttlMillis);
+                    Chunk chunk = request.future.join();
+                    snapshotCacheExpiry.put(request.key, System.currentTimeMillis() + ttlMillis);
                     pending.complete(chunk.getChunkSnapshot());
                 } catch (CompletionException ce) {
                     Throwable cause = ce.getCause() != null ? ce.getCause() : ce;
@@ -349,6 +333,16 @@ public class AsyncChunkCache {
         }
         snapshotCache.clear();
         snapshotCacheExpiry.clear();
+    }
+
+    private static class ChunkFutureRequest {
+        private final CompletableFuture<Chunk> future;
+        private final ChunkKey key;
+
+        public ChunkFutureRequest(CompletableFuture<Chunk> future, ChunkKey key) {
+            this.future = future;
+            this.key = key;
+        }
     }
 
     private static class ChunkKey {
