@@ -28,9 +28,11 @@ import org.bukkit.plugin.Plugin;
 
 import com.google.common.collect.ImmutableList;
 
+import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.ai.NavigatorParameters;
 import net.citizensnpcs.api.astar.AStarMachine;
 import net.citizensnpcs.api.util.BoundingBox;
+import net.citizensnpcs.api.util.Messaging;
 import net.citizensnpcs.api.util.SpigotUtil;
 
 public class AsyncChunkCache {
@@ -72,6 +74,7 @@ public class AsyncChunkCache {
 
     // guaranteed to complete on main thread, but may throw exception on alternate thread
     private CompletableFuture<ChunkSnapshot> fetchChunkSnapshotAsync(World world, int cx, int cz) {
+        Messaging.debug("AsyncChunkCache: Fetching chunk", world, cx, cz);
         ChunkKey key = new ChunkKey(world.getUID(), cx, cz);
 
         CompletableFuture<ChunkSnapshot> existing = snapshotCache.get(key);
@@ -109,7 +112,7 @@ public class AsyncChunkCache {
                 }
             });
         } else {
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            CitizensAPI.getScheduler().runRegionTask(world, cx, cz, () -> {
                 try {
                     Chunk chunk = world.getChunkAt(cx, cz);
                     snapshotCacheExpiry.put(key, System.currentTimeMillis() + ttlMillis);
@@ -172,13 +175,14 @@ public class AsyncChunkCache {
             if (Bukkit.isPrimaryThread()) {
                 cb.run();
             } else {
-                Bukkit.getScheduler().runTask(plugin, cb);
+                CitizensAPI.getScheduler().runTask(cb);
             }
         });
         return result;
     }
 
     private CompletableFuture<Void> prefetchIndividualChunks(World world, Rect rect) {
+        Messaging.debug("AsyncChunkCache: Fetching chunks", world, rect);
         List<CompletableFuture<Chunk>> chunkFutures = new ArrayList<>();
         Map<CompletableFuture<Chunk>, ChunkKey> mapping = new IdentityHashMap<>();
 
@@ -238,6 +242,7 @@ public class AsyncChunkCache {
     }
 
     private CompletableFuture<Void> prefetchRectangle(World world, Rect rect) {
+        Messaging.debug("AsyncChunkCache: Fetching chunk rectangle", world, rect);
         if (WORLD_GET_CHUNKS_AT_ASYNC != null) {
             CompletableFuture<Void> result = new CompletableFuture<>();
             Runnable callback = () -> {
@@ -278,7 +283,7 @@ public class AsyncChunkCache {
             return result;
         }
         CompletableFuture<Void> result = new CompletableFuture<>();
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        CitizensAPI.getScheduler().runRegionTask(world, rect.minX, rect.maxZ, () -> {
             try {
                 for (int cx = rect.minX; cx <= rect.maxX; cx++) {
                     for (int cz = rect.minZ; cz <= rect.maxZ; cz++) {
@@ -419,6 +424,11 @@ public class AsyncChunkCache {
 
         private boolean overlaps(Rect b) {
             return !(maxX < b.minX || b.maxX < minX || maxZ < b.minZ || b.maxZ < minZ);
+        }
+
+        @Override
+        public String toString() {
+            return "[minX=" + minX + ", minZ=" + minZ + ", maxX=" + maxX + ", maxZ=" + maxZ + "]";
         }
     }
 
