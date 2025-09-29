@@ -249,18 +249,6 @@ public class AsyncChunkCache {
     }
 
     private CompletableFuture<Void> prefetchRectangle(World world, Rect rect) {
-        int chunksToLoad = 0;
-        for (int cx = rect.minX; cx <= rect.maxX; cx++) {
-            for (int cz = rect.minZ; cz <= rect.maxZ; cz++) {
-                ChunkKey key = new ChunkKey(world.getUID(), cx, cz);
-                CompletableFuture<ChunkSnapshot> pending = snapshotCache.get(key);
-                if (pending == null || !pending.isDone()) {
-                    chunksToLoad++;
-                }
-            }
-        }
-        if (chunksToLoad == 0)
-            return CompletableFuture.completedFuture(null);
         Messaging.debug("AsyncChunkCache: Fetching chunk rectangle", world, rect);
 
         if (WORLD_GET_CHUNKS_AT_ASYNC != null) {
