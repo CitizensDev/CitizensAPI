@@ -243,7 +243,23 @@ public class AsyncChunkCache {
     }
 
     private CompletableFuture<Void> prefetchRectangle(World world, Rect rect) {
+        int chunksToLoad = 0;
+        for (int cx = rect.minX; cx <= rect.maxX; cx++) {
+            for (int cz = rect.minZ; cz <= rect.maxZ; cz++) {
+                ChunkKey key = new ChunkKey(world.getUID(), cx, cz);
+                CompletableFuture<ChunkSnapshot> pending = snapshotCache.get(key);
+                if (pending == null)
+                    throw new IllegalStateException();
+                if (!pending.isDone()) {
+                    chunksToLoad++;
+                    break;
+                }
+            }
+        }
+        if (chunksToLoad == 0)
+            return CompletableFuture.completedFuture(null);
         Messaging.debug("AsyncChunkCache: Fetching chunk rectangle", world, rect);
+
         if (WORLD_GET_CHUNKS_AT_ASYNC != null) {
             CompletableFuture<Void> result = new CompletableFuture<>();
             Runnable callback = () -> {
@@ -253,9 +269,8 @@ public class AsyncChunkCache {
                         CompletableFuture<ChunkSnapshot> pending = snapshotCache.get(key);
                         if (pending == null || pending.isDone())
                             continue;
-                        Chunk chunk = world.getChunkAt(cx, cz);
                         snapshotCacheExpiry.put(key, System.currentTimeMillis() + ttlMillis);
-                        pending.complete(chunk.getChunkSnapshot());
+                        pending.complete(world.getChunkAt(cx, cz).getChunkSnapshot());
                     }
                 }
                 result.complete(null);
@@ -292,9 +307,8 @@ public class AsyncChunkCache {
                         CompletableFuture<ChunkSnapshot> pending = snapshotCache.get(key);
                         if (pending == null || pending.isDone())
                             continue;
-                        Chunk chunk = world.getChunkAt(cx, cz);
                         snapshotCacheExpiry.put(key, System.currentTimeMillis());
-                        pending.complete(chunk.getChunkSnapshot());
+                        pending.complete(world.getChunkAt(cx, cz).getChunkSnapshot());
                     }
                 }
                 result.complete(null);
@@ -465,11 +479,13 @@ public class AsyncChunkCache {
             WORLD_GET_CHUNKS_AT_ASYNC = MethodHandles.lookup().unreflect(World.class.getMethod("getChunksAtAsync",
                     int.class, int.class, int.class, int.class, boolean.class, Runnable.class));
         } catch (Throwable ignored) {
+            ignored.printStackTrace();
         }
         try {
             WORLD_GET_CHUNK_AT_ASYNC = MethodHandles.lookup().unreflect(
                     World.class.getMethod("getChunkAtAsync", int.class, int.class, boolean.class, boolean.class));
         } catch (Throwable ignored) {
+            ignored.printStackTrace();
         }
     }
 }
