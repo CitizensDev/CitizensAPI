@@ -463,13 +463,11 @@ public class AsyncChunkCache {
             WORLD_GET_CHUNKS_AT_ASYNC = MethodHandles.lookup().unreflect(World.class.getMethod("getChunksAtAsync",
                     int.class, int.class, int.class, int.class, boolean.class, Runnable.class));
         } catch (Throwable ignored) {
-            ignored.printStackTrace();
         }
         try {
             WORLD_GET_CHUNK_AT_ASYNC = MethodHandles.lookup().unreflect(
                     World.class.getMethod("getChunkAtAsync", int.class, int.class, boolean.class, boolean.class));
         } catch (Throwable ignored) {
-            ignored.printStackTrace();
         }
     }
 }
