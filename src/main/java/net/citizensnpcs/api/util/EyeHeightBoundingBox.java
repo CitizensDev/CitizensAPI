@@ -13,6 +13,6 @@ public class EyeHeightBoundingBox extends BoundingBox {
 
     public Vector3f getCenter() {
         double cx = (minX + maxX) / 2, cy = (minY + maxY) / 2, cz = (minZ + maxZ) / 2;
-        return new Vector3f((float) -cx, (float) cy, (float) -cz);
+        return new Vector3f((float) cx, (float) cy, (float) cz);
     }
 }

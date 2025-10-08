@@ -179,6 +179,10 @@ public class SpigotUtil {
                 versionChecker = s -> Class.forName("net.citizensnpcs.nms." + s + ".util.NMSImpl");
             }
             String revision = null;
+            if (getVersion()[1] == 21 && getVersion()[2] >= 9) {
+                MINECRAFT_PACKAGE = versionString + 6; // TODO: hack for paper servers with multiple revisions
+                return MINECRAFT_PACKAGE;
+            }
             for (int i = 1; i <= 6; i++) {
                 try {
                     versionChecker.accept(versionString + i);
