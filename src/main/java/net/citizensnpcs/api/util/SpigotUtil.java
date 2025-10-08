@@ -213,7 +213,7 @@ public class SpigotUtil {
             if (parts[2].contains("-")) {
                 parts[2] = parts[2].split("-")[0];
             }
-            if (parts.length == 3) {
+            if (parts.length >= 3) {
                 return BUKKIT_VERSION = new int[] { Integer.parseInt(parts[0]), Integer.parseInt(parts[1]),
                         Integer.parseInt(parts[2]) };
             }
