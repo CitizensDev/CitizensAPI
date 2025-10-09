@@ -166,39 +166,6 @@ public class SpigotUtil {
         return isUsing1_13API() ? 256 : 64;
     }
 
-    public static String getMinecraftPackage() {
-        if (MINECRAFT_PACKAGE == null) {
-            int[] version = getVersion();
-            if (version == null)
-                throw new IllegalStateException();
-            String versionString = "v" + version[0] + "_" + version[1] + "_R";
-            ThrowingConsumer<String> versionChecker = s -> Class
-                    .forName("org.bukkit.craftbukkit." + s + ".CraftServer");
-            if (Bukkit.getServer().getClass().getName().equals("org.bukkit.craftbukkit.CraftServer")) {
-                Messaging.log("Using mojmapped server, avoiding server package checks");
-                versionChecker = s -> Class.forName("net.citizensnpcs.nms." + s + ".util.NMSImpl");
-            }
-            String revision = null;
-            if (getVersion()[1] == 21 && getVersion()[2] >= 9) {
-                MINECRAFT_PACKAGE = versionString + 6; // TODO: hack for paper servers with multiple revisions
-                return MINECRAFT_PACKAGE;
-            }
-            for (int i = 1; i <= 6; i++) {
-                try {
-                    versionChecker.accept(versionString + i);
-                    revision = versionString + i;
-                    break;
-                } catch (ClassNotFoundException e) {
-                }
-            }
-            if (revision == null)
-                throw new IllegalStateException();
-            MINECRAFT_PACKAGE = revision;
-        }
-        return MINECRAFT_PACKAGE;
-
-    }
-
     public static int[] getVersion() {
         if (BUKKIT_VERSION == null) {
             String version = Bukkit.getBukkitVersion();
@@ -328,7 +295,6 @@ public class SpigotUtil {
     private static int[] BUKKIT_VERSION = null;
     private static final Pattern DAY_MATCHER = Pattern.compile("(\\d+d)");
     private static boolean FOLIA_SERVER = false;
-    private static String MINECRAFT_PACKAGE;
     private static final Map<Class<?>, Boolean> NON_REGISTRY_CLASSES = new WeakHashMap<Class<?>, Boolean>();
     private static final Pattern NUMBER_MATCHER = Pattern.compile("(\\d+)");
     private static boolean SUPPORT_WORLD_HEIGHT = true;
