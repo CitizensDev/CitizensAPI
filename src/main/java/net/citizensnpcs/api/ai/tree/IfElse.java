@@ -1,15 +1,17 @@
 package net.citizensnpcs.api.ai.tree;
 
+import java.util.function.Supplier;
+
 /**
  * A simple if-then-else {@link Behavior} which will execute a different {@link Behavior} depending on an
  * {@link Condition} function.
  */
 public class IfElse extends BehaviorGoalAdapter {
-    private final Condition condition;
+    private final Supplier<Boolean> condition;
     private Behavior executing;
     private final Behavior ifBehavior, elseBehavior;
 
-    public IfElse(Condition condition, Behavior ifBehavior, Behavior elseBehavior) {
+    public IfElse(Supplier<Boolean> condition, Behavior ifBehavior, Behavior elseBehavior) {
         this.condition = condition;
         this.ifBehavior = ifBehavior;
         this.elseBehavior = elseBehavior;
@@ -43,7 +45,7 @@ public class IfElse extends BehaviorGoalAdapter {
         return true;
     }
 
-    public static IfElse create(Condition condition, Behavior ifBehavior, Behavior elseBehavior) {
+    public static IfElse create(Supplier<Boolean> condition, Behavior ifBehavior, Behavior elseBehavior) {
         return new IfElse(condition, ifBehavior, elseBehavior);
     }
 }

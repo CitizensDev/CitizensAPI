@@ -444,6 +444,20 @@ public interface NPC extends Agent, Cloneable {
     /**
      * Attempts to spawn this NPC.
      *
+     * @param at
+     *            Location to spawn this NPC
+     * @param callback
+     *            The callback to run once entity is spawned
+     * @return Whether this NPC was able to spawn at the location
+     */
+
+    default boolean spawn(Location at, Consumer<Entity> callback) {
+        return spawn(at, SpawnReason.PLUGIN, callback);
+    }
+
+    /**
+     * Attempts to spawn this NPC.
+     *
      * @param location
      *            Location to spawn this NPC
      * @param reason
@@ -451,7 +465,7 @@ public interface NPC extends Agent, Cloneable {
      * @return Whether this NPC was able to spawn at the location
      */
     default boolean spawn(Location location, SpawnReason reason) {
-        return spawn(location, SpawnReason.PLUGIN, null);
+        return spawn(location, reason, null);
     }
 
     /**

@@ -1,14 +1,16 @@
 package net.citizensnpcs.api.ai.tree;
 
+import java.util.function.Supplier;
+
 /**
- * A decorator {@link Behavior} that continues to execute its child behavior as long as a {@link Condition} returns
+ * A decorator {@link Behavior} that continues to execute its child behavior as long as a condition returns
  * <code>true</code> and the behavior returns {@link BehaviorStatus#SUCCESS}.
  */
 public class Loop extends BehaviorGoalAdapter {
-    private final Condition condition;
+    private final Supplier<Boolean> condition;
     private final Behavior wrapping;
 
-    public Loop(Behavior wrapping, Condition condition) {
+    public Loop(Behavior wrapping, Supplier<Boolean> condition) {
         this.wrapping = wrapping;
         this.condition = condition;
     }
@@ -34,7 +36,7 @@ public class Loop extends BehaviorGoalAdapter {
         return wrapping.shouldExecute();
     }
 
-    public static Loop createWithCondition(Behavior wrapping, Condition condition) {
+    public static Loop createWithCondition(Behavior wrapping, Supplier<Boolean> condition) {
         return new Loop(wrapping, condition);
     }
 }
