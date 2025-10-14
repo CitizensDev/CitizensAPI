@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
@@ -17,6 +18,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Queues;
 import com.google.common.io.Files;
 import com.google.common.primitives.Ints;
 
@@ -156,15 +158,16 @@ public class YamlStorage implements Storage {
     }
 
     private void transformMapsToListsInConfig(ConfigurationSection root) {
-        List<ConfigurationSection> list = Lists.newArrayList(root);
+        Queue<ConfigurationSection> queue = Queues.newArrayDeque();
+        queue.add(root);
         List<Tuple> convert = Lists.newArrayList();
-        while (list.size() > 0) {
-            ConfigurationSection parent = list.remove(list.size() - 1);
+        while (queue.size() > 0) {
+            ConfigurationSection parent = queue.poll();
 
             for (String key : parent.getKeys(false)) {
                 Object value = parent.get(key);
                 if (value instanceof ConfigurationSection) {
-                    list.add((ConfigurationSection) value);
+                    queue.add((ConfigurationSection) value);
                     convert.add(new Tuple(parent, key));
                 }
             }
@@ -172,19 +175,13 @@ public class YamlStorage implements Storage {
         outer: for (Tuple t : convert) {
             List<Integer> ints = t.parent.getConfigurationSection(t.key).getKeys(false).stream()
                     .map(i -> Ints.tryParse(i)).collect(Collectors.toList());
-            if (ints.size() == 0 || ints.get(0) == null || ints.get(0) != 0)
+            if (ints.size() == 0)
                 continue;
 
-            int sum = 0;
-            for (Integer i : ints) {
-                if (i == null || i < 0)
+            for (int i = 0; i < ints.size(); i++) {
+                if (ints.get(i) == null || ints.get(i) != i)
                     continue outer;
-
-                sum += i;
             }
-            if (sum != ints.size() * (ints.get(0) + ints.get(ints.size() - 1) / 2))
-                continue;
-
             t.parent.set(t.key, ints.stream().map(i -> t.parent.getConfigurationSection(t.key).get(Integer.toString(i)))
                     .collect(Collectors.toList()));
         }
