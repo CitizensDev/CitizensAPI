@@ -111,7 +111,7 @@ public class Messaging {
         }
     }
 
-    private static String convertLegacyCodes(String message) {
+    public static String convertLegacyCodes(String message) {
         if (message == null)
             return null;
         message = ChatColor.translateAlternateColorCodes('&', message);
@@ -301,6 +301,13 @@ public class Messaging {
         return sb.toString();
     }
 
+    public static Object test(String raw) {
+        if (AUDIENCES != null && MINIMESSAGE != null)
+            return MINIMESSAGE.deserialize(convertLegacyCodes(raw));
+
+        return null;
+    }
+
     public static String tr(String key, Object... messages) {
         return prettify(Translator.translate(key, messages));
     }
@@ -317,7 +324,6 @@ public class Messaging {
     }
 
     private static BukkitAudiences AUDIENCES;
-
     private static final Pattern CHAT_NEWLINE = Pattern.compile("<br>|\\n", Pattern.MULTILINE);
     private static final Splitter CHAT_NEWLINE_SPLITTER = Splitter.on(CHAT_NEWLINE);
     private static final Map<String, String> COLORCODE_CONVERTER = Maps.newHashMap();
