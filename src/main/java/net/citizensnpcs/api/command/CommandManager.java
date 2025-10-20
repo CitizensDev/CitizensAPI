@@ -200,6 +200,8 @@ public class CommandManager implements TabCompleter {
                     val = Boolean.parseBoolean(val.toString());
                 } else if (desiredType == float.class || desiredType == Float.class) {
                     val = Float.parseFloat(val.toString());
+                } else if (desiredType == NamespacedKey.class) {
+                    val = SpigotUtil.getKey(val.toString(), "minecraft");
                 } else if (desiredType == Location.class) {
                     val = CommandContext.parseLocation(context.getSenderLocation(), val.toString());
                 } else if (desiredType == ItemStack.class) {
