@@ -3,6 +3,7 @@ package net.citizensnpcs.api.util.schedulers.adapter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -91,6 +92,26 @@ public class SpigotScheduler implements SchedulerAdapter {
     @Override
     public SchedulerTask runTaskTimerAsynchronously(Runnable runnable, long delayTicks, long periodTicks) {
         return wrap(Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, runnable, delayTicks, periodTicks));
+    }
+
+    @Override
+    public boolean isOnOwnerThread(Entity entity) {
+        return Bukkit.isPrimaryThread();
+    }
+
+    @Override
+    public boolean isOnOwnerThread(Location location) {
+        return Bukkit.isPrimaryThread();
+    }
+
+    @Override
+    public boolean isOnOwnerThread(World world, int chunkX, int chunkZ) {
+        return Bukkit.isPrimaryThread();
+    }
+
+    @Override
+    public boolean isOnOwnerThread(Block block) {
+        return Bukkit.isPrimaryThread();
     }
 
     private SchedulerTask wrap(BukkitTask task) {
