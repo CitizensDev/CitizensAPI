@@ -134,8 +134,8 @@ public interface SchedulerAdapter {
 
     /**
      * Returns true if the current thread is the correct owner thread for safely accessing the target.
-     * <p>Spigot: true iff running on the main server thread.</p>
-     * <p>Folia: true iff the current thread owns the target's region (isOwnedByCurrentRegion).</p>
+     * <p>Spigot: true if running on the main server thread.</p>
+     * <p>Folia: true if the current thread owns the target's region (isOwnedByCurrentRegion).</p>
      *
      * @param entity the target entity
      * @return {@code true} if the current thread is the owner thread for the entity; {@code false} otherwise
@@ -143,9 +143,9 @@ public interface SchedulerAdapter {
     boolean isOnOwnerThread(Entity entity);
 
     /**
-     * Returns true if the current thread is the correct owner thread for safely accessing the region that owns the given location.
-     * <p>Spigot: mirrors {@code Bukkit.isPrimaryThread()}.</p>
-     * <p>Folia: mirrors {@code Bukkit.isOwnedByCurrentRegion(location)}.</p>
+     * Returns true if the current thread is the correct owner thread for safely accessing the target.
+     * <p>Spigot: true if running on the main server thread.</p>
+     * <p>Folia: true if the current thread owns the target's region (isOwnedByCurrentRegion).</p>
      *
      * @param location the target location
      * @return {@code true} if the current thread is the owner thread for the location; {@code false} otherwise
@@ -153,22 +153,21 @@ public interface SchedulerAdapter {
     boolean isOnOwnerThread(Location location);
 
     /**
-     * Returns true if the current thread is the correct owner thread for safely accessing the region that owns the given chunk.
-     * <p>Spigot: mirrors {@code Bukkit.isPrimaryThread()}.</p>
-     * <p>Folia: mirrors {@code Bukkit.isOwnedByCurrentRegion(world, chunkX, chunkZ)}.</p>
+     * Returns true if the current thread is the correct owner thread for safely accessing the target.
+     * <p>Spigot: true if running on the main server thread.</p>
+     * <p>Folia: true if the current thread owns the target's region (isOwnedByCurrentRegion).</p>
      *
-     * @param world  the world containing the target chunk
+     * @param world the target world
      * @param chunkX the target chunk X coordinate
      * @param chunkZ the target chunk Z coordinate
      * @return {@code true} if the current thread is the owner thread for the chunk; {@code false} otherwise
      */
-
     boolean isOnOwnerThread(World world, int chunkX, int chunkZ);
 
     /**
-     * Returns true if the current thread is the correct owner thread for safely accessing the region that owns the given block.
-     * <p>Spigot: mirrors {@code Bukkit.isPrimaryThread()}.</p>
-     * <p>Folia: mirrors {@code Bukkit.isOwnedByCurrentRegion(block)}.</p>
+     * Returns true if the current thread is the correct owner thread for safely accessing the target.
+     * <p>Spigot: true if running on the main server thread.</p>
+     * <p>Folia: true if the current thread owns the target's region (isOwnedByCurrentRegion).</p>
      *
      * @param block the target block
      * @return {@code true} if the current thread is the owner thread for the block; {@code false} otherwise
