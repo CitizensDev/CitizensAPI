@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 
@@ -155,6 +156,26 @@ public class FoliaScheduler implements SchedulerAdapter {
         ScheduledTask task = asyncScheduler.runAtFixedRate(plugin, t -> runnable.run(),
                 ticksToMillis(Math.max(1, delayTicks)), ticksToMillis(Math.max(1, periodTicks)), TimeUnit.MILLISECONDS);
         return wrap(task);
+    }
+
+    @Override
+    public boolean isOnOwnerThread(Entity entity) {
+        return Bukkit.isOwnedByCurrentRegion(entity);
+    }
+
+    @Override
+    public boolean isOnOwnerThread(Location location) {
+        return Bukkit.isOwnedByCurrentRegion(location);
+    }
+
+    @Override
+    public boolean isOnOwnerThread(World world, int chunkX, int chunkZ) {
+        return Bukkit.isOwnedByCurrentRegion(world, chunkX, chunkZ);
+    }
+
+    @Override
+    public boolean isOnOwnerThread(Block block) {
+        return Bukkit.isOwnedByCurrentRegion(block);
     }
 
     private long ticksToMillis(long ticks) {
