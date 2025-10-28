@@ -64,6 +64,9 @@ public class Template {
             if (sub.name().equals("on_spawn")) {
                 template.addAction(new CommandEventAction(NPCSpawnEvent.class,
                         new CommandListExecutor((List<String>) sub.getRaw(""))));
+            } else if (sub.name().equals("on_template_apply")) {
+                CommandListExecutor cle = new CommandListExecutor((List<String>) sub.getRaw(""));
+                template.addAction(npc -> cle.accept(npc));
             }
         }
     }
