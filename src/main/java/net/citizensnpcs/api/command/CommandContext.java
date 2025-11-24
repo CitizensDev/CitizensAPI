@@ -36,6 +36,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
@@ -430,6 +431,12 @@ public class CommandContext {
     public static Vector parseVector(String string) {
         String[] parts = string.split(",");
         return new Vector(Double.parseDouble(parts[0]), Double.parseDouble(parts[1]), Double.parseDouble(parts[2]));
+    }
+
+    public static Vector3f parseVector3f(String string) {
+        String[] parts = string.split(",");
+        return new Vector3f().set(Double.parseDouble(parts[0]), Double.parseDouble(parts[1]),
+                Double.parseDouble(parts[2]));
     }
 
     private static final Pattern FLAG = Pattern.compile("^-[a-zA-Z]+$");

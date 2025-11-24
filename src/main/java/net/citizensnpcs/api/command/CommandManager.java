@@ -40,6 +40,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 import org.joml.Quaternionfc;
+import org.joml.Vector3fc;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
@@ -214,6 +215,8 @@ public class CommandManager implements TabCompleter {
                     val = CommandContext.parseVector(val.toString());
                 } else if (Quaternionfc.class.isAssignableFrom(desiredType)) {
                     val = CommandContext.parseQuaternion(val.toString());
+                } else if (Vector3fc.class.isAssignableFrom(desiredType)) {
+                    val = CommandContext.parseVector3f(val.toString());
                 }
                 methodArgs[entry.getKey()] = val;
             }
