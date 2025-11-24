@@ -11,8 +11,8 @@ import net.citizensnpcs.api.npc.NPC;
 public class NPCRightClickEvent extends NPCClickEvent {
     private boolean toCancel;
 
-    public NPCRightClickEvent(NPC npc, Player rightClicker) {
-        super(npc, rightClicker);
+    public NPCRightClickEvent(NPC npc, Player click) {
+        super(npc, click);
     }
 
     @Override

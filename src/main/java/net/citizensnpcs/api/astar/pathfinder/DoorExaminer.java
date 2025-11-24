@@ -38,9 +38,9 @@ public class DoorExaminer implements BlockExaminer {
                 point.getVector().getBlockY() - 1, point.getVector().getBlockZ())))
             return PassableState.IGNORE;
         Material in = source.getMaterialAt(point.getVector());
-        BlockData inData = source.getBlockDataAt(point.getVector());
 
-        if (MinecraftBlockExaminer.isDoor(in) && isBottomDoor(inData) || MinecraftBlockExaminer.isGate(in)) {
+        if (MinecraftBlockExaminer.isDoor(in) && isBottomDoor(source.getBlockDataAt(point.getVector()))
+                || MinecraftBlockExaminer.isGate(in)) {
             point.addCallback(new DoorOpener());
             return PassableState.PASSABLE;
         }

@@ -135,6 +135,41 @@ public class Path implements Plan {
         if (points.size() < 3)
             return points;
 
+        // Find indices of points with callbacks - these are split points
+        List<Integer> splitIndices = new ArrayList<>();
+        splitIndices.add(0);
+        for (int i = 1; i < points.size() - 1; i++) {
+            if (points.get(i).callbacks != null && !points.get(i).callbacks.isEmpty()) {
+                splitIndices.add(i);
+            }
+        }
+        splitIndices.add(points.size() - 1);
+
+        // Process each segment between split points
+        List<PathEntry> result = new ArrayList<>();
+        for (int s = 0; s < splitIndices.size() - 1; s++) {
+            int segStart = splitIndices.get(s);
+            int segEnd = splitIndices.get(s + 1);
+
+            List<PathEntry> segment = points.subList(segStart, segEnd + 1);
+            List<PathEntry> simplified = ramerDouglasPeuckerSegment(segment, epsilon);
+
+            // Add all points except the last one (to avoid duplicates at boundaries)
+            // unless this is the final segment
+            if (s == splitIndices.size() - 2) {
+                result.addAll(simplified);
+            } else {
+                result.addAll(simplified.subList(0, simplified.size() - 1));
+            }
+        }
+
+        return result;
+    }
+
+    private static List<PathEntry> ramerDouglasPeuckerSegment(List<PathEntry> points, double epsilon) {
+        if (points.size() < 3)
+            return new ArrayList<>(points);
+
         int n = points.size();
         boolean[] keep = new boolean[n];
         keep[0] = true;
