@@ -235,6 +235,33 @@ public class SpigotUtil {
         return Duration.parse(raw);
     }
 
+    /**
+     * Parses a duration string and returns the number of ticks.
+     * Supports formats like "5s", "10m", "100t", or plain numbers (interpreted as ticks).
+     *
+     * @param raw the duration string to parse
+     * @return the number of ticks, or -1 if parsing fails
+     */
+    public static int parseTicks(String raw) {
+        try {
+            Duration duration = parseDuration(raw, null);
+            return duration == null ? -1 : toTicks(duration);
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    /**
+     * Converts a Duration to Minecraft ticks (20 ticks per second).
+     *
+     * @param duration the duration to convert
+     * @return the number of ticks
+     */
+    public static int toTicks(Duration duration) {
+        return (int) (TimeUnit.MILLISECONDS.convert(duration.getSeconds(), TimeUnit.SECONDS)
+                + TimeUnit.MILLISECONDS.convert(duration.getNano(), TimeUnit.NANOSECONDS)) / 50;
+    }
+
     public static ItemStack parseItemStack(ItemStack base, String item) {
         if (base == null || base.getType() == Material.AIR) {
             base = new ItemStack(Material.STONE, 1);

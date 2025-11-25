@@ -34,9 +34,6 @@ public class DoorExaminer implements BlockExaminer {
 
     @Override
     public PassableState isPassable(BlockSource source, PathPoint point) {
-        if (!MinecraftBlockExaminer.canStandOn(source.getMaterialAt(point.getVector().getBlockX(),
-                point.getVector().getBlockY() - 1, point.getVector().getBlockZ())))
-            return PassableState.IGNORE;
         Material in = source.getMaterialAt(point.getVector());
 
         if (MinecraftBlockExaminer.isDoor(in) && isBottomDoor(source.getBlockDataAt(point.getVector()))
@@ -195,7 +192,7 @@ public class DoorExaminer implements BlockExaminer {
         MaterialData data = point.getState().getData();
         if (!(data instanceof org.bukkit.material.Door))
         return false;
-        
+
         org.bukkit.material.Door door = (org.bukkit.material.Door) data;
         return !door.isTopHalf();*/
     }

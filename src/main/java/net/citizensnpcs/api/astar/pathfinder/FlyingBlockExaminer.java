@@ -7,9 +7,17 @@ import org.bukkit.util.Vector;
 
 import com.google.common.collect.Lists;
 
+import net.citizensnpcs.api.astar.pathfinder.BlockExaminer.NeighbourGeneratorBlockExaminer;
+import net.citizensnpcs.api.astar.pathfinder.BlockExaminer.PassableState;
+import net.citizensnpcs.api.astar.pathfinder.BlockExaminer.StandableState;
 import net.citizensnpcs.api.util.SpigotUtil;
 
 public class FlyingBlockExaminer implements NeighbourGeneratorBlockExaminer {
+    @Override
+    public StandableState canStandAt(BlockSource source, PathPoint point) {
+        return StandableState.STANDABLE;
+    }
+
     @Override
     public float getCost(BlockSource source, PathPoint point) {
         Vector pos = point.getVector();
@@ -30,9 +38,9 @@ public class FlyingBlockExaminer implements NeighbourGeneratorBlockExaminer {
                         continue;
                     }
                     Vector mod = point.getVector().clone().add(new Vector(x, y, z));
-                    if (mod.getY() < 0 || mod.getY() > 255 || mod.equals(point.getVector())) {
+                    if (mod.getY() < 0 || mod.getY() > 255 || mod.equals(point.getVector()))
                         continue;
-                    }
+
                     neighbours.add(point.createAtOffset(mod));
                 }
             }
@@ -46,11 +54,11 @@ public class FlyingBlockExaminer implements NeighbourGeneratorBlockExaminer {
         Material above = source.getMaterialAt(pos.clone().add(UP));
         Material in = source.getMaterialAt(pos);
         if (MinecraftBlockExaminer.isLiquid(above, in))
-            return PassableState.UNPASSABLE;
+            return PassableState.IMPASSABLE;
 
-        return MinecraftBlockExaminer.canStandIn(above, in) ? PassableState.PASSABLE : PassableState.UNPASSABLE;
+        return MinecraftBlockExaminer.canStandIn(above, in) ? PassableState.PASSABLE : PassableState.IMPASSABLE;
     }
 
     private static final Vector UP = new Vector(0, 1, 0);
-    private static Material WEB = SpigotUtil.isUsing1_13API() ? Material.COBWEB : Material.valueOf("WEB");
+    private static final Material WEB = SpigotUtil.isUsing1_13API() ? Material.COBWEB : Material.valueOf("WEB");
 }

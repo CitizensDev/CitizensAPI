@@ -13,7 +13,9 @@ import com.google.common.collect.Lists;
 import net.citizensnpcs.api.ai.NavigatorParameters;
 import net.citizensnpcs.api.astar.AStarNode;
 import net.citizensnpcs.api.astar.Plan;
+import net.citizensnpcs.api.astar.pathfinder.BlockExaminer.NeighbourGeneratorBlockExaminer;
 import net.citizensnpcs.api.astar.pathfinder.BlockExaminer.PassableState;
+import net.citizensnpcs.api.astar.pathfinder.BlockExaminer.StandableState;
 
 public class VectorNode extends AStarNode implements PathPoint {
     private float blockCost = -1;
@@ -129,9 +131,9 @@ public class VectorNode extends AStarNode implements PathPoint {
                     if (x != 0 && z != 0 && checkPassable) {
                         if (!isPassable(point.createAtOffset(new Vector(location.getX() + x, modY, location.getZ())))
                                 || !isPassable(
-                                        point.createAtOffset(new Vector(location.getX(), modY, location.getZ() + z)))) {
+                                        point.createAtOffset(new Vector(location.getX(), modY, location.getZ() + z))))
                             continue;
-                        }
+
                     }
                     neighbours.add(point.createAtOffset(mod));
                 }
@@ -168,13 +170,32 @@ public class VectorNode extends AStarNode implements PathPoint {
     }
 
     private boolean isPassable(PathPoint mod) {
+        boolean canStand = false;
+        BlockExaminer found = null;
+        for (BlockExaminer examiner : info.params.examiners()) {
+            StandableState state = examiner.canStandAt(info.blockSource, mod);
+            if (state == StandableState.STANDABLE) {
+                canStand = true;
+
+                // quickly check this examiner
+                if (examiner.isPassable(info.blockSource, mod) == PassableState.PASSABLE)
+                    return true;
+                found = examiner;
+                break;
+            }
+        }
+        if (!canStand)
+            return false;
+
         boolean passable = false;
         for (BlockExaminer examiner : info.params.examiners()) {
-            PassableState state = examiner.isPassable(info.blockSource, mod);
-            if (state == PassableState.IGNORE)
+            if (examiner == found)
                 continue;
-
-            passable = state == PassableState.PASSABLE ? true : false;
+            PassableState state = examiner.isPassable(info.blockSource, mod);
+            if (state == PassableState.PASSABLE) {
+                passable = true;
+                break;
+            }
         }
         return passable;
     }

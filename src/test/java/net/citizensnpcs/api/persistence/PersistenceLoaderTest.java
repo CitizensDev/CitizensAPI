@@ -41,6 +41,13 @@ public class PersistenceLoaderTest {
     }
 
     @Test
+    public void canCopy() {
+        root.setDouble("array.2", 360.0);
+        root.setInt("integer", 5);
+        assertThat(root.copy().getValuesDeep().equals(root.getValuesDeep()), is(true));
+    }
+
+    @Test
     public void defaultsRemainUntouched() {
         assertThat(PersistenceLoader.load(HorseColorTest.class, root).color, is(Horse.Color.CREAMY));
     }

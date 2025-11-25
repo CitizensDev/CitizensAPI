@@ -44,7 +44,6 @@ import net.citizensnpcs.api.util.ItemStorage;
 import net.citizensnpcs.api.util.MemoryDataKey;
 import net.citizensnpcs.api.util.Messaging;
 import net.citizensnpcs.api.util.Placeholders;
-import net.citizensnpcs.api.util.RemoveReason;
 import net.citizensnpcs.api.util.SpigotUtil;
 
 public abstract class AbstractNPC implements NPC {

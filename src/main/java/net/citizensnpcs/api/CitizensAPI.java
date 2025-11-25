@@ -7,6 +7,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 
 import net.citizensnpcs.api.ai.speech.SpeechContext;
+import net.citizensnpcs.api.ai.tree.BehaviorRegistry;
 import net.citizensnpcs.api.astar.pathfinder.AsyncChunkCache;
 import net.citizensnpcs.api.command.CommandManager;
 import net.citizensnpcs.api.npc.MemoryNPCDataStore;
@@ -64,6 +65,10 @@ public final class CitizensAPI {
 
     public static AsyncChunkCache getAsyncChunkCache() {
         return getImplementation().getAsyncChunkCache();
+    }
+
+    public static BehaviorRegistry getBehaviorRegistry() {
+        return getImplementation().getBehaviorRegistry();
     }
 
     public static CommandManager getCommandManager() {

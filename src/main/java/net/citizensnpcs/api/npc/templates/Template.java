@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 
 import org.bukkit.NamespacedKey;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import net.citizensnpcs.api.event.DespawnReason;
@@ -58,14 +59,14 @@ public class Template {
         return template;
     }
 
-    @SuppressWarnings("unchecked")
     private static void loadCommands(Template template, TemplateWorkspace workspace, DataKey key) {
         for (DataKey sub : key.getSubKeys()) {
+            List<String> commands = Lists
+                    .newArrayList(Iterables.transform(sub.getIntegerSubKeys(), k -> k.getString("")));
             if (sub.name().equals("on_spawn")) {
-                template.addAction(new CommandEventAction(NPCSpawnEvent.class,
-                        new CommandListExecutor((List<String>) sub.getRaw(""))));
+                template.addAction(new CommandEventAction(NPCSpawnEvent.class, new CommandListExecutor(commands)));
             } else if (sub.name().equals("on_template_apply")) {
-                CommandListExecutor cle = new CommandListExecutor((List<String>) sub.getRaw(""));
+                CommandListExecutor cle = new CommandListExecutor(commands);
                 template.addAction(npc -> cle.accept(npc));
             }
         }

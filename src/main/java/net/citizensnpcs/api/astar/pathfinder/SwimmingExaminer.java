@@ -17,16 +17,27 @@ public class SwimmingExaminer implements BlockExaminer {
         this.npc = npc;
     }
 
+    @Override
+    public StandableState canStandAt(BlockSource source, PathPoint point) {
+        Vector pos = point.getVector();
+        Material in = source.getMaterialAt(pos);
+
+        if (MinecraftBlockExaminer.isLiquidOrWaterlogged(in, source.getBlockDataAt(pos)))
+            return StandableState.STANDABLE;
+
+        return StandableState.IGNORE;
+    }
+
     public boolean canSwimInLava() {
         return canSwimInLava;
     }
 
     @Override
     public float getCost(BlockSource source, PathPoint point) {
-        // penalise non water blocks for fish
-        if (isWaterMob(npc.getEntity())
-                && !MinecraftBlockExaminer.isLiquidOrWaterlogged(source.getMaterialAt(point.getVector()),
-                        source.getBlockDataAt(point.getVector())))
+        if (!isWaterMob(npc.getEntity()))
+            return 0;
+        if (!MinecraftBlockExaminer.isLiquidOrWaterlogged(source.getMaterialAt(point.getVector()),
+                source.getBlockDataAt(point.getVector())))
             return 1F;
         return 0;
     }
@@ -44,7 +55,7 @@ public class SwimmingExaminer implements BlockExaminer {
         Material aboveMat = source.getMaterialAt(above);
         return isSwimmableLiquid(aboveMat) || MinecraftBlockExaminer.canStandIn(aboveMat, source.getBlockDataAt(above))
                 ? PassableState.PASSABLE
-                : PassableState.UNPASSABLE;
+                : PassableState.IMPASSABLE;
     }
 
     private boolean isSwimmableLiquid(Material material) {

@@ -21,6 +21,8 @@ public abstract class DataKey {
         this.path = path;
     }
 
+    public abstract DataKey copy();
+
     protected String createRelativeKey(String from) {
         if (from.isEmpty())
             return path;

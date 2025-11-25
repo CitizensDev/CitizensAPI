@@ -108,15 +108,6 @@ public class Decorator extends BehaviorGoalAdapter {
         }
     }
 
-    /**
-     * @return Returns a decorator that inverts the status i.e. SUCCESS becomes FAILURE, FAILURE becomes SUCCESS and
-     *         others are untouched.
-     */
-    public static Decorator invert(Behavior toWrap) {
-        return new Builder(toWrap).withStatusTransformer(s -> s == BehaviorStatus.FAILURE ? BehaviorStatus.SUCCESS
-                : s == BehaviorStatus.SUCCESS ? BehaviorStatus.FAILURE : s).build();
-    }
-
     public static Decorator.Builder wrapping(Behavior toWrap) {
         return new Builder(toWrap);
     }

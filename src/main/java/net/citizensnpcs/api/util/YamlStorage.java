@@ -32,7 +32,7 @@ public class YamlStorage implements Storage {
     }
 
     public YamlStorage(File file, String header) {
-        this(file, header, false);
+        this(file, header, true);
     }
 
     public YamlStorage(File file, String header, boolean transformLists) {

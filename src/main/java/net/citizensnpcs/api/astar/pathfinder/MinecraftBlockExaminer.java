@@ -24,6 +24,34 @@ import net.citizensnpcs.api.util.SpigotUtil;
 
 public class MinecraftBlockExaminer implements BlockExaminer {
     @Override
+    public StandableState canStandAt(BlockSource source, PathPoint point) {
+        Vector pos = point.getVector();
+        if (!source.isYWithinBounds(pos.getBlockY()))
+            return StandableState.NOT_STANDABLE;
+
+        Material below = source.getMaterialAt(pos.getBlockX(), pos.getBlockY() - 1, pos.getBlockZ());
+        Material in = source.getMaterialAt(pos);
+
+        boolean canStand = canStandOn(below,
+                source.getBlockDataAt(pos.getBlockX(), pos.getBlockY() - 1, pos.getBlockZ())) || isLiquid(in, below)
+                || isClimbable(below);
+
+        if (!canStand)
+            return StandableState.NOT_STANDABLE;
+
+        if (!canJumpOn(below)) {
+            if (point.getParentPoint() == null)
+                return StandableState.NOT_STANDABLE;
+
+            Vector parentPos = point.getParentPoint().getVector();
+            if ((parentPos.getX() != pos.getX() || parentPos.getZ() != pos.getZ())
+                    && pos.clone().subtract(point.getParentPoint().getVector()).getY() == 1)
+                return StandableState.NOT_STANDABLE;
+        }
+        return StandableState.STANDABLE;
+    }
+
+    @Override
     public float getCost(BlockSource source, PathPoint point) {
         Vector pos = point.getVector();
         Material above = source.getMaterialAt(pos.getBlockX(), pos.getBlockY() + 1, pos.getBlockZ());
@@ -46,32 +74,18 @@ public class MinecraftBlockExaminer implements BlockExaminer {
     @Override
     public PassableState isPassable(BlockSource source, PathPoint point) {
         Vector pos = point.getVector();
-        if (!source.isYWithinBounds(pos.getBlockY()))
-            return PassableState.UNPASSABLE;
-
-        Material below = source.getMaterialAt(pos.getBlockX(), pos.getBlockY() - 1, pos.getBlockZ());
         Material in = source.getMaterialAt(pos);
-        boolean canStand = canStandOn(below,
-                source.getBlockDataAt(pos.getBlockX(), pos.getBlockY() - 1, pos.getBlockZ())) || isLiquid(in, below)
-                || isClimbable(below);
-        if (!canStand)
-            return PassableState.UNPASSABLE;
-
         Material above = source.getMaterialAt(pos.getBlockX(), pos.getBlockY() + 1, pos.getBlockZ());
+        Material below = source.getMaterialAt(pos.getBlockX(), pos.getBlockY() - 1, pos.getBlockZ());
+
         if (isClimbable(in) && (isClimbable(above) || isClimbable(below))) {
             point.addCallback(new LadderClimber());
-        } else if (!canStandIn(in, source.getBlockDataAt(pos.getBlockX(), pos.getBlockY(), pos.getBlockZ()))
-                || !canStandIn(above, source.getBlockDataAt(pos.getBlockX(), pos.getBlockY() + 1, pos.getBlockZ())))
-            return PassableState.UNPASSABLE;
-        if (!canJumpOn(below)) {
-            if (point.getParentPoint() == null)
-                return PassableState.UNPASSABLE;
-
-            Vector parentPos = point.getParentPoint().getVector();
-            if ((parentPos.getX() != pos.getX() || parentPos.getZ() != pos.getZ())
-                    && pos.clone().subtract(point.getParentPoint().getVector()).getY() == 1)
-                return PassableState.UNPASSABLE;
+            return PassableState.PASSABLE;
         }
+        if (!canStandIn(in, source.getBlockDataAt(pos.getBlockX(), pos.getBlockY(), pos.getBlockZ()))
+                || !canStandIn(above, source.getBlockDataAt(pos.getBlockX(), pos.getBlockY() + 1, pos.getBlockZ())))
+            return PassableState.IMPASSABLE;
+
         return PassableState.PASSABLE;
     }
 

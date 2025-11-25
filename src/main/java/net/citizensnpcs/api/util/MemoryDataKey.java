@@ -25,6 +25,19 @@ public class MemoryDataKey extends DataKey {
     }
 
     @Override
+    public MemoryDataKey copy() {
+        MemoryConfiguration section = new MemoryConfiguration();
+        for (Map.Entry<?, ?> entry : getValuesDeep().entrySet()) {
+            if (entry.getValue() instanceof Map) {
+                section.createSection(entry.getKey().toString(), (Map<?, ?>) entry.getValue());
+            } else {
+                section.set(entry.getKey().toString(), entry.getValue());
+            }
+        }
+        return new MemoryDataKey(section, "");
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (this == obj)
             return true;

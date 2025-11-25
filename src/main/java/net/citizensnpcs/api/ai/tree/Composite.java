@@ -4,10 +4,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * The base class for composite {@link Behavior}s, which handle the transition between multiple sub-behaviors.
@@ -15,7 +13,7 @@ import com.google.common.collect.Sets;
 public abstract class Composite extends BehaviorGoalAdapter {
     private final List<Behavior> behaviors;
     private final List<Behavior> parallel = Lists.newArrayListWithCapacity(0);
-    private final Set<Behavior> parallelExecuting = Sets.newHashSetWithExpectedSize(0);
+    protected final List<Behavior> parallelExecuting = Lists.newArrayListWithCapacity(0);
 
     public Composite(Behavior... behaviors) {
         this(Arrays.asList(behaviors));
