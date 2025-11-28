@@ -1,30 +1,24 @@
 package net.citizensnpcs.api.util;
 
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.concurrent.ForkJoinPool;
-import java.util.stream.Collectors;
 
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Queues;
-import com.google.common.io.Files;
-import com.google.common.primitives.Ints;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.Yaml;
 
 public class YamlStorage implements Storage {
-    private final FileConfiguration config;
+    private final Map<String, Object> data = new LinkedHashMap<>();
     private final File file;
+    private final String header;
     private final boolean transformLists;
 
     public YamlStorage(File file) {
@@ -36,187 +30,179 @@ public class YamlStorage implements Storage {
     }
 
     public YamlStorage(File file, String header, boolean transformLists) {
-        config = new YamlConfiguration();
-        tryIncreaseMaxCodepoints(config);
-        this.transformLists = transformLists;
         this.file = file;
+        this.header = header;
+        this.transformLists = transformLists;
         if (!file.exists()) {
-            create();
-            if (header != null) {
-                config.options().header(header);
+            try {
+                file.getParentFile().mkdirs();
+                file.createNewFile();
+            } catch (IOException e) {
+                Messaging.severe("Could not create file: " + file.getName());
             }
             save();
         }
     }
 
-    private void create() {
-        try {
-            Messaging.debug("Creating file: " + file.getName());
-            file.getParentFile().mkdirs();
-            file.createNewFile();
-        } catch (IOException ex) {
-            Messaging.severe("Could not create file: " + file.getName());
+    @SuppressWarnings("unchecked")
+    private Object deepCopy(Object source) {
+        if (source instanceof Map) {
+            Map<String, Object> result = new LinkedHashMap<>();
+            for (Map.Entry<String, Object> e : ((Map<String, Object>) source).entrySet()) {
+                result.put(e.getKey(), deepCopy(e.getValue()));
+            }
+            return result;
         }
+        if (source instanceof List) {
+            List<Object> result = new ArrayList<>();
+            for (Object item : (List<?>) source) {
+                result.add(deepCopy(item));
+            }
+            return result;
+        }
+        return source;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null || getClass() != obj.getClass())
-            return false;
-        YamlStorage other = (YamlStorage) obj;
-        return Objects.equals(file, other.file);
+        return obj instanceof YamlStorage && Objects.equals(file, ((YamlStorage) obj).file);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public DataKey getKey(String root) {
-        return new MemoryDataKey(config, root);
+        if (root == null || root.isEmpty())
+            return new MemoryDataKey(data);
+        Map<String, Object> current = data;
+        for (String segment : root.split("\\.")) {
+            Object next = current.get(segment);
+            if (!(next instanceof Map))
+                return new MemoryDataKey(new LinkedHashMap<>());
+            current = (Map<String, Object>) next;
+        }
+        return new MemoryDataKey(current);
     }
 
     @Override
     public int hashCode() {
-        return 31 + (file == null ? 0 : file.hashCode());
+        return Objects.hashCode(file);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean load() {
-        try {
-            config.load(file);
+        try (FileReader reader = new FileReader(file)) {
+            Object loaded = new Yaml().load(reader);
+            data.clear();
+            if (loaded instanceof Map) {
+                data.putAll((Map<String, Object>) deepCopy(loaded));
+            }
             if (transformLists) {
-                transformListsToMapsInConfig(config);
+                transformListsToMaps(data);
             }
             return true;
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
 
     @Override
     public void save() {
-        YamlConfiguration copy = new YamlConfiguration();
-        for (String key : config.getKeys(false)) {
-            copy.set(key, config.get(key));
-        }
-        save(copy);
-    }
-
-    private void save(YamlConfiguration from) {
-        try {
-            Files.createParentDirs(file);
-            File temporaryFile = File.createTempFile(file.getName(), null, file.getParentFile());
-            temporaryFile.deleteOnExit();
-            if (transformLists) {
-                transformMapsToListsInConfig(from);
-            }
-            from.save(temporaryFile);
-            file.delete();
-            temporaryFile.renameTo(file);
-            temporaryFile.delete();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        doSave(false);
     }
 
     @Override
     public void saveAsync() {
-        YamlConfiguration copy = new YamlConfiguration();
-        for (String key : config.getKeys(false)) {
-            copy.set(key, config.get(key));
+        doSave(true);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void doSave(boolean async) {
+        Map<String, Object> toSave = (Map<String, Object>) deepCopy(data);
+        if (transformLists) {
+            transformMapsToLists(toSave);
         }
-        ForkJoinPool.commonPool().submit(() -> save(copy));
+
+        DumperOptions options = new DumperOptions();
+        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+        options.setPrettyFlow(true);
+        Yaml yaml = new Yaml(options);
+
+        Runnable task = () -> {
+            try (FileWriter writer = new FileWriter(file)) {
+                if (header != null && !header.isEmpty()) {
+                    writer.write("# " + header + "\n");
+                }
+                yaml.dump(toSave, writer);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        };
+        if (async) {
+            ForkJoinPool.commonPool().submit(task);
+        } else {
+            task.run();
+        }
     }
 
     @Override
     public String toString() {
-        return "YamlStorage {file=" + file + "}";
+        return "YamlStorage{file=" + file + "}";
     }
 
-    private void transformListsToMapsInConfig(ConfigurationSection root) {
-        List<ConfigurationSection> queue = Lists.newArrayList(root);
-        while (queue.size() > 0) {
-            ConfigurationSection section = queue.remove(queue.size() - 1);
-            for (String key : section.getKeys(false)) {
-                Object value = section.get(key);
-                if (value instanceof Collection) {
-                    ConfigurationSection synthetic = section.createSection(key);
-                    int i = 0;
-                    for (Iterator<?> itr = ((Collection<?>) value).iterator(); itr.hasNext();) {
-                        Object next = itr.next();
-                        if (next instanceof Map) {
-                            queue.add(synthetic.createSection(Integer.toString(i++), (Map<?, ?>) next));
-                        } else {
-                            synthetic.set(Integer.toString(i++), next);
-                        }
+    @SuppressWarnings("unchecked")
+    private void transformListsToMaps(Map<String, Object> map) {
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            Object value = entry.getValue();
+            if (value instanceof Collection) {
+                Map<String, Object> indexed = new LinkedHashMap<>();
+                int i = 0;
+                for (Object item : (Collection<?>) value) {
+                    Object copied = deepCopy(item);
+                    indexed.put(String.valueOf(i++), copied);
+                    if (copied instanceof Map) {
+                        transformListsToMaps((Map<String, Object>) copied);
                     }
-                } else if (value instanceof ConfigurationSection) {
-                    queue.add((ConfigurationSection) value);
                 }
+                entry.setValue(indexed);
+            } else if (value instanceof Map) {
+                Map<String, Object> mutable = new LinkedHashMap<>((Map<String, Object>) value);
+                entry.setValue(mutable);
+                transformListsToMaps(mutable);
             }
         }
     }
 
-    private void transformMapsToListsInConfig(ConfigurationSection root) {
-        Queue<ConfigurationSection> queue = Queues.newArrayDeque();
-        queue.add(root);
-        List<Tuple> convert = Lists.newArrayList();
-        while (queue.size() > 0) {
-            ConfigurationSection parent = queue.poll();
-
-            for (String key : parent.getKeys(false)) {
-                Object value = parent.get(key);
-                if (value instanceof ConfigurationSection) {
-                    queue.add((ConfigurationSection) value);
-                    convert.add(new Tuple(parent, key));
-                }
-            }
-        }
-        outer: for (Tuple t : convert) {
-            List<Integer> ints = t.parent.getConfigurationSection(t.key).getKeys(false).stream()
-                    .map(i -> Ints.tryParse(i)).collect(Collectors.toList());
-            if (ints.size() == 0)
+    @SuppressWarnings("unchecked")
+    private void transformMapsToLists(Map<String, Object> map) {
+        for (Map.Entry<String, Object> entry : new ArrayList<>(map.entrySet())) {
+            if (!(entry.getValue() instanceof Map))
                 continue;
-
-            for (int i = 0; i < ints.size(); i++) {
-                if (ints.get(i) == null || ints.get(i) != i)
-                    continue outer;
+            Map<String, Object> child = (Map<String, Object>) entry.getValue();
+            transformMapsToLists(child);
+            if (isSequentialIntKeys(child)) {
+                List<Object> list = new ArrayList<>(child.size());
+                for (int i = 0; i < child.size(); i++) {
+                    list.add(child.get(String.valueOf(i)));
+                }
+                entry.setValue(list);
             }
-            t.parent.set(t.key, ints.stream().map(i -> t.parent.getConfigurationSection(t.key).get(Integer.toString(i)))
-                    .collect(Collectors.toList()));
         }
     }
 
-    private void tryIncreaseMaxCodepoints(FileConfiguration config) {
-        if (SET_CODEPOINT_LIMIT == null || LOADER_OPTIONS == null)
-            return;
-        try {
-            SET_CODEPOINT_LIMIT.invoke(LOADER_OPTIONS.get(config), 67108864 /* ~64MB, Paper's limit */);
-        } catch (Exception e) {
-            e.printStackTrace();
+    private boolean isSequentialIntKeys(Map<String, ?> map) {
+        if (map.isEmpty())
+            return false;
+        int i = 0;
+        for (String key : map.keySet()) {
+            try {
+                if (Integer.parseInt(key) != i++)
+                    return false;
+            } catch (NumberFormatException e) {
+                return false;
+            }
         }
-    }
-
-    private static class Tuple {
-        String key;
-        ConfigurationSection parent;
-
-        public Tuple(ConfigurationSection parent2, String key2) {
-            parent = parent2;
-            key = key2;
-        }
-    }
-
-    private static Field LOADER_OPTIONS;
-    private static Method SET_CODEPOINT_LIMIT;
-    static {
-        try {
-            LOADER_OPTIONS = YamlConfiguration.class.getDeclaredField("yamlLoaderOptions");
-            LOADER_OPTIONS.setAccessible(true);
-            SET_CODEPOINT_LIMIT = Class.forName("org.yaml.snakeyaml.LoaderOptions").getMethod("setCodepointLimit",
-                    int.class);
-            SET_CODEPOINT_LIMIT.setAccessible(true);
-        } catch (Exception e) {
-        }
+        return true;
     }
 }
