@@ -93,7 +93,6 @@ public abstract class Trait implements Listener, Runnable {
      * Called just before the {@link NPC} is spawned. {@link NPC#getEntity()} will return an <em>unspawned</em> entity.
      */
     public void onPreSpawn() {
-
     }
 
     /**

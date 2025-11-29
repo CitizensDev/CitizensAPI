@@ -1,8 +1,5 @@
 package net.citizensnpcs.api.util;
 
-import java.util.ArrayDeque;
-import java.util.Collections;
-import java.util.Deque;
 import java.util.Map;
 import java.util.Objects;
 
@@ -117,8 +114,7 @@ public abstract class DataKey {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        return prime + (path == null ? 0 : path.hashCode());
+        return 31 + (path == null ? 0 : path.hashCode());
     }
 
     public boolean keyExists() {
@@ -131,24 +127,6 @@ public abstract class DataKey {
 
     public abstract void removeKey(String key);
 
-    protected Map<String, Object> sectionToValues(ConfigurationSection section) {
-        if (section == null)
-            return Collections.emptyMap();
-        Map<String, Object> object = section.getValues(false);
-        Deque<Map<String, Object>> queue = new ArrayDeque<>();
-        queue.add(object);
-        while (!queue.isEmpty()) {
-            for (Map.Entry<String, Object> entry : queue.pollLast().entrySet()) {
-                if (entry.getValue() instanceof ConfigurationSection) {
-                    Map<String, Object> values = ((ConfigurationSection) entry.getValue()).getValues(false);
-                    entry.setValue(values);
-                    queue.add(values);
-                }
-            }
-        }
-        return object;
-    }
-
     public abstract void setBoolean(String key, boolean value);
 
     public abstract void setDouble(String key, double value);
@@ -156,6 +134,8 @@ public abstract class DataKey {
     public abstract void setInt(String key, int value);
 
     public abstract void setLong(String key, long value);
+
+    public abstract void setMap(String key, Map<String, Object> value);
 
     public abstract void setRaw(String key, Object value);
 

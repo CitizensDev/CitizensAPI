@@ -648,9 +648,9 @@ public class PersistenceLoader {
             ((Persister<Object>) field.delegate).save(value, root);
         } else if (SUPPORTS_KEYED && value instanceof Keyed) {
             NamespacedKey nskey = ((Keyed) value).getKey();
-            root.setRaw("", nskey.getNamespace() + ":" + nskey.getKey());
+            root.setString("", nskey.getNamespace() + ":" + nskey.getKey());
         } else if (value instanceof Enum) {
-            root.setRaw("", ((Enum<?>) value).name());
+            root.setString("", ((Enum<?>) value).name());
         } else {
             if (root.getSubKeys().iterator().hasNext() && !(value instanceof Collection))
                 return;

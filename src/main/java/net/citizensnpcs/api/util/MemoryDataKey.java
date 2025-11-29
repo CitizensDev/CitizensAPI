@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.Objects;
 
 import com.google.common.collect.Iterables;
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 
 /**
  * A DataKey implementation that uses raw Map&lt;String, Object&gt; for storage instead of Bukkit's
@@ -99,11 +102,8 @@ public class MemoryDataKey extends DataKey {
         if (value != null) {
             String raw = value.toString();
             if (!raw.isEmpty()) {
-                try {
-                    return Double.parseDouble(raw);
-                } catch (NumberFormatException e) {
-                    return def;
-                }
+                Double res = Doubles.tryParse(raw);
+                return res != null ? res : def;
             }
         }
         return def;
@@ -127,11 +127,8 @@ public class MemoryDataKey extends DataKey {
         if (value != null) {
             String raw = value.toString();
             if (!raw.isEmpty()) {
-                try {
-                    return Integer.parseInt(raw);
-                } catch (NumberFormatException e) {
-                    return def;
-                }
+                Integer res = Ints.tryParse(raw);
+                return res != null ? res : def;
             }
         }
         return def;
@@ -150,11 +147,8 @@ public class MemoryDataKey extends DataKey {
         if (value != null) {
             String raw = value.toString();
             if (!raw.isEmpty()) {
-                try {
-                    return Long.parseLong(raw);
-                } catch (NumberFormatException e) {
-                    return def;
-                }
+                Long res = Longs.tryParse(raw);
+                return res != null ? res : def;
             }
         }
         return def;
@@ -299,9 +293,13 @@ public class MemoryDataKey extends DataKey {
     }
 
     @Override
+    public void setMap(String key, Map<String, Object> value) {
+        setRaw(key, value);
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public void setRaw(String key, Object value) {
-        // Build full path from root to handle non-existent intermediate paths
         String fullPath;
         if (key == null || key.isEmpty()) {
             fullPath = path;
@@ -310,34 +308,28 @@ public class MemoryDataKey extends DataKey {
         } else {
             fullPath = path + "." + key;
         }
-
         if (fullPath.isEmpty()) {
-            // Setting at root level
             if (value == null) {
                 root.clear();
             } else if (value instanceof Map) {
                 root.clear();
                 root.putAll((Map<String, Object>) value);
             }
-            return;
+            throw new IllegalStateException("Setting root to a value not supported");
         }
-
         String[] segments = fullPath.split("\\.");
         Map<String, Object> current = root;
 
-        // Navigate/create path to parent
         for (int i = 0; i < segments.length - 1; i++) {
             Object next = current.get(segments[i]);
             if (!(next instanceof Map)) {
                 if (value == null)
-                    return; // Nothing to remove
+                    return;
                 next = new HashMap<String, Object>();
                 current.put(segments[i], next);
             }
             current = (Map<String, Object>) next;
         }
-
-        // Set or remove the value
         String lastSegment = segments[segments.length - 1];
         if (value == null) {
             current.remove(lastSegment);
