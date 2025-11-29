@@ -8,6 +8,9 @@ import net.citizensnpcs.api.util.SpigotUtil;
 public class NamespacedKeyPersister implements Persister<NamespacedKey> {
     @Override
     public NamespacedKey create(DataKey root) {
+        String val = root.getString("");
+        if (val == null || val.isEmpty() || val.equals("minecraft:"))
+            return null;
         return SpigotUtil.getKey(root.getString(""));
     }
 

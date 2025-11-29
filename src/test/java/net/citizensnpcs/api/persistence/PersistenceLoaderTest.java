@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Horse;
 import org.junit.Before;
 import org.junit.Test;
@@ -210,6 +211,12 @@ public class PersistenceLoaderTest {
     }
 
     @Test
+    public void testNamespacedKey() {
+        NamespacedKeyTest nkt = PersistenceLoader.load(NamespacedKeyTest.class, root);
+        assert nkt.def == null;
+    }
+
+    @Test
     public void testReifiedLists() {
         ReifiedListTest load = new ReifiedListTest();
         load.test = Arrays.asList(new ReifiedListValue(0), new ReifiedListValue(2));
@@ -322,6 +329,11 @@ public class PersistenceLoaderTest {
     public static class LongLoadSaveTest {
         @Persist("root2")
         public long term = 0;
+    }
+
+    public static class NamespacedKeyTest {
+        @Persist
+        private NamespacedKey def;
     }
 
     public static class NullUUIDTest {

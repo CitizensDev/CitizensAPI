@@ -11,9 +11,8 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 
 /**
- * A DataKey implementation that uses raw Map&lt;String, Object&gt; for storage instead of Bukkit's
- * ConfigurationSection. This preserves literal key names containing dots instead of interpreting them as path
- * separators.
+ * A DataKey implementation that uses raw Map<String, Object> for storage instead of Bukkit's ConfigurationSection. This
+ * preserves literal key names containing dots instead of interpreting them as path separators.
  */
 public class MemoryDataKey extends DataKey {
     private final String name;
@@ -168,13 +167,6 @@ public class MemoryDataKey extends DataKey {
         return navigatePath(root, path, relative);
     }
 
-    /**
-     * Returns the root map backing this DataKey.
-     */
-    public Map<String, Object> getRootMap() {
-        return root;
-    }
-
     @Override
     public String getString(String key) {
         Object val = getRaw(key);
@@ -226,9 +218,9 @@ public class MemoryDataKey extends DataKey {
 
     @Override
     public boolean keyExists(String key) {
-        if (key == null || key.isEmpty()) {
+        if (key == null || key.isEmpty())
             return !getCurrentSection().isEmpty();
-        }
+
         return navigateToValue(key) != null;
     }
 

@@ -63,29 +63,62 @@ public class YamlStorage implements Storage {
         return source;
     }
 
+    @SuppressWarnings("unchecked")
+    private void doSave(boolean async) {
+        Map<String, Object> toSave = (Map<String, Object>) deepCopy(data);
+        if (transformLists) {
+            transformMapsToLists(toSave);
+        }
+        DumperOptions options = new DumperOptions();
+        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+        options.setPrettyFlow(true);
+        Yaml yaml = new Yaml(options);
+
+        Runnable task = () -> {
+            try (FileWriter writer = new FileWriter(file)) {
+                if (header != null && !header.isEmpty()) {
+                    writer.write("# " + header + "\n");
+                }
+                yaml.dump(toSave, writer);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        };
+        if (async) {
+            ForkJoinPool.commonPool().submit(task);
+        } else {
+            task.run();
+        }
+    }
+
     @Override
     public boolean equals(Object obj) {
         return obj instanceof YamlStorage && Objects.equals(file, ((YamlStorage) obj).file);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public DataKey getKey(String root) {
-        if (root == null || root.isEmpty())
-            return new MemoryDataKey(data);
-        Map<String, Object> current = data;
-        for (String segment : root.split("\\.")) {
-            Object next = current.get(segment);
-            if (!(next instanceof Map))
-                return new MemoryDataKey(new LinkedHashMap<>());
-            current = (Map<String, Object>) next;
-        }
-        return new MemoryDataKey(current);
+        return new MemoryDataKey(data).getRelative(root);
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(file);
+    }
+
+    private boolean isSequentialIntKeys(Map<String, ?> map) {
+        if (map.isEmpty())
+            return false;
+        int i = 0;
+        for (String key : map.keySet()) {
+            try {
+                if (Integer.parseInt(key) != i++)
+                    return false;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -115,35 +148,6 @@ public class YamlStorage implements Storage {
     @Override
     public void saveAsync() {
         doSave(true);
-    }
-
-    @SuppressWarnings("unchecked")
-    private void doSave(boolean async) {
-        Map<String, Object> toSave = (Map<String, Object>) deepCopy(data);
-        if (transformLists) {
-            transformMapsToLists(toSave);
-        }
-
-        DumperOptions options = new DumperOptions();
-        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-        options.setPrettyFlow(true);
-        Yaml yaml = new Yaml(options);
-
-        Runnable task = () -> {
-            try (FileWriter writer = new FileWriter(file)) {
-                if (header != null && !header.isEmpty()) {
-                    writer.write("# " + header + "\n");
-                }
-                yaml.dump(toSave, writer);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        };
-        if (async) {
-            ForkJoinPool.commonPool().submit(task);
-        } else {
-            task.run();
-        }
     }
 
     @Override
@@ -189,20 +193,5 @@ public class YamlStorage implements Storage {
                 entry.setValue(list);
             }
         }
-    }
-
-    private boolean isSequentialIntKeys(Map<String, ?> map) {
-        if (map.isEmpty())
-            return false;
-        int i = 0;
-        for (String key : map.keySet()) {
-            try {
-                if (Integer.parseInt(key) != i++)
-                    return false;
-            } catch (NumberFormatException e) {
-                return false;
-            }
-        }
-        return true;
     }
 }
