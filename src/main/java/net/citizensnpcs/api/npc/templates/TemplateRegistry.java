@@ -42,10 +42,10 @@ public class TemplateRegistry {
         Storage templateStorage = new YamlStorage(generatedFile);
         if (!templateStorage.load())
             throw new IllegalStateException();
-        DataKey root = templateStorage.getKey(key.getKey());
-        npc.save(root.getRelative("yaml_replace.replacements"));
-        root.setBoolean("yaml_replace.override", true);
-        root.removeKey("yaml_replace.replacements.uuid");
+        DataKey root = templateStorage.getKey(key.getKey()).getRelative("yaml_replace");
+        npc.save(root.getRelative("replacements"));
+        root.setBoolean("override", true);
+        root.removeKey("replacements.uuid");
         templateStorage.save();
         try {
             fullyQualifiedTemplates.remove(key);

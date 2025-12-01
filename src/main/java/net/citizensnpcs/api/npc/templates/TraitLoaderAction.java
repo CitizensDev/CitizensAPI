@@ -6,7 +6,6 @@ import java.util.function.Function;
 
 import org.bukkit.Bukkit;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import net.citizensnpcs.api.CitizensAPI;
@@ -25,22 +24,7 @@ public class TraitLoaderAction implements Consumer<NPC> {
 
     public TraitLoaderAction(TemplateErrorReporter errors, TemplateWorkspace workspace, DataKey traits) {
         for (DataKey key : traits.getIntegerSubKeys()) {
-            List<DataKey> list = ImmutableList.copyOf(key.getSubKeys());
-            if (list.isEmpty()) {
-                String shortTraitDescriptor = key.getString("").trim();
-                String[] parts = shortTraitDescriptor.split(" ");
-                String traitNamePartial = parts[0];
-                TraitTemplateParser parser = CitizensAPI.getTraitFactory().getTemplateParser(traitNamePartial);
-                if (parser == null) {
-                    errors.addError(key.getPath() + ": Unknown trait " + traitNamePartial);
-                    continue;
-                }
-                ShortTemplateParser stp = parser.getShortTemplateParser();
-                if (stp != null) {
-                    CommandContext ctx = new CommandContext(Bukkit.getConsoleSender(), parts);
-                    actions.add(npc -> stp.apply(new TraitParserContext(npc, workspace), ctx));
-                }
-            } else {
+            if (key.hasSubKeys()) {
                 if (!key.keyExists("name")) {
                     errors.addError(key.getPath() + ": Missing trait name");
                     continue;
@@ -54,6 +38,20 @@ public class TraitLoaderAction implements Consumer<NPC> {
                 TemplateParser tp = parser.getTemplateParser();
                 if (tp != null) {
                     actions.add(npc -> tp.apply(new TraitParserContext(npc, workspace), key));
+                }
+            } else {
+                String shortTraitDescriptor = key.getString("").trim();
+                String[] parts = shortTraitDescriptor.split(" ");
+                String traitNamePartial = parts[0];
+                TraitTemplateParser parser = CitizensAPI.getTraitFactory().getTemplateParser(traitNamePartial);
+                if (parser == null) {
+                    errors.addError(key.getPath() + ": Unknown trait " + traitNamePartial);
+                    continue;
+                }
+                ShortTemplateParser stp = parser.getShortTemplateParser();
+                if (stp != null) {
+                    CommandContext ctx = new CommandContext(Bukkit.getConsoleSender(), parts);
+                    actions.add(npc -> stp.apply(new TraitParserContext(npc, workspace), ctx));
                 }
             }
         }

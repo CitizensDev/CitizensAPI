@@ -25,6 +25,8 @@ import org.bukkit.entity.Horse;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableMap;
+
 import net.citizensnpcs.api.util.DataKey;
 import net.citizensnpcs.api.util.MemoryDataKey;
 import net.citizensnpcs.api.util.Storage;
@@ -192,6 +194,13 @@ public class PersistenceLoaderTest {
     @Test
     public void testCustomConstructorPersister() {
         assertThat(PersistenceLoader.load(CustomConstructor.class, root), notNullValue());
+    }
+
+    @Test
+    public void testDottedPaths() {
+        root.getRelative("key").setRaw("",
+                ImmutableMap.of("loop `memory.get('patrol_count', 0)`", ImmutableMap.of("value", 1)));
+        assert root.getRelative("key").getSubKeys().iterator().next().getDouble("value") == 1;
     }
 
     @Test

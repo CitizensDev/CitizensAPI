@@ -217,6 +217,12 @@ public class MemoryDataKey extends DataKey {
     }
 
     @Override
+    public boolean hasSubKeys() {
+        Map<String, Object> current = getCurrentSection();
+        return current != null && !current.isEmpty();
+    }
+
+    @Override
     public boolean keyExists(String key) {
         if (key == null || key.isEmpty())
             return !getCurrentSection().isEmpty();

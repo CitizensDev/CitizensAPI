@@ -316,7 +316,7 @@ public class BehaviorRegistry {
             String countStr = context.getArgOrParam(0, "count", params, "1");
             ExpressionValue countHolder = getExpressionRegistry().parseValue(countStr);
 
-            if (params == null || !params.getSubKeys().iterator().hasNext())
+            if (params == null || !params.hasSubKeys())
                 return null;
 
             return new Behavior() {

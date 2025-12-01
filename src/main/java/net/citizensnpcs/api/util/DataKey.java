@@ -117,6 +117,10 @@ public abstract class DataKey {
         return 31 + (path == null ? 0 : path.hashCode());
     }
 
+    public boolean hasSubKeys() {
+        return getSubKeys().iterator().hasNext();
+    }
+
     public boolean keyExists() {
         return keyExists("");
     }

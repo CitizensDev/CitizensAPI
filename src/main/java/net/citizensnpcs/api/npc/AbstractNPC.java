@@ -298,14 +298,15 @@ public abstract class AbstractNPC implements NPC {
             return;
         }
         Set<String> loading = Sets.newHashSet(Splitter.on(',').omitEmptyStrings().split(traitNames));
+        DataKey traits = root.getRelative("traits");
         for (String key : PRIORITY_TRAITS) {
-            DataKey pkey = root.getRelative("traits." + key);
+            DataKey pkey = traits.getRelative(key);
             if (pkey.keyExists()) {
                 loadTraitFromKey(pkey);
                 loading.remove(key);
             }
         }
-        for (DataKey key : Iterables.transform(loading, k -> root.getRelative("traits." + k))) {
+        for (DataKey key : Iterables.transform(loading, traits::getRelative)) {
             loadTraitFromKey(key);
         }
     }

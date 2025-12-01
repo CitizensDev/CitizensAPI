@@ -31,9 +31,10 @@ public class SimpleNPCDataStore implements NPCDataStore {
         for (DataKey key : root.getKey("npc").getSubKeys()) {
             Set<String> storedNames = Splitter.on(',').splitToStream(key.getString("traitnames"))
                     .collect(Collectors.toSet());
+            DataKey traits = key.getRelative("traits");
             for (String trait : traitNames) {
                 trait = trait.toLowerCase(Locale.ROOT);
-                key.removeKey("traits." + trait);
+                traits.removeKey(trait);
                 storedNames.remove(trait);
             }
             key.setString("traitnames", Joiner.on(',').join(storedNames));
@@ -67,7 +68,7 @@ public class SimpleNPCDataStore implements NPCDataStore {
                 Messaging.logTr(LOAD_NAME_NOT_FOUND, id);
                 continue;
             }
-            String unparsedEntityType = key.getString("traits.type", "PLAYER");
+            String unparsedEntityType = key.getRelative("traits").getString("type", "PLAYER");
             EntityType type = matchEntityType(unparsedEntityType);
             if (type == null) {
                 Messaging.logTr(LOAD_UNKNOWN_NPC_TYPE, unparsedEntityType);

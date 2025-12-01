@@ -276,7 +276,7 @@ public class PersistenceLoader {
                     && type != Double.class && type != Long.class && type != Float.class)
                 return;
         } else if (value != null && !type.isAssignableFrom(value.getClass())) {
-            if (root.getRelative(field.key).getSubKeys().iterator().hasNext() && field.field.getType() == String.class
+            if (root.getRelative(field.key).hasSubKeys() && field.field.getType() == String.class
                     && field.delegate == null) {
                 field.set(instance, root.getRelative(field.key).name());
             }
@@ -652,7 +652,7 @@ public class PersistenceLoader {
         } else if (value instanceof Enum) {
             root.setString("", ((Enum<?>) value).name());
         } else {
-            if (root.getSubKeys().iterator().hasNext() && !(value instanceof Collection))
+            if (root.hasSubKeys() && !(value instanceof Collection))
                 return;
             root.setRaw("", value);
         }
