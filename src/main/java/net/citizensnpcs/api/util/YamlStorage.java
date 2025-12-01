@@ -185,13 +185,13 @@ public class YamlStorage implements Storage {
                 continue;
             Map<String, Object> child = (Map<String, Object>) entry.getValue();
             transformMapsToLists(child);
-            if (isSequentialIntKeys(child)) {
-                List<Object> list = new ArrayList<>(child.size());
-                for (int i = 0; i < child.size(); i++) {
-                    list.add(child.get(String.valueOf(i)));
-                }
-                entry.setValue(list);
+            if (!isSequentialIntKeys(child))
+                continue;
+            List<Object> list = new ArrayList<>(child.size());
+            for (int i = 0; i < child.size(); i++) {
+                list.add(child.get(String.valueOf(i)));
             }
+            entry.setValue(list);
         }
     }
 }
