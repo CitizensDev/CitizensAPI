@@ -11,29 +11,29 @@ public interface CompiledExpression {
         if (result == null)
             return false;
 
-        if (result instanceof Boolean) {
+        if (result instanceof Boolean)
             return (Boolean) result;
-        }
-        if (result instanceof Number) {
+
+        if (result instanceof Number)
             return ((Number) result).doubleValue() != 0;
-        }
-        if (result instanceof String) {
+
+        if (result instanceof String)
             return !((String) result).isEmpty();
-        }
+
         return true;
     }
 
     default double evaluateAsNumber(ExpressionScope scope) {
         Object result = evaluate(scope);
-        if (result == null) {
+        if (result == null)
             return 0;
-        }
-        if (result instanceof Number) {
+
+        if (result instanceof Number)
             return ((Number) result).doubleValue();
-        }
-        if (result instanceof Boolean) {
+
+        if (result instanceof Boolean)
             return ((Boolean) result) ? 1 : 0;
-        }
+
         if (result instanceof String) {
             try {
                 return Double.parseDouble((String) result);

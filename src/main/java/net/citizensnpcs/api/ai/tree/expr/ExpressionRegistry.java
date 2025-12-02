@@ -23,6 +23,10 @@ public class ExpressionRegistry {
     private String defaultEngineName = "molang";
     private final Map<String, ExpressionEngine> engines = new HashMap<>();
 
+    public String applyDefaultExpressionMarkup(String expression) {
+        return '`' + expression + '`';
+    }
+
     /**
      * Parses and compiles an expression string.
      *
@@ -91,12 +95,13 @@ public class ExpressionRegistry {
      *            the value string
      * @return a ValueHolder for the value
      */
-    public ExpressionValue parseValue(String expr) {
+    public ExpressionValue parseValue(String expr) { 
         if (isPossiblyExpression(expr)) {
             try {
-                CompiledExpression compiled = compile(expr);
+                CompiledExpression compiled = compile(expr); 
                 return new ExpressionValue(compiled);
             } catch (ExpressionCompileException e) {
+                e.printStackTrace();
                 return new ExpressionValue(expr);
             }
         }
@@ -137,13 +142,6 @@ public class ExpressionRegistry {
             this.literal = literal;
         }
 
-        public String evaluateAsString(ExpressionScope scope) {
-            if (expression != null) {
-                return expression.evaluateAsString(scope);
-            }
-            return literal == null ? "" : literal.toString();
-        }
-
         public Object evaluate(ExpressionScope scope) {
             if (expression != null) {
                 return expression.evaluate(scope);
@@ -174,10 +172,17 @@ public class ExpressionRegistry {
             if (literal instanceof Number)
                 return ((Number) literal).doubleValue();
 
-            if (literal instanceof String) {
+            if (literal instanceof String)
                 return Doubles.tryParse(literal.toString());
-            }
+
             return 0;
+        }
+
+        public String evaluateAsString(ExpressionScope scope) {
+            if (expression != null)
+                return expression.evaluateAsString(scope);
+
+            return literal == null ? "" : literal.toString();
         }
 
         public boolean isExpression() {
@@ -185,5 +190,5 @@ public class ExpressionRegistry {
         }
     }
 
-    private static final Pattern EXPRESSION_PATTERN = Pattern.compile("^([a-zA-Z]*)\\`(.+)\\`$");
+    private static final Pattern EXPRESSION_PATTERN = Pattern.compile("^([a-zA-Z_]*)\\`(.+)\\`$");
 }

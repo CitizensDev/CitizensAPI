@@ -8,6 +8,7 @@ import org.bukkit.plugin.Plugin;
 
 import net.citizensnpcs.api.ai.speech.SpeechContext;
 import net.citizensnpcs.api.ai.tree.BehaviorRegistry;
+import net.citizensnpcs.api.ai.tree.expr.ExpressionRegistry;
 import net.citizensnpcs.api.astar.pathfinder.AsyncChunkCache;
 import net.citizensnpcs.api.command.CommandManager;
 import net.citizensnpcs.api.npc.MemoryNPCDataStore;
@@ -87,6 +88,10 @@ public final class CitizensAPI {
      */
     public static NPCSelector getDefaultNPCSelector() {
         return getImplementation().getDefaultNPCSelector();
+    }
+
+    public static ExpressionRegistry getExpressionRegistry() {
+        return getImplementation().getExpressionRegistry();
     }
 
     private static CitizensPlugin getImplementation() {

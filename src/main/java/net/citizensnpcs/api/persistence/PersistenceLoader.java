@@ -461,7 +461,7 @@ public class PersistenceLoader {
                 continue;
             }
         }
-        return Collections2.transform(toFilter, PersistField::new).toArray(new PersistField[toFilter.size()]);
+        return Collections2.transform(toFilter, PersistField::new).toArray(new PersistField[0]);
     }
 
     private static Class<?> getGenericType(Field field) {

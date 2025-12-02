@@ -203,8 +203,8 @@ public class PlayerFilter extends Trait {
      * that should no longer view the NPC.
      */
     public void recalculate() {
-        NPC[] npcs = children.stream().map(u -> CitizensAPI.getNPCRegistry().getByUniqueIdGlobal(u))
-                .filter(n -> n != null).toArray(NPC[]::new);
+        NPC[] npcs = children.stream().map(CitizensAPI.getNPCRegistry()::getByUniqueIdGlobal).filter(n -> n != null)
+                .toArray(NPC[]::new);
         for (Iterator<UUID> itr = viewingPlayers.iterator(); itr.hasNext();) {
             UUID uuid = itr.next();
             Player player = Bukkit.getPlayer(uuid);

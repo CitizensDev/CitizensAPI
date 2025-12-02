@@ -8,4 +8,12 @@ package net.citizensnpcs.api.ai.tree;
  * in one tick.
  */
 public interface InstantBehavior extends Behavior {
+    @Override
+    default void reset() {
+    }
+
+    @Override
+    default boolean shouldExecute() {
+        return true;
+    }
 }

@@ -49,7 +49,7 @@ public class Path implements Plan {
         }
         path = ramerDouglasPeucker(path, 0.75);
 
-        this.path = path.toArray(new PathEntry[path.size()]);
+        this.path = path.toArray(new PathEntry[0]);
     }
 
     public List<Block> getBlocks(World world) {

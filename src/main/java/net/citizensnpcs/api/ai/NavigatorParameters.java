@@ -317,7 +317,7 @@ public class NavigatorParameters implements Cloneable {
      * @return An array of all current examiners
      */
     public BlockExaminer[] examiners() {
-        return examiners.size() == 0 ? EMPTY_EXAMINERS : examiners.toArray(new BlockExaminer[examiners.size()]);
+        return examiners.size() == 0 ? EMPTY_EXAMINERS : examiners.toArray(new BlockExaminer[0]);
     }
 
     public int fallDistance() {

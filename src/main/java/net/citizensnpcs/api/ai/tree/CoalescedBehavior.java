@@ -22,8 +22,6 @@ public class CoalescedBehavior implements Behavior {
     @Override
     public BehaviorStatus run() {
         for (Behavior behavior : behaviors) {
-            if (!behavior.shouldExecute())
-                continue;
             BehaviorStatus status = behavior.run();
             if (status == BehaviorStatus.FAILURE || status == BehaviorStatus.RESET_AND_REMOVE)
                 return status;

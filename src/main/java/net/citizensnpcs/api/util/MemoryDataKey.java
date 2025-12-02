@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -34,13 +36,12 @@ public class MemoryDataKey extends DataKey {
 
     @Override
     public MemoryDataKey copy() {
-        Map<String, Object> copied = deepCopyMap(getCurrentSection());
-        return new MemoryDataKey(copied, "", "");
+        return new MemoryDataKey(deepCopyMap(getCurrentSection()), "", "");
     }
 
     @SuppressWarnings("unchecked")
     private Map<String, Object> deepCopyMap(Map<String, Object> source) {
-        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> result = Maps.newHashMapWithExpectedSize(source.size());
         for (Map.Entry<String, Object> entry : source.entrySet()) {
             Object value = entry.getValue();
             if (value instanceof Map) {
@@ -59,7 +60,7 @@ public class MemoryDataKey extends DataKey {
         if (obj == null || getClass() != obj.getClass())
             return false;
         MemoryDataKey other = (MemoryDataKey) obj;
-        return Objects.equals(path, other.path) && root == other.root;
+        return Objects.equals(getDisplayPath(), other.getDisplayPath()) && root == other.root;
     }
 
     @Override
@@ -78,7 +79,7 @@ public class MemoryDataKey extends DataKey {
             return root;
 
         Map<String, Object> current = root;
-        String[] segments = path.split("\\.");
+        String[] segments = path.split("\\" + INTERNAL_SEPARATOR);
         for (String segment : segments) {
             Object next = current.get(segment);
             if (!(next instanceof Map))
@@ -86,6 +87,10 @@ public class MemoryDataKey extends DataKey {
             current = (Map<String, Object>) next;
         }
         return current;
+    }
+
+    private String getDisplayPath() {
+        return path.replace(INTERNAL_SEPARATOR, '.');
     }
 
     @Override
@@ -154,6 +159,11 @@ public class MemoryDataKey extends DataKey {
     }
 
     @Override
+    public String getPath() {
+        return getDisplayPath();
+    }
+
+    @Override
     public Object getRaw(String key) {
         if (key == null || key.isEmpty())
             return getValueAtCurrentPath();
@@ -182,7 +192,7 @@ public class MemoryDataKey extends DataKey {
             return Collections.emptyList();
 
         return Iterables.transform(current.keySet(), k -> {
-            String newPath = path.isEmpty() ? k : path + "." + k;
+            String newPath = path.isEmpty() ? k : path + INTERNAL_SEPARATOR + k;
             return new MemoryDataKey(root, newPath, k);
         });
     }
@@ -193,7 +203,7 @@ public class MemoryDataKey extends DataKey {
             return root;
 
         Map<String, Object> current = root;
-        String[] segments = path.split("\\.");
+        String[] segments = path.split("\\" + INTERNAL_SEPARATOR);
         for (int i = 0; i < segments.length - 1; i++) {
             Object next = current.get(segments[i]);
             if (!(next instanceof Map))
@@ -213,7 +223,8 @@ public class MemoryDataKey extends DataKey {
 
     @Override
     public int hashCode() {
-        return 31 * (path == null ? 0 : path.hashCode()) + System.identityHashCode(root);
+        String displayPath = getDisplayPath();
+        return 31 * (displayPath == null ? 0 : displayPath.hashCode()) + System.identityHashCode(root);
     }
 
     @Override
@@ -235,18 +246,19 @@ public class MemoryDataKey extends DataKey {
         return name;
     }
 
-    private MemoryDataKey navigatePath(Map<String, Object> root, String currentPath, String relativePath) {
-        String newPath;
-        if (currentPath.isEmpty()) {
-            newPath = relativePath;
-        } else if (relativePath.startsWith(".")) {
-            newPath = currentPath + relativePath;
-        } else {
-            newPath = currentPath + "." + relativePath;
+    private MemoryDataKey navigatePath(Map<String, Object> root, String currentInternalPath, String relativePath) {
+        // relativePath uses dots as separators - split and add each as a segment
+        String[] pathParts = relativePath.split("\\.");
+        StringBuilder newInternalPath = new StringBuilder(currentInternalPath);
+
+        for (String part : pathParts) {
+            if (newInternalPath.length() > 0) {
+                newInternalPath.append(INTERNAL_SEPARATOR);
+            }
+            newInternalPath.append(part);
         }
-        int lastSegment = relativePath.lastIndexOf('.');
-        return new MemoryDataKey(root, newPath,
-                lastSegment == -1 ? relativePath : relativePath.substring(lastSegment + 1));
+        String lastName = pathParts[pathParts.length - 1];
+        return new MemoryDataKey(root, newInternalPath.toString(), lastName);
     }
 
     @SuppressWarnings("unchecked")
@@ -298,24 +310,24 @@ public class MemoryDataKey extends DataKey {
     @Override
     @SuppressWarnings("unchecked")
     public void setRaw(String key, Object value) {
-        String fullPath;
+        String fullInternalPath;
         if (key == null || key.isEmpty()) {
-            fullPath = path;
+            fullInternalPath = path;
         } else if (path.isEmpty()) {
-            fullPath = key;
+            fullInternalPath = key.replace('.', INTERNAL_SEPARATOR);
         } else {
-            fullPath = path + "." + key;
+            fullInternalPath = path + INTERNAL_SEPARATOR + key.replace('.', INTERNAL_SEPARATOR);
         }
-        if (fullPath.isEmpty()) {
+        if (fullInternalPath.isEmpty()) {
             if (value == null) {
                 root.clear();
             } else if (value instanceof Map) {
                 root.clear();
                 root.putAll((Map<String, Object>) value);
             }
-            throw new IllegalStateException("Setting root to a value not supported");
+            throw new IllegalStateException("Unsupported root value");
         }
-        String[] segments = fullPath.split("\\.");
+        String[] segments = fullInternalPath.split("\\" + INTERNAL_SEPARATOR);
         Map<String, Object> current = root;
 
         for (int i = 0; i < segments.length - 1; i++) {
@@ -343,6 +355,9 @@ public class MemoryDataKey extends DataKey {
 
     @Override
     public String toString() {
-        return "MemoryDataKey[" + path + "]";
+        return "MemoryDataKey[" + getDisplayPath() + "]";
     }
+
+    private static final char INTERNAL_SEPARATOR = '\0';
+    private static final Splitter INTERNAL_SEPARATOR_SPLITTER = Splitter.on(INTERNAL_SEPARATOR);
 }

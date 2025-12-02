@@ -141,7 +141,7 @@ public class CommandContext {
 
             copied.add(arg.trim());
         }
-        this.args = copied.toArray(new String[copied.size()]);
+        this.args = copied.toArray(new String[0]);
     }
 
     public CommandContext(CommandSender sender, String[] args) {

@@ -516,7 +516,7 @@ public class InventoryMenu implements Listener, Runnable {
             patternInfo.bind(page.page, pattern);
             page.patterns[i] = pattern;
         }
-        page.transitions = transitions.toArray(new InventoryMenuTransition[transitions.size()]);
+        page.transitions = transitions.toArray(new InventoryMenuTransition[0]);
         info.inject(page.page, page.ctx.data());
         page.page.initialise(page.ctx);
         for (Invokable<ClickHandler> invokable : info.clickHandlers) {
@@ -685,7 +685,7 @@ public class InventoryMenu implements Listener, Runnable {
             for (T t : clazz.getAnnotationsByType(annotationType)) {
                 bindables.add(new Bindable<>(null, t));
             }
-            return bindables.toArray(new Bindable[bindables.size()]);
+            return bindables.toArray(new Bindable[0]);
         }
 
         @SuppressWarnings("unchecked")
@@ -723,7 +723,7 @@ public class InventoryMenu implements Listener, Runnable {
                     }
                 }
             }
-            return invokables.toArray(new Invokable[invokables.size()]);
+            return invokables.toArray(new Invokable[0]);
         }
 
         private Map<String, MethodHandle> getInjectables(Class<?> clazz) {

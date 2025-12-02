@@ -12,11 +12,11 @@ import org.bukkit.block.Block;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.ai.goals.WanderGoal;
+import net.citizensnpcs.api.ai.tree.expr.BehaviorSignals;
 import net.citizensnpcs.api.ai.tree.expr.ExpressionRegistry;
 import net.citizensnpcs.api.ai.tree.expr.ExpressionRegistry.ExpressionValue;
 import net.citizensnpcs.api.ai.tree.expr.ExpressionScope;
 import net.citizensnpcs.api.ai.tree.expr.Memory;
-import net.citizensnpcs.api.ai.tree.expr.SignalManager;
 import net.citizensnpcs.api.npc.BlockBreaker;
 import net.citizensnpcs.api.npc.BlockBreaker.BlockBreakerConfiguration;
 import net.citizensnpcs.api.npc.NPC;
@@ -29,21 +29,15 @@ import net.citizensnpcs.api.util.SpigotUtil;
 public class BehaviorRegistry {
     private final Map<String, BehaviorFactory> behaviors = new HashMap<>();
     private final ExpressionRegistry expressions;
-    private final SignalManager signals;
-
-    public BehaviorRegistry() {
-        this.expressions = new ExpressionRegistry();
-        this.signals = new SignalManager();
-        registerDefaults();
-    }
+    private final BehaviorSignals signals;
 
     public BehaviorRegistry(ExpressionRegistry expressions) {
         this.expressions = expressions;
-        this.signals = new SignalManager();
+        this.signals = new BehaviorSignals();
         registerDefaults();
     }
 
-    public BehaviorRegistry(ExpressionRegistry expressionRegistry, SignalManager signals) {
+    public BehaviorRegistry(ExpressionRegistry expressionRegistry, BehaviorSignals signals) {
         this.expressions = expressionRegistry;
         this.signals = signals;
         registerDefaults();
@@ -72,7 +66,7 @@ public class BehaviorRegistry {
         return expressions;
     }
 
-    public SignalManager getSignalManager() {
+    public BehaviorSignals getSignalManager() {
         return signals;
     }
 
@@ -156,22 +150,10 @@ public class BehaviorRegistry {
             }
             ExpressionValue value = expressions.parseValue(signalName);
 
-            return new InstantBehavior() {
-                @Override
-                public void reset() {
-                }
-
-                @Override
-                public BehaviorStatus run() {
-                    String signal = value.evaluateAsString(context.getScope());
-                    signals.emit(context.getNPC(), signal);
-                    return BehaviorStatus.SUCCESS;
-                }
-
-                @Override
-                public boolean shouldExecute() {
-                    return true;
-                }
+            return (InstantBehavior) () -> {
+                String signal = value.evaluateAsString(context.getScope());
+                signals.emit(context.getNPC(), signal);
+                return BehaviorStatus.SUCCESS;
             };
         });
 
@@ -185,42 +167,30 @@ public class BehaviorRegistry {
             ExpressionRegistry.ExpressionValue npcIdHolder = expressions.parseValue(npcIdStr);
             ExpressionRegistry.ExpressionValue signalHolder = expressions.parseValue(signalName);
 
-            return new InstantBehavior() {
-                @Override
-                public void reset() {
-                }
+            return (InstantBehavior) () -> {
+                Object idValue = npcIdHolder.evaluate(context.getScope());
+                NPC npc = null;
 
-                @Override
-                public BehaviorStatus run() {
-                    Object idValue = npcIdHolder.evaluate(context.getScope());
-                    NPC npc = null;
-
-                    if (idValue instanceof String) {
-                        String idString = (String) idValue;
+                if (idValue instanceof String) {
+                    String idString = (String) idValue;
+                    try {
+                        UUID uuid = UUID.fromString(idString);
+                        npc = CitizensAPI.getNPCRegistry().getByUniqueIdGlobal(uuid);
+                    } catch (IllegalArgumentException e) {
                         try {
-                            UUID uuid = UUID.fromString(idString);
-                            npc = CitizensAPI.getNPCRegistry().getByUniqueIdGlobal(uuid);
-                        } catch (IllegalArgumentException e) {
-                            try {
-                                int npcId = Integer.parseInt(idString);
-                                npc = CitizensAPI.getNPCRegistry().getById(npcId);
-                            } catch (NumberFormatException ignored) {
-                            }
+                            int npcId = Integer.parseInt(idString);
+                            npc = CitizensAPI.getNPCRegistry().getById(npcId);
+                        } catch (NumberFormatException ignored) {
                         }
-                    } else if (idValue instanceof Number) {
-                        int npcId = ((Number) idValue).intValue();
-                        npc = CitizensAPI.getNPCRegistry().getById(npcId);
                     }
-                    if (npc == null)
-                        return BehaviorStatus.FAILURE;
-                    signals.emitToNPC(npc.getUniqueId(), signalHolder.evaluateAsString(context.getScope()));
-                    return BehaviorStatus.SUCCESS;
+                } else if (idValue instanceof Number) {
+                    int npcId = ((Number) idValue).intValue();
+                    npc = CitizensAPI.getNPCRegistry().getById(npcId);
                 }
-
-                @Override
-                public boolean shouldExecute() {
-                    return true;
-                }
+                if (npc == null)
+                    return BehaviorStatus.FAILURE;
+                signals.emitToNPC(npc.getUniqueId(), signalHolder.evaluateAsString(context.getScope()));
+                return BehaviorStatus.SUCCESS;
             };
         });
 
@@ -232,22 +202,10 @@ public class BehaviorRegistry {
             }
             ExpressionRegistry.ExpressionValue signalHolder = expressions.parseValue(signalName);
 
-            return new InstantBehavior() {
-                @Override
-                public void reset() {
-                }
-
-                @Override
-                public BehaviorStatus run() {
-                    String signal = signalHolder.evaluateAsString(context.getScope());
-                    signals.emitGlobal(signal);
-                    return BehaviorStatus.SUCCESS;
-                }
-
-                @Override
-                public boolean shouldExecute() {
-                    return true;
-                }
+            return (InstantBehavior) () -> {
+                String signal = signalHolder.evaluateAsString(context.getScope());
+                signals.emitGlobal(signal);
+                return BehaviorStatus.SUCCESS;
             };
         });
 
@@ -261,7 +219,7 @@ public class BehaviorRegistry {
 
             return new Behavior() {
                 private String currentSignal;
-                private SignalManager.SignalListener listener;
+                private BehaviorSignals.SignalListener listener;
                 private boolean signalReceived = false;
 
                 @Override
@@ -295,26 +253,12 @@ public class BehaviorRegistry {
         });
 
         // Always succeeds
-        registerBehavior("succeed", (params, context) -> new Behavior() {
-            @Override
-            public void reset() {
-            }
-
-            @Override
-            public BehaviorStatus run() {
-                return BehaviorStatus.SUCCESS;
-            }
-
-            @Override
-            public boolean shouldExecute() {
-                return true;
-            }
-        });
+        registerBehavior("succeed", (params, context) -> (InstantBehavior) () -> BehaviorStatus.SUCCESS);
 
         // Repeats x times
         registerBehavior("repeat", (params, context) -> {
             String countStr = context.getArgOrParam(0, "count", params, "1");
-            ExpressionValue countHolder = getExpressionRegistry().parseValue(countStr);
+            ExpressionValue countHolder = CitizensAPI.getExpressionRegistry().parseValue(countStr);
 
             if (params == null || !params.hasSubKeys())
                 return null;
@@ -348,21 +292,7 @@ public class BehaviorRegistry {
         });
 
         // Always fails
-        registerBehavior("fail", (params, context) -> new Behavior() {
-            @Override
-            public void reset() {
-            }
-
-            @Override
-            public BehaviorStatus run() {
-                return BehaviorStatus.FAILURE;
-            }
-
-            @Override
-            public boolean shouldExecute() {
-                return true;
-            }
-        });
+        registerBehavior("fail", (params, context) -> (InstantBehavior) () -> BehaviorStatus.FAILURE);
 
         // Sets a memory variable
         registerBehavior("set", (params, context) -> {
@@ -373,22 +303,10 @@ public class BehaviorRegistry {
 
             ExpressionRegistry.ExpressionValue valueHolder = expressions.parseValue(valueStr);
 
-            return new InstantBehavior() {
-                @Override
-                public void reset() {
-                }
-
-                @Override
-                public BehaviorStatus run() {
-                    Object value = valueHolder.evaluate(context.getScope());
-                    context.getMemory().set(key, value);
-                    return BehaviorStatus.SUCCESS;
-                }
-
-                @Override
-                public boolean shouldExecute() {
-                    return true;
-                }
+            return (InstantBehavior) () -> {
+                Object value = valueHolder.evaluate(context.getScope());
+                context.getMemory().set(key, value);
+                return BehaviorStatus.SUCCESS;
             };
         });
 
@@ -430,28 +348,16 @@ public class BehaviorRegistry {
             ExpressionRegistry.ExpressionValue durationHolder = expressions.parseValue(durationStr);
             String cooldownKey = "cooldown." + key;
 
-            return new InstantBehavior() {
-                @Override
-                public void reset() {
-                }
+            return (InstantBehavior) () -> {
+                long lastUsed = (long) context.getMemory().getNumber(cooldownKey, 0);
+                Duration duration = SpigotUtil.parseDuration(durationHolder.evaluateAsString(context.getScope()),
+                        TimeUnit.MILLISECONDS);
 
-                @Override
-                public BehaviorStatus run() {
-                    long lastUsed = (long) context.getMemory().getNumber(cooldownKey, 0);
-                    Duration duration = SpigotUtil.parseDuration(durationHolder.evaluateAsString(context.getScope()),
-                            TimeUnit.MILLISECONDS);
-
-                    if (System.currentTimeMillis() - lastUsed >= duration.toMillis()) {
-                        context.getMemory().set(cooldownKey, System.currentTimeMillis());
-                        return BehaviorStatus.SUCCESS;
-                    }
-                    return BehaviorStatus.FAILURE;
+                if (System.currentTimeMillis() - lastUsed >= duration.toMillis()) {
+                    context.getMemory().set(cooldownKey, System.currentTimeMillis());
+                    return BehaviorStatus.SUCCESS;
                 }
-
-                @Override
-                public boolean shouldExecute() {
-                    return true;
-                }
+                return BehaviorStatus.FAILURE;
             };
         });
 
@@ -461,41 +367,17 @@ public class BehaviorRegistry {
             if (key == null)
                 return null;
 
-            return new InstantBehavior() {
-                @Override
-                public void reset() {
-                }
-
-                @Override
-                public BehaviorStatus run() {
-                    context.getMemory().remove(key);
-                    return BehaviorStatus.SUCCESS;
-                }
-
-                @Override
-                public boolean shouldExecute() {
-                    return true;
-                }
+            return (InstantBehavior) () -> {
+                context.getMemory().remove(key);
+                return BehaviorStatus.SUCCESS;
             };
         });
 
         // Clears all memory
         registerBehavior("clear_memory", (params, context) -> {
-            return new InstantBehavior() {
-                @Override
-                public void reset() {
-                }
-
-                @Override
-                public BehaviorStatus run() {
-                    context.getMemory().clear();
-                    return BehaviorStatus.SUCCESS;
-                }
-
-                @Override
-                public boolean shouldExecute() {
-                    return true;
-                }
+            return (InstantBehavior) () -> {
+                context.getMemory().clear();
+                return BehaviorStatus.SUCCESS;
             };
         });
 
@@ -552,9 +434,9 @@ public class BehaviorRegistry {
                 rangeStr = params.getString("range", null);
                 distanceMarginStr = params.getString("distance_margin", null);
             }
-            if (xStr == null || yStr == null || zStr == null) {
+            if (xStr == null || yStr == null || zStr == null)
                 return null;
-            }
+
             ExpressionRegistry.ExpressionValue xHolder = expressions.parseValue(xStr);
             ExpressionRegistry.ExpressionValue yHolder = expressions.parseValue(yStr);
             ExpressionRegistry.ExpressionValue zHolder = expressions.parseValue(zStr);
@@ -575,9 +457,6 @@ public class BehaviorRegistry {
                 @Override
                 public BehaviorStatus run() {
                     NPC npc = context.getNPC();
-                    if (!npc.isSpawned()) {
-                        return BehaviorStatus.FAILURE;
-                    }
                     if (!started) {
                         double x = xHolder.evaluateAsNumber(context.getScope());
                         double y = yHolder.evaluateAsNumber(context.getScope());
@@ -599,10 +478,7 @@ public class BehaviorRegistry {
                         }
                         started = true;
                     }
-                    if (!npc.getNavigator().isNavigating()) {
-                        return BehaviorStatus.SUCCESS;
-                    }
-                    return BehaviorStatus.RUNNING;
+                    return npc.getNavigator().isNavigating() ? BehaviorStatus.RUNNING : BehaviorStatus.SUCCESS;
                 }
 
                 @Override
@@ -734,12 +610,12 @@ public class BehaviorRegistry {
         }
 
         public String getArgOrParam(int index, String name, DataKey params, String defaultValue) {
-            if (args != null && index < args.length) {
+            if (args != null && index < args.length)
                 return args[index];
-            }
-            if (params != null) {
+
+            if (params != null)
                 return params.getString(name, defaultValue);
-            }
+
             return defaultValue;
         }
 

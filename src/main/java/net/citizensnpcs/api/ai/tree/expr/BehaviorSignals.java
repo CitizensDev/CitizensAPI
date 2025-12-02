@@ -13,7 +13,7 @@ import net.citizensnpcs.api.npc.NPC;
 /**
  * Manages signals for behavior trees. Signals allow behavior trees to communicate and wait for events.
  */
-public class SignalManager {
+public class BehaviorSignals {
     private final Map<UUID, Multimap<String, SignalListener>> listeners = new ConcurrentHashMap<>();
 
     /**

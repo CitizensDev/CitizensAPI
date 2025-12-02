@@ -2,6 +2,7 @@ package net.citizensnpcs.api.ai.tree.expr;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import javax.script.Bindings;
 import javax.script.Compilable;
@@ -90,26 +91,79 @@ public class JSR223Engine implements ExpressionEngine {
         }
     }
 
+    private static class LazyMap extends HashMap<String, Object> {
+        @Override
+        public Object get(Object key) {
+            Object value = super.get(key);
+            if (value instanceof LazyValue) {
+                return ((LazyValue) value).getValue();
+            }
+            return value;
+        }
+    }
+
+    private static class LazyValue {
+        private Object cachedValue;
+        private boolean evaluated = false;
+        private final Supplier<?> supplier;
+
+        LazyValue(Supplier<?> supplier) {
+            this.supplier = supplier;
+        }
+
+        public Object getValue() {
+            if (!evaluated) {
+                cachedValue = supplier.get();
+                evaluated = true;
+            }
+            return cachedValue;
+        }
+
+        @Override
+        public String toString() {
+            Object value = getValue();
+            return value == null ? "" : value.toString();
+        }
+    }
+
     private static Bindings createBindings(ExpressionScope scope) {
         Bindings bindings = new SimpleBindings();
 
         for (String name : scope.getVariableNames()) {
-            Object value = scope.get(name);
-            if (value != null) {
-                if (name.contains(".")) {
-                    String[] parts = name.split("\\.");
-                    Map<String, Object> current = bindings;
-                    for (int i = 0; i < parts.length - 1; i++) {
-                        Map<String, Object> next = (Map<String, Object>) current.get(parts[i]);
-                        if (next == null) {
-                            next = new HashMap<>();
-                            current.put(parts[i], next);
-                        }
-                        current = next;
+            if (name.contains(".")) {
+                String[] parts = name.split("\\.");
+                Map<String, Object> current = bindings;
+                for (int i = 0; i < parts.length - 1; i++) {
+                    Object existing = current.get(parts[i]);
+                    Map<String, Object> next;
+                    if (existing instanceof Map) {
+                        next = (Map<String, Object>) existing;
+                    } else {
+                        next = new LazyMap();
+                        current.put(parts[i], next);
                     }
-                    current.put(parts[parts.length - 1], value);
+                    current = next;
+                }
+                if (scope.isConstant(name)) {
+                    Object value = scope.get(name);
+                    if (value != null) {
+                        current.put(parts[parts.length - 1], value);
+                    }
                 } else {
+                    Supplier<?> supplier = scope.getSupplier(name);
+                    if (supplier != null) {
+                        current.put(parts[parts.length - 1], new LazyValue(supplier));
+                    }
+                }
+            } else if (scope.isConstant(name)) {
+                Object value = scope.get(name);
+                if (value != null) {
                     bindings.put(name, value);
+                }
+            } else {
+                Supplier<?> supplier = scope.getSupplier(name);
+                if (supplier != null) {
+                    bindings.put(name, new LazyValue(supplier));
                 }
             }
         }
@@ -125,9 +179,9 @@ public class JSR223Engine implements ExpressionEngine {
         if (engine == null) {
             engine = manager.getEngineByName("js");
         }
-        if (engine == null) {
+        if (engine == null)
             throw new IllegalStateException("No JavaScript engine available");
-        }
+
         return new JSR223Engine("js");
     }
 }

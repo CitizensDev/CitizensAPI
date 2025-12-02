@@ -100,6 +100,24 @@ public class ExpressionScope {
     }
 
     /**
+     * Gets the supplier for a lazy binding, if it exists.
+     *
+     * @param name
+     *            the variable name
+     * @return the supplier, or null if the variable is not a lazy binding
+     */
+    public Supplier<?> getSupplier(String name) {
+        Supplier<?> supplier = lazyBindings.get(name);
+        if (supplier != null)
+            return supplier;
+
+        if (parent != null)
+            return parent.getSupplier(name);
+
+        return null;
+    }
+
+    /**
      * Gets all variable names currently in scope.
      */
     public Iterable<String> getVariableNames() {
@@ -119,6 +137,20 @@ public class ExpressionScope {
             return true;
 
         return parent != null && parent.has(name);
+    }
+
+    /**
+     * Checks if a variable is a lazy binding (not eagerly evaluated).
+     *
+     * @param name
+     *            the variable name
+     * @return true if the variable is a lazy binding
+     */
+    public boolean isConstant(String name) {
+        if (!lazyBindings.containsKey(name))
+            return true;
+
+        return parent != null && parent.isConstant(name);
     }
 
     /**
