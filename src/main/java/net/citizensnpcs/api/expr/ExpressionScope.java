@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import org.bukkit.entity.Player;
+
 import com.google.common.collect.Sets;
 
 import net.citizensnpcs.api.npc.NPC;
@@ -20,6 +22,7 @@ public class ExpressionScope {
     private Memory memory;
     private NPC npc;
     private final ExpressionScope parent;
+    private Player player;
 
     public ExpressionScope() {
         this.parent = null;
@@ -95,6 +98,19 @@ public class ExpressionScope {
 
         if (parent != null)
             return parent.getNPC();
+
+        return null;
+    }
+
+    /**
+     * Gets the Player for this scope or parent Player if not present.
+     */
+    public Player getPlayer() {
+        if (player != null)
+            return player;
+
+        if (parent != null)
+            return parent.getPlayer();
 
         return null;
     }
@@ -189,5 +205,12 @@ public class ExpressionScope {
      */
     public void setNPC(NPC npc) {
         this.npc = npc;
+    }
+
+    /**
+     * Sets the Player for this scope.
+     */
+    public void setPlayer(Player player) {
+        this.player = player;
     }
 }

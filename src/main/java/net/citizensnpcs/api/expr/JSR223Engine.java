@@ -1,6 +1,7 @@
 package net.citizensnpcs.api.expr;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -12,26 +13,18 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 
+import org.bukkit.entity.Player;
+
+import net.citizensnpcs.api.util.Placeholders;
+
 public class JSR223Engine implements ExpressionEngine {
     private final boolean compilable;
-    private final javax.script.ScriptEngine engine;
+    private final ScriptEngine engine;
     private final String name;
 
-    /**
-     * Creates a script engine with the given language name.
-     *
-     * @param language
-     *            the script engine name (e.g., "js", "javascript", "groovy")
-     * @throws IllegalArgumentException
-     *             if the engine is not available
-     */
-    public JSR223Engine(String language) {
-        ScriptEngineManager manager = new ScriptEngineManager();
-        this.engine = manager.getEngineByName(language);
-        if (this.engine == null) {
-            throw new IllegalArgumentException("Script engine not found: " + language);
-        }
-        this.name = language.toLowerCase();
+    public JSR223Engine(ScriptEngine engine) {
+        this.engine = engine;
+        this.name = engine.getFactory().getEngineName().toLowerCase(Locale.ROOT);
         this.compilable = engine instanceof Compilable;
     }
 
@@ -126,9 +119,42 @@ public class JSR223Engine implements ExpressionEngine {
         }
     }
 
+    private static class PapiFunction {
+        private final Player player;
+
+        PapiFunction(Player player) {
+            this.player = player;
+        }
+
+        public Object apply(String placeholder) {
+            return call(placeholder);
+        }
+
+        public Object call(String placeholder) {
+            if (placeholder == null)
+                return "";
+
+            return Placeholders.replace(placeholder, player);
+        }
+
+        @Override
+        public String toString() {
+            return "[PlaceholderAPI Function]";
+        }
+    }
+
     private static Bindings createBindings(ExpressionScope scope) {
         Bindings bindings = new SimpleBindings();
 
+        if (scope.getNPC() != null) {
+            bindings.put("npc", scope.getNPC());
+        }
+        if (scope.getMemory() != null) {
+            bindings.put("memory", scope.getMemory());
+        }
+        if (scope.getPlayer() != null) {
+            bindings.put("papi", new PapiFunction(scope.getPlayer()));
+        }
         for (String name : scope.getVariableNames()) {
             if (name.contains(".")) {
                 String[] parts = name.split("\\.");
@@ -172,9 +198,9 @@ public class JSR223Engine implements ExpressionEngine {
 
     public static JSR223Engine javascript() {
         ScriptEngineManager manager = new ScriptEngineManager();
-        ScriptEngine engine = manager.getEngineByName("nashorn");
+        ScriptEngine engine = manager.getEngineByName("graal.js");
         if (engine == null) {
-            engine = manager.getEngineByName("graal.js");
+            engine = manager.getEngineByName("nashorn");
         }
         if (engine == null) {
             engine = manager.getEngineByName("js");
@@ -182,6 +208,6 @@ public class JSR223Engine implements ExpressionEngine {
         if (engine == null)
             throw new IllegalStateException("No JavaScript engine available");
 
-        return new JSR223Engine("js");
+        return new JSR223Engine(engine);
     }
 }
