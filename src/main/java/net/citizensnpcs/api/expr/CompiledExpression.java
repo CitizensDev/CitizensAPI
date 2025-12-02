@@ -1,4 +1,4 @@
-package net.citizensnpcs.api.ai.tree.expr;
+package net.citizensnpcs.api.expr;
 
 /**
  * A compiled expression that can be evaluated against a scope.

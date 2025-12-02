@@ -1,4 +1,4 @@
-package net.citizensnpcs.api.ai.tree.expr;
+package net.citizensnpcs.api.ai.tree;
 
 import java.util.Collection;
 import java.util.Map;

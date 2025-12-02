@@ -1,4 +1,4 @@
-package net.citizensnpcs.api.ai.tree.expr;
+package net.citizensnpcs.api.expr;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 import com.google.common.primitives.Doubles;
 
-import net.citizensnpcs.api.ai.tree.expr.ExpressionEngine.ExpressionCompileException;
+import net.citizensnpcs.api.expr.ExpressionEngine.ExpressionCompileException;
 
 /**
  * Registry for expression engines and parser for expression syntax.

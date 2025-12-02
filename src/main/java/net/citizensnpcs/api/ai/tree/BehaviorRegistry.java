@@ -12,11 +12,10 @@ import org.bukkit.block.Block;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.ai.goals.WanderGoal;
-import net.citizensnpcs.api.ai.tree.expr.BehaviorSignals;
-import net.citizensnpcs.api.ai.tree.expr.ExpressionRegistry;
-import net.citizensnpcs.api.ai.tree.expr.ExpressionRegistry.ExpressionValue;
-import net.citizensnpcs.api.ai.tree.expr.ExpressionScope;
-import net.citizensnpcs.api.ai.tree.expr.Memory;
+import net.citizensnpcs.api.expr.ExpressionRegistry;
+import net.citizensnpcs.api.expr.ExpressionScope;
+import net.citizensnpcs.api.expr.Memory;
+import net.citizensnpcs.api.expr.ExpressionRegistry.ExpressionValue;
 import net.citizensnpcs.api.npc.BlockBreaker;
 import net.citizensnpcs.api.npc.BlockBreaker.BlockBreakerConfiguration;
 import net.citizensnpcs.api.npc.NPC;

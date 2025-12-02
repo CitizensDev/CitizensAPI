@@ -1,4 +1,4 @@
-package net.citizensnpcs.api.ai.tree.expr;
+package net.citizensnpcs.api.expr;
 
 /**
  * Expression evaluation abstraction (e.g., Molang, JavaScript, Denizen).
