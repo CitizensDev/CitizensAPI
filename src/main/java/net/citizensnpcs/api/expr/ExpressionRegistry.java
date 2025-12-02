@@ -24,6 +24,8 @@ public class ExpressionRegistry {
     private final Map<String, ExpressionEngine> engines = new HashMap<>();
 
     public String applyDefaultExpressionMarkup(String expression) {
+        if (isPossiblyExpression(expression))
+            return expression;
         return '`' + expression + '`';
     }
 
@@ -95,10 +97,10 @@ public class ExpressionRegistry {
      *            the value string
      * @return a ValueHolder for the value
      */
-    public ExpressionValue parseValue(String expr) { 
+    public ExpressionValue parseValue(String expr) {
         if (isPossiblyExpression(expr)) {
             try {
-                CompiledExpression compiled = compile(expr); 
+                CompiledExpression compiled = compile(expr);
                 return new ExpressionValue(compiled);
             } catch (ExpressionCompileException e) {
                 e.printStackTrace();
