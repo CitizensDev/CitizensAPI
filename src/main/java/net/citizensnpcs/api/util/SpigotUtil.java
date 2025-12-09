@@ -132,10 +132,6 @@ public class SpigotUtil {
         private static final MethodHandle TOP_INVENTORY = getMethod(InventoryView.class, "getTopInventory");
     }
 
-    private static interface ThrowingConsumer<T> {
-        void accept(T t) throws ClassNotFoundException;
-    }
-
     public static boolean checkYSafe(double y, World world) {
         if (!SUPPORT_WORLD_HEIGHT || world == null)
             return y >= 0 && y <= 255;
@@ -235,33 +231,6 @@ public class SpigotUtil {
         return Duration.parse(raw);
     }
 
-    /**
-     * Parses a duration string and returns the number of ticks.
-     * Supports formats like "5s", "10m", "100t", or plain numbers (interpreted as ticks).
-     *
-     * @param raw the duration string to parse
-     * @return the number of ticks, or -1 if parsing fails
-     */
-    public static int parseTicks(String raw) {
-        try {
-            Duration duration = parseDuration(raw, null);
-            return duration == null ? -1 : toTicks(duration);
-        } catch (Exception e) {
-            return -1;
-        }
-    }
-
-    /**
-     * Converts a Duration to Minecraft ticks (20 ticks per second).
-     *
-     * @param duration the duration to convert
-     * @return the number of ticks
-     */
-    public static int toTicks(Duration duration) {
-        return (int) (TimeUnit.MILLISECONDS.convert(duration.getSeconds(), TimeUnit.SECONDS)
-                + TimeUnit.MILLISECONDS.convert(duration.getNano(), TimeUnit.NANOSECONDS)) / 50;
-    }
-
     public static ItemStack parseItemStack(ItemStack base, String item) {
         if (base == null || base.getType() == Material.AIR) {
             base = new ItemStack(Material.STONE, 1);
@@ -284,6 +253,23 @@ public class SpigotUtil {
             base.setDurability(durability.shortValue());
         }
         return base;
+    }
+
+    /**
+     * Parses a duration string and returns the number of ticks. Supports formats like "5s", "10m", "100t", or plain
+     * numbers (interpreted as ticks).
+     *
+     * @param raw
+     *            the duration string to parse
+     * @return the number of ticks, or -1 if parsing fails
+     */
+    public static int parseTicks(String raw) {
+        try {
+            Duration duration = parseDuration(raw, null);
+            return duration == null ? -1 : toTicks(duration);
+        } catch (Exception e) {
+            return -1;
+        }
     }
 
     public static CompletableFuture<Boolean> teleportAsync(Entity entity, Location location) {
@@ -316,6 +302,18 @@ public class SpigotUtil {
             default:
                 throw new AssertionError();
         }
+    }
+
+    /**
+     * Converts a Duration to Minecraft ticks (20 ticks per second).
+     *
+     * @param duration
+     *            the duration to convert
+     * @return the number of ticks
+     */
+    public static int toTicks(Duration duration) {
+        return (int) (TimeUnit.MILLISECONDS.convert(duration.getSeconds(), TimeUnit.SECONDS)
+                + TimeUnit.MILLISECONDS.convert(duration.getNano(), TimeUnit.NANOSECONDS)) / 50;
     }
 
     private static boolean ASYNC_TELEPORT = false;

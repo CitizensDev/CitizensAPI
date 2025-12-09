@@ -59,6 +59,7 @@ public class JSR223Engine implements ExpressionEngine {
                 Bindings bindings = createBindings(scope);
                 return compiled.eval(bindings);
             } catch (ScriptException e) {
+                e.printStackTrace();
                 return null;
             }
         }
@@ -79,6 +80,7 @@ public class JSR223Engine implements ExpressionEngine {
                 Bindings bindings = createBindings(scope);
                 return engine.eval(expression, bindings);
             } catch (ScriptException e) {
+                e.printStackTrace();
                 return null;
             }
         }

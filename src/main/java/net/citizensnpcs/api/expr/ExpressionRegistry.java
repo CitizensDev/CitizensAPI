@@ -100,8 +100,7 @@ public class ExpressionRegistry {
     public ExpressionValue parseValue(String expr) {
         if (isPossiblyExpression(expr)) {
             try {
-                CompiledExpression compiled = compile(expr);
-                return new ExpressionValue(compiled);
+                return new ExpressionValue(compile(expr));
             } catch (ExpressionCompileException e) {
                 e.printStackTrace();
                 return new ExpressionValue(expr);
