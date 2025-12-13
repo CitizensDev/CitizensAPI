@@ -4,9 +4,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
@@ -191,10 +191,10 @@ public class MemoryDataKey extends DataKey {
         if (current == null || current.isEmpty())
             return Collections.emptyList();
 
-        return Iterables.transform(current.keySet(), k -> {
+        return current.keySet().stream().map(k -> {
             String newPath = path.isEmpty() ? k : path + INTERNAL_SEPARATOR + k;
             return new MemoryDataKey(root, newPath, k);
-        });
+        }).collect(Collectors.toList());
     }
 
     @SuppressWarnings("unchecked")
