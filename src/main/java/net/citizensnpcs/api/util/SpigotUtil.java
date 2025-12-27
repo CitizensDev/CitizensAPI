@@ -316,10 +316,10 @@ public class SpigotUtil {
                 + TimeUnit.MILLISECONDS.convert(duration.getNano(), TimeUnit.NANOSECONDS)) / 50;
     }
 
-    private static boolean ASYNC_TELEPORT = false;
+    private static boolean ASYNC_TELEPORT;
     private static int[] BUKKIT_VERSION = null;
     private static final Pattern DAY_MATCHER = Pattern.compile("(\\d+d)");
-    private static boolean FOLIA_SERVER = false;
+    private static boolean FOLIA_SERVER;
     private static final Map<Class<?>, Boolean> NON_REGISTRY_CLASSES = new WeakHashMap<Class<?>, Boolean>();
     private static final Pattern NUMBER_MATCHER = Pattern.compile("(\\d+)");
     private static boolean SUPPORT_WORLD_HEIGHT = true;
@@ -328,21 +328,17 @@ public class SpigotUtil {
 
     static {
         try {
-            Class.forName("org.bukkit.Keyed");
-            SUPPORTS_KEYED = true;
+            SUPPORTS_KEYED = Class.forName("org.bukkit.Keyed") != null;
         } catch (ClassNotFoundException e) {
         }
         try {
-            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
-            FOLIA_SERVER = true;
+            FOLIA_SERVER = Class.forName("io.papermc.paper.threadedregions.RegionizedServer") != null;
         } catch (ClassNotFoundException ignored) {
-            FOLIA_SERVER = false;
         }
         try {
-            Entity.class.getMethod("teleportAsync", Location.class, PlayerTeleportEvent.TeleportCause.class);
-            ASYNC_TELEPORT = true;
+            ASYNC_TELEPORT = Entity.class.getMethod("teleportAsync", Location.class,
+                    PlayerTeleportEvent.TeleportCause.class) != null;
         } catch (NoSuchMethodException exception) {
-            ASYNC_TELEPORT = false;
         }
     }
 }
