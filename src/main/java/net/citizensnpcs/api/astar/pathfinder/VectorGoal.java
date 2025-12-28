@@ -10,9 +10,6 @@ public class VectorGoal implements AStarGoal<VectorNode> {
     private final float leeway;
 
     public VectorGoal(Location dest, float range) {
-        if (!MinecraftBlockExaminer.canStandIn(dest.getBlock())) {
-            dest = MinecraftBlockExaminer.findValidLocationAbove(dest, 2);
-        }
         this.leeway = range;
         this.goal = dest.toVector().setX(dest.getBlockX()).setY(dest.getBlockY()).setZ(dest.getBlockZ());
     }

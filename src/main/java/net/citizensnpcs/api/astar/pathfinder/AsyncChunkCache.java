@@ -204,8 +204,7 @@ public class AsyncChunkCache {
             return CompletableFuture.completedFuture(null);
         Messaging.debug("AsyncChunkCache: Fetching chunks", world, rect);
 
-        CompletableFuture<Void> all = CompletableFuture
-                .allOf(chunkFutures.toArray(new CompletableFuture[0]));
+        CompletableFuture<Void> all = CompletableFuture.allOf(chunkFutures.toArray(new CompletableFuture[0]));
         CompletableFuture<Void> done = new CompletableFuture<>();
         all.whenComplete((v, ex) -> {
             for (ChunkFutureRequest request : chunkFutures) {
