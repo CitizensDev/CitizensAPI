@@ -6,6 +6,7 @@ import java.util.function.Function;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.util.Vector;
 
 import com.google.common.collect.Lists;
 
@@ -598,7 +599,24 @@ public class NavigatorParameters implements Cloneable {
         return this;
     }
 
-    private static final Function<org.bukkit.entity.Entity, Location> DEFAULT_MAPPER = Entity::getLocation;
+    public boolean withinMargin(Location a, Location b) {
+        return withinMargin(a, b, distanceMargin());
+    }
 
+    public boolean withinMargin(Location a, Location b, double margin) {
+        double dx = a.getX() - b.getX();
+        double dy = a.getY() - b.getY();
+        double dz = a.getZ() - b.getZ();
+        return Math.abs(dy) < 1 && Math.sqrt(dx * dx + dz * dz) <= margin;
+    }
+
+    public boolean withinMargin(Vector a, Vector b) {
+        double dx = a.getX() - b.getX();
+        double dy = a.getY() - b.getY();
+        double dz = a.getZ() - b.getZ();
+        return Math.abs(dy) < 1 && Math.sqrt(dx * dx + dz * dz) <= distanceMargin();
+    }
+
+    private static final Function<Entity, Location> DEFAULT_MAPPER = Entity::getLocation;
     private static final BlockExaminer[] EMPTY_EXAMINERS = new BlockExaminer[] {};
 }

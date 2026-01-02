@@ -8,10 +8,88 @@ import org.bukkit.entity.Entity;
 /**
  * An abstraction layer for scheduling tasks across different Minecraft server implementations, such as Folia and
  * Spigot.
- * <p>
- * Allows seamless compatibility by abstracting scheduling methods.
  */
 public interface SchedulerAdapter {
+    default void checkedRunEntityTask(Entity entity, Runnable runnable) {
+        if (isOnOwnerThread(entity)) {
+            runnable.run();
+        } else {
+            runEntityTask(entity, runnable);
+        }
+    }
+
+    default void checkedRunRegionTask(Location location, Runnable runnable) {
+        if (isOnOwnerThread(location)) {
+            runnable.run();
+        } else {
+            runRegionTask(location, runnable);
+        }
+    }
+
+    /**
+     * Returns true if the current thread is the correct owner thread for safely accessing the target.
+     * <p>
+     * Spigot: true if running on the main server thread.
+     * </p>
+     * <p>
+     * Folia: true if the current thread owns the target's region (isOwnedByCurrentRegion).
+     * </p>
+     *
+     * @param block
+     *            the target block
+     * @return {@code true} if the current thread is the owner thread for the block; {@code false} otherwise
+     */
+    boolean isOnOwnerThread(Block block);
+
+    /**
+     * Returns true if the current thread is the correct owner thread for safely accessing the target.
+     * <p>
+     * Spigot: true if running on the main server thread.
+     * </p>
+     * <p>
+     * Folia: true if the current thread owns the target's region (isOwnedByCurrentRegion).
+     * </p>
+     *
+     * @param entity
+     *            the target entity
+     * @return {@code true} if the current thread is the owner thread for the entity; {@code false} otherwise
+     */
+    boolean isOnOwnerThread(Entity entity);
+
+    /**
+     * Returns true if the current thread is the correct owner thread for safely accessing the target.
+     * <p>
+     * Spigot: true if running on the main server thread.
+     * </p>
+     * <p>
+     * Folia: true if the current thread owns the target's region (isOwnedByCurrentRegion).
+     * </p>
+     *
+     * @param location
+     *            the target location
+     * @return {@code true} if the current thread is the owner thread for the location; {@code false} otherwise
+     */
+    boolean isOnOwnerThread(Location location);
+
+    /**
+     * Returns true if the current thread is the correct owner thread for safely accessing the target.
+     * <p>
+     * Spigot: true if running on the main server thread.
+     * </p>
+     * <p>
+     * Folia: true if the current thread owns the target's region (isOwnedByCurrentRegion).
+     * </p>
+     *
+     * @param world
+     *            the target world
+     * @param chunkX
+     *            the target chunk X coordinate
+     * @param chunkZ
+     *            the target chunk Z coordinate
+     * @return {@code true} if the current thread is the owner thread for the chunk; {@code false} otherwise
+     */
+    boolean isOnOwnerThread(World world, int chunkX, int chunkZ);
+
     /**
      * Executes a task specifically linked to an entity immediately. On Spigot, this defaults to the global thread.
      */
@@ -131,47 +209,5 @@ public interface SchedulerAdapter {
      *            Period between each subsequent execution (in ticks).
      */
     SchedulerTask runTaskTimerAsynchronously(Runnable runnable, long delayTicks, long periodTicks);
-
-    /**
-     * Returns true if the current thread is the correct owner thread for safely accessing the target.
-     * <p>Spigot: true if running on the main server thread.</p>
-     * <p>Folia: true if the current thread owns the target's region (isOwnedByCurrentRegion).</p>
-     *
-     * @param entity the target entity
-     * @return {@code true} if the current thread is the owner thread for the entity; {@code false} otherwise
-     */
-    boolean isOnOwnerThread(Entity entity);
-
-    /**
-     * Returns true if the current thread is the correct owner thread for safely accessing the target.
-     * <p>Spigot: true if running on the main server thread.</p>
-     * <p>Folia: true if the current thread owns the target's region (isOwnedByCurrentRegion).</p>
-     *
-     * @param location the target location
-     * @return {@code true} if the current thread is the owner thread for the location; {@code false} otherwise
-     */
-    boolean isOnOwnerThread(Location location);
-
-    /**
-     * Returns true if the current thread is the correct owner thread for safely accessing the target.
-     * <p>Spigot: true if running on the main server thread.</p>
-     * <p>Folia: true if the current thread owns the target's region (isOwnedByCurrentRegion).</p>
-     *
-     * @param world the target world
-     * @param chunkX the target chunk X coordinate
-     * @param chunkZ the target chunk Z coordinate
-     * @return {@code true} if the current thread is the owner thread for the chunk; {@code false} otherwise
-     */
-    boolean isOnOwnerThread(World world, int chunkX, int chunkZ);
-
-    /**
-     * Returns true if the current thread is the correct owner thread for safely accessing the target.
-     * <p>Spigot: true if running on the main server thread.</p>
-     * <p>Folia: true if the current thread owns the target's region (isOwnedByCurrentRegion).</p>
-     *
-     * @param block the target block
-     * @return {@code true} if the current thread is the owner thread for the block; {@code false} otherwise
-     */
-    boolean isOnOwnerThread(Block block);
 
 }
