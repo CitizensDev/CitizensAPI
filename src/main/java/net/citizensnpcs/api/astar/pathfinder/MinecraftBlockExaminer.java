@@ -264,7 +264,7 @@ public class MinecraftBlockExaminer implements BlockExaminer {
         for (int y = 0; y <= radius; y++) {
             Block relative = base.getRelative(0, y, 0);
             if (canStandOn(relative.getRelative(BlockFace.DOWN)))
-                return relative.getLocation();
+                return location.clone().add(0, y, 0);
         }
         return location;
     }
