@@ -9,7 +9,8 @@ import java.util.Queue;
 import java.util.function.Consumer;
 
 public class HPACluster {
-    private final int clusterSize;
+    final int clusterSize;
+    final int clusterHeight;
     final int clusterX;
     final int clusterY;
     final int clusterZ;
@@ -17,35 +18,45 @@ public class HPACluster {
     private final int level;
     private final List<HPAGraphNode> nodes = new ArrayList<>();
 
-    public HPACluster(HPAGraph graph, int level, int clusterSize, int clusterX, int clusterY, int clusterZ) {
+    public HPACluster(HPAGraph graph, int level, int clusterSize, int clusterHeight, int clusterX, int clusterY,
+            int clusterZ) {
         this.graph = graph;
         this.level = level;
         this.clusterSize = clusterSize;
+        this.clusterHeight = clusterHeight;
         this.clusterX = clusterX;
         this.clusterY = clusterY;
         this.clusterZ = clusterZ;
     }
 
     private HPAGraphNode[] addEntranceNode(HPAEntrance entrance) {
-        assert entrance.minX == entrance.maxX || entrance.minZ == entrance.maxZ;
-        if (entrance.maxX - entrance.minX > 6)
-            return new HPAGraphNode[] { getOrAddNode(entrance.minX, entrance.minZ),
-                    getOrAddNode(entrance.maxX, entrance.minZ) };
-        else if (entrance.maxZ - entrance.minZ > 6)
-            return new HPAGraphNode[] { getOrAddNode(entrance.minX, entrance.minZ),
-                    getOrAddNode(entrance.minX, entrance.maxZ) };
-        int x = (int) (entrance.minX == entrance.maxX ? entrance.minX
-                : Math.floor((entrance.minX + entrance.maxX) / 2.0));
-        int z = (int) (entrance.minZ == entrance.maxZ ? entrance.minZ
-                : Math.floor((entrance.minZ + entrance.maxZ) / 2.0));
-        return new HPAGraphNode[] { getOrAddNode(x, z) };
+        // For 2D entrances (walls between clusters)
+        if (entrance.minY == entrance.maxY) {
+            if (entrance.maxX - entrance.minX > 6)
+                return new HPAGraphNode[] { getOrAddNode(entrance.minX, entrance.minY, entrance.minZ),
+                        getOrAddNode(entrance.maxX, entrance.minY, entrance.minZ) };
+            else if (entrance.maxZ - entrance.minZ > 6)
+                return new HPAGraphNode[] { getOrAddNode(entrance.minX, entrance.minY, entrance.minZ),
+                        getOrAddNode(entrance.minX, entrance.minY, entrance.maxZ) };
+            int x = (int) (entrance.minX == entrance.maxX ? entrance.minX
+                    : Math.floor((entrance.minX + entrance.maxX) / 2.0));
+            int z = (int) (entrance.minZ == entrance.maxZ ? entrance.minZ
+                    : Math.floor((entrance.minZ + entrance.maxZ) / 2.0));
+            return new HPAGraphNode[] { getOrAddNode(x, entrance.minY, z) };
+        }
+        // For vertical entrances (floors/ceilings between clusters)
+        int x = (int) Math.floor((entrance.minX + entrance.maxX) / 2.0);
+        int y = (int) Math.floor((entrance.minY + entrance.maxY) / 2.0);
+        int z = (int) Math.floor((entrance.minZ + entrance.maxZ) / 2.0);
+        return new HPAGraphNode[] { getOrAddNode(x, y, z) };
     }
 
     public void buildFrom(List<HPACluster> clusters) {
         for (HPACluster other : clusters) {
             for (HPAGraphNode node : other.nodes) {
-                if (node.x == clusterX || node.z == clusterZ || node.x == clusterX + clusterSize - 1
-                        || node.z == clusterZ + clusterSize - 1) { // border node
+                if (node.x == clusterX || node.z == clusterZ || node.y == clusterY
+                        || node.x == clusterX + clusterSize - 1 || node.z == clusterZ + clusterSize - 1
+                        || node.y == clusterY + clusterHeight - 1) { // border node
                     nodes.add(node);
                     for (HPAGraphEdge edge : node.getEdges(level - 1)) {
                         if (edge.type == HPAGraphEdge.EdgeType.INTER) {
@@ -143,6 +154,50 @@ public class HPACluster {
                     connectEntrance(other, entrance, e -> e.minZ = e.maxZ = clusterSize - 1);
                 }
                 break;
+            case UP:
+                for (int x = 0; x < clusterSize; x++) {
+                    for (int z = 0; z < clusterSize; z++) {
+                        if (offsetWalkable(x, clusterHeight - 1, z) && other.offsetWalkable(x, 0, z)) {
+                            if (entrance == null) {
+                                entrance = new HPAEntrance();
+                                entrance.minY = entrance.maxY = clusterHeight - 1;
+                                entrance.minX = x;
+                                entrance.minZ = z;
+                            }
+                            entrance.maxX = x;
+                            entrance.maxZ = z;
+                        } else if (entrance != null) {
+                            connectEntrance(other, entrance, e -> e.minY = e.maxY = 0);
+                            entrance = null;
+                        }
+                    }
+                }
+                if (entrance != null) {
+                    connectEntrance(other, entrance, e -> e.minY = e.maxY = 0);
+                }
+                break;
+            case DOWN:
+                for (int x = 0; x < clusterSize; x++) {
+                    for (int z = 0; z < clusterSize; z++) {
+                        if (offsetWalkable(x, 0, z) && other.offsetWalkable(x, clusterHeight - 1, z)) {
+                            if (entrance == null) {
+                                entrance = new HPAEntrance();
+                                entrance.minY = entrance.maxY = 0;
+                                entrance.minX = x;
+                                entrance.minZ = z;
+                            }
+                            entrance.maxX = x;
+                            entrance.maxZ = z;
+                        } else if (entrance != null) {
+                            connectEntrance(other, entrance, e -> e.minY = e.maxY = clusterHeight - 1);
+                            entrance = null;
+                        }
+                    }
+                }
+                if (entrance != null) {
+                    connectEntrance(other, entrance, e -> e.minY = e.maxY = clusterHeight - 1);
+                }
+                break;
         }
     }
 
@@ -167,25 +222,32 @@ public class HPACluster {
     }
 
     public boolean contains(HPACluster other) {
-        return clusterY == other.clusterY && clusterX + clusterSize > other.clusterX
-                && clusterZ + clusterSize > other.clusterZ && other.clusterZ >= clusterZ && other.clusterX >= clusterX;
+        return clusterX + clusterSize > other.clusterX && clusterY + clusterHeight > other.clusterY
+                && clusterZ + clusterSize > other.clusterZ && other.clusterX >= clusterX && other.clusterY >= clusterY
+                && other.clusterZ >= clusterZ;
     }
 
-    private HPAGraphNode getOrAddNode(int x, int z) {
+    private HPAGraphNode getOrAddNode(int x, int y, int z) {
         for (HPAGraphNode node : nodes) {
-            if (node.x == this.clusterX + x && node.z == this.clusterZ + z)
+            if (node.x == this.clusterX + x && node.y == this.clusterY + y && node.z == this.clusterZ + z)
                 return node;
         }
-        HPAGraphNode node = new HPAGraphNode(this.clusterX + x, clusterY, this.clusterZ + z);
+        HPAGraphNode node = new HPAGraphNode(this.clusterX + x, this.clusterY + y, this.clusterZ + z);
         nodes.add(node);
         return node;
     }
 
+    private HPAGraphNode getOrAddNode(int x, int z) {
+        return getOrAddNode(x, 0, z);
+    }
+
     public boolean hasWalkableNodes() {
-        for (int i = 0; i < clusterSize; i++) {
-            for (int j = 0; j < clusterSize; j++) {
-                if (offsetWalkable(i, j))
-                    return true;
+        for (int x = 0; x < clusterSize; x++) {
+            for (int y = 0; y < clusterHeight; y++) {
+                for (int z = 0; z < clusterSize; z++) {
+                    if (offsetWalkable(x, y, z))
+                        return true;
+                }
             }
         }
         return false;
@@ -204,14 +266,18 @@ public class HPACluster {
         }
     }
 
+    private boolean offsetWalkable(int x, int y, int z) {
+        return graph.walkable(clusterX + x, clusterY + y, clusterZ + z);
+    }
+
     private boolean offsetWalkable(int x, int z) {
-        return graph.walkable(clusterX + x, clusterY, clusterZ + z);
+        return offsetWalkable(x, 0, z);
     }
 
     private AStarSolution pathfind(HPAGraphNode start, HPAGraphNode dest, boolean getPath) {
         ReversableAStarNode startNode = new ClusterNode(start.x, start.z);
-        if (start.x == dest.x && start.y == dest.y && start.z == dest.y)
-            return new AStarSolution(getPath ? null : startNode.reconstructSolution(), 0);
+        if (start.x == dest.x && start.y == dest.y && start.z == dest.z)
+            return new AStarSolution(getPath ? startNode.reconstructSolution() : null, 0);
         Map<ReversableAStarNode, Float> open = new HashMap<>();
         Map<ReversableAStarNode, Float> closed = new HashMap<>();
         Queue<ReversableAStarNode> frontier = new PriorityQueue<>();
@@ -228,10 +294,10 @@ public class HPACluster {
                     if (dx == 0 && dz == 0) {
                         continue;
                     }
-                    if (node.x + dx < 0 || node.z + dz < 0 || node.x + dx >= 16 || node.z + dz >= 16) {
+                    if (node.x + dx < clusterX || node.z + dz < clusterZ || node.x + dx >= clusterX + clusterSize || node.z + dz >= clusterZ + clusterSize) {
                         continue;
                     }
-                    if (!offsetWalkable(dx, dz)) {
+                    if (!offsetWalkable(node.x + dx - clusterX, node.z + dz - clusterZ)) {
                         continue;
                     }
                     ClusterNode neighbour = new ClusterNode(node.x + dx, node.z + dz);
@@ -274,6 +340,6 @@ public class HPACluster {
     @Override
     public String toString() {
         return "C[" + level + "] (" + clusterX + "," + clusterY + "," + clusterZ + ")->(" + (clusterX + clusterSize - 1)
-                + "," + clusterY + "," + (clusterZ + clusterSize - 1) + ")";
+                + "," + (clusterY + clusterHeight - 1) + "," + (clusterZ + clusterSize - 1) + ")";
     }
 }

@@ -24,8 +24,6 @@ import net.citizensnpcs.api.util.Messaging;
 public class HPAGraph {
     private final BlockSource blockSource;
     public List<List<HPACluster>> clusters = Lists.newArrayList();
-    // TODO: y-clusters?
-    // TODO: make nodes updateable properly
     private final int cx, cy, cz;
     private final List<PhTreeSolid<HPACluster>> phtrees = Lists.newArrayList();
 
@@ -46,26 +44,39 @@ public class HPAGraph {
     public void addClusters(int x, int z) {
         int baseX = MAX_CLUSTER_SIZE * ((x - cx) / MAX_CLUSTER_SIZE) + cx;
         int baseZ = MAX_CLUSTER_SIZE * ((z - cz) / MAX_CLUSTER_SIZE) + cz;
-        Messaging.log(baseX, baseZ);
-        List<HPACluster> newClusters = new ArrayList<>();
+
         if (phtrees.size() == 0) {
             phtrees.add(PhTreeSolid.create(3));
         }
         PhTreeSolid<HPACluster> baseLevel = phtrees.get(0);
 
+        // Check if clusters already exist in this region
+        PhQueryS<HPACluster> existingQuery = baseLevel.queryIntersect(
+                new long[] { baseX, 0, baseZ },
+                new long[] { baseX + MAX_CLUSTER_SIZE, 256, baseZ + MAX_CLUSTER_SIZE });
+        if (existingQuery.hasNext()) {
+            Messaging.log("Clusters already exist for region:", baseX, baseZ);
+            return;
+        }
+
+        Messaging.log("Building clusters for:", baseX, baseZ);
+        List<HPACluster> newClusters = new ArrayList<>();
+
         // build clusters
         int clusterSize = BASE_CLUSTER_SIZE;
-        for (int y = 0; y < 128; y++) {
+        int clusterHeight = BASE_CLUSTER_HEIGHT;
+        for (int y = 0; y < 256; y += clusterHeight) {
             for (int ci = 0; ci < MAX_CLUSTER_SIZE; ci += clusterSize) {
                 for (int cj = 0; cj < MAX_CLUSTER_SIZE; cj += clusterSize) {
-                    HPACluster cluster = new HPACluster(this, 0, clusterSize, baseX + ci, y, baseZ + cj);
+                    HPACluster cluster = new HPACluster(this, 0, clusterSize, clusterHeight, baseX + ci, y, baseZ + cj);
                     if (!cluster.hasWalkableNodes()) {
                         continue;
                     }
                     newClusters.add(cluster);
                     baseLevel.put(
-                            new long[] { cluster.clusterX, cluster.clusterY, cluster.clusterZ }, new long[] {
-                                    cluster.clusterX + clusterSize, cluster.clusterY, cluster.clusterZ + clusterSize },
+                            new long[] { cluster.clusterX, cluster.clusterY, cluster.clusterZ },
+                            new long[] { cluster.clusterX + clusterSize, cluster.clusterY + clusterHeight,
+                                    cluster.clusterZ + clusterSize },
                             cluster);
                     Messaging.log(cluster);
                 }
@@ -74,18 +85,26 @@ public class HPAGraph {
         Multimap<HPACluster, HPACluster> neighbours = HashMultimap.create();
         for (HPACluster cluster : newClusters) {
             PhQueryS<HPACluster> q = baseLevel.queryIntersect(
-                    new long[] { cluster.clusterX - clusterSize, cluster.clusterY - 1, cluster.clusterZ - clusterSize },
-                    new long[] { cluster.clusterX + clusterSize, cluster.clusterY + 1,
+                    new long[] { cluster.clusterX - clusterSize, cluster.clusterY - clusterHeight,
+                            cluster.clusterZ - clusterSize },
+                    new long[] { cluster.clusterX + clusterSize, cluster.clusterY + clusterHeight,
                             cluster.clusterZ + clusterSize });
             while (q.hasNext()) {
                 HPACluster neighbour = q.nextValue();
                 // TODO: diagonal connections using length=sqrt(2)
-                if (neighbour == cluster || neighbours.get(cluster).contains(neighbour)
-                        || neighbour.clusterX - cluster.clusterX != 0 && neighbour.clusterZ - cluster.clusterZ != 0) {
+                if (neighbour == cluster || neighbours.get(cluster).contains(neighbour)) {
                     continue;
                 }
                 int dx = neighbour.clusterX - cluster.clusterX;
+                int dy = neighbour.clusterY - cluster.clusterY;
                 int dz = neighbour.clusterZ - cluster.clusterZ;
+
+                // Only allow orthogonal connections (not diagonal)
+                int nonZeroCount = (dx != 0 ? 1 : 0) + (dy != 0 ? 1 : 0) + (dz != 0 ? 1 : 0);
+                if (nonZeroCount != 1) {
+                    continue;
+                }
+
                 Direction direction = null;
                 if (dx > 0) {
                     direction = Direction.EAST;
@@ -95,6 +114,10 @@ public class HPAGraph {
                     direction = Direction.NORTH;
                 } else if (dz < 0) {
                     direction = Direction.SOUTH;
+                } else if (dy > 0) {
+                    direction = Direction.UP;
+                } else if (dy < 0) {
+                    direction = Direction.DOWN;
                 }
                 if (direction == null) {
                     continue;
@@ -112,21 +135,23 @@ public class HPAGraph {
         for (int depth = 1; depth <= MAX_DEPTH; depth++) {
             newClusters = new ArrayList<>();
             clusterSize = (int) (BASE_CLUSTER_SIZE * Math.pow(2, depth));
+            clusterHeight = (int) (BASE_CLUSTER_HEIGHT * Math.pow(2, depth));
 
-            for (int y = 0; y < 128; y++) {
+            for (int y = 0; y < 256; y += clusterHeight) {
                 for (int ci = 0; ci < MAX_CLUSTER_SIZE; ci += clusterSize) {
                     for (int cj = 0; cj < MAX_CLUSTER_SIZE; cj += clusterSize) {
-                        HPACluster cluster = new HPACluster(this, depth, clusterSize, baseX + ci, y, baseZ + cj);
+                        HPACluster cluster = new HPACluster(this, depth, clusterSize, clusterHeight, baseX + ci, y,
+                                baseZ + cj);
                         List<HPACluster> parentClusters = Lists.newArrayList(phtrees.get(depth - 1).queryInclude(
                                 new long[] { cluster.clusterX, cluster.clusterY, cluster.clusterZ },
-                                new long[] { cluster.clusterX + clusterSize, cluster.clusterY,
+                                new long[] { cluster.clusterX + clusterSize, cluster.clusterY + clusterHeight,
                                         cluster.clusterZ + clusterSize }));
                         if (parentClusters.size() == 0) {
                             continue;
                         }
                         cluster.buildFrom(parentClusters);
                         phtrees.get(depth).put(new long[] { cluster.clusterX, cluster.clusterY, cluster.clusterZ },
-                                new long[] { cluster.clusterX + clusterSize, cluster.clusterY,
+                                new long[] { cluster.clusterX + clusterSize, cluster.clusterY + clusterHeight,
                                         cluster.clusterZ + clusterSize },
                                 cluster);
                         Messaging.log(cluster);
@@ -158,10 +183,15 @@ public class HPAGraph {
                     new long[] { goal.getBlockX(), goal.getBlockY(), goal.getBlockZ() });
             HPACluster goalCluster = q.hasNext() ? q.next() : null;
             Messaging.log(i, startCluster, goalCluster);
-            startCluster.insert(startNode); // TODO: don't need to pathfind for higher levels
-            goalCluster.insert(goalNode);
-            clustersToClean.add(startCluster);
-            clustersToClean.add(goalCluster);
+            if (startCluster != null) {
+                startCluster.insert(startNode); // TODO: don't need to pathfind for higher levels
+                clustersToClean.add(startCluster);
+            }
+            if (goalCluster != null) {
+                goalCluster.insert(goalNode);
+                clustersToClean.add(goalCluster);
+            }
+            i++;
         }
         AStarSolution sln = pathfind(startNode, goalNode, 0);
         System.out.println(":" + start + "->" + goal + "@" + sln.cost);
@@ -210,6 +240,26 @@ public class HPAGraph {
         return new AStarSolution(null, Float.POSITIVE_INFINITY);
     }
 
+    public void invalidateCluster(int x, int y, int z) {
+        // Find and remove affected clusters at all depths, then rebuild them
+        for (int depth = 0; depth < phtrees.size(); depth++) {
+            PhTreeSolid<HPACluster> phtree = phtrees.get(depth);
+            PhQueryS<HPACluster> q = phtree.queryIntersect(new long[] { x, y, z }, new long[] { x, y, z });
+            while (q.hasNext()) {
+                HPACluster cluster = q.nextValue();
+                // Remove from phtree
+                phtree.remove(new long[] { cluster.clusterX, cluster.clusterY, cluster.clusterZ },
+                        new long[] { cluster.clusterX + cluster.clusterSize, cluster.clusterY + cluster.clusterHeight,
+                                cluster.clusterZ + cluster.clusterSize });
+                // Remove from clusters list
+                clusters.get(depth).remove(cluster);
+                Messaging.log("Invalidated cluster:", cluster);
+            }
+        }
+        // Rebuild affected region
+        addClusters(x, z);
+    }
+
     public boolean walkable(int x, int y, int z) {
         if (y == 0)
             return false;
@@ -219,6 +269,7 @@ public class HPAGraph {
     }
 
     private static int BASE_CLUSTER_SIZE = (int) (2 * Math.pow(2, 3));
+    private static int BASE_CLUSTER_HEIGHT = (int) (2 * Math.pow(2, 2));
     private static int MAX_CLUSTER_SIZE = (int) (2 * Math.pow(2, 5));
     private static int MAX_DEPTH = 3;
 }
