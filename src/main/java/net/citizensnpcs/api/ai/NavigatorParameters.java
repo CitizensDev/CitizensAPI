@@ -14,6 +14,7 @@ import net.citizensnpcs.api.ai.event.CancelReason;
 import net.citizensnpcs.api.ai.event.NavigatorCallback;
 import net.citizensnpcs.api.astar.AStarMachine;
 import net.citizensnpcs.api.astar.pathfinder.BlockExaminer;
+import net.citizensnpcs.api.npc.NPC;
 
 public class NavigatorParameters implements Cloneable {
     private int attackDelayTicks = 20;
@@ -28,6 +29,7 @@ public class NavigatorParameters implements Cloneable {
     private double distanceMargin = 2F;
     private List<BlockExaminer> examiners = Lists.newArrayList();
     private int fallDistance = -1;
+    private PathStrategyFactory locationStrategyFactory;
     private Function<Navigator, Location> lookAtFunction;
     private Function<Entity, Location> mapper;
     private double pathDistanceMargin = 1F;
@@ -334,6 +336,15 @@ public class NavigatorParameters implements Cloneable {
         return examiners.stream().anyMatch(e -> clazz.isAssignableFrom(e.getClass()));
     }
 
+    public PathStrategyFactory locationStrategyFactory() {
+        return locationStrategyFactory;
+    }
+
+    public NavigatorParameters locationStrategyFactory(PathStrategyFactory factory) {
+        this.locationStrategyFactory = factory;
+        return this;
+    }
+
     /**
      * @see #lookAtFunction(Function)
      */
@@ -615,6 +626,11 @@ public class NavigatorParameters implements Cloneable {
         double dy = a.getY() - b.getY();
         double dz = a.getZ() - b.getZ();
         return Math.abs(dy) < 1 && Math.sqrt(dx * dx + dz * dz) <= distanceMargin();
+    }
+
+    @FunctionalInterface
+    public static interface PathStrategyFactory {
+        public PathStrategy create(NPC npc, NavigatorParameters params, Location target);
     }
 
     private static final Function<Entity, Location> DEFAULT_MAPPER = Entity::getLocation;

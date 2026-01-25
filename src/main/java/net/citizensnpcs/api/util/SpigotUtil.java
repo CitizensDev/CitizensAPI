@@ -5,18 +5,23 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -31,6 +36,8 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
+
+import net.milkbowl.vault.permission.Permission;
 
 public class SpigotUtil {
     /**
@@ -144,6 +151,19 @@ public class SpigotUtil {
         }
     }
 
+    public static <T extends Keyed> T getEnumValue(Class<T> clazz, String... keyCandidates) {
+        if (isRegistryKeyed(clazz))
+            return getRegistryValue(Bukkit.getRegistry(clazz), keyCandidates);
+
+        for (String keyCandidate : keyCandidates) {
+            try {
+                return (T) Enum.valueOf((Class<? extends Enum>) clazz, keyCandidate);
+            } catch (IllegalArgumentException e) {
+            }
+        }
+        return null;
+    }
+
     public static NamespacedKey getKey(String raw) {
         return getKey(raw, "minecraft");
     }
@@ -160,6 +180,16 @@ public class SpigotUtil {
 
     public static int getMaxNameLength(EntityType type) {
         return isUsing1_13API() ? 256 : 64;
+    }
+
+    public static <T extends Keyed> T getRegistryValue(Registry<T> registry, String... keyCandidates) {
+        for (String keyCandidate : keyCandidates) {
+            final NamespacedKey key = SpigotUtil.getKey(keyCandidate);
+            final T value = registry.get(key);
+            if (value != null)
+                return value;
+        }
+        return null;
     }
 
     public static int[] getVersion() {
@@ -229,6 +259,34 @@ public class SpigotUtil {
             raw = "PT" + raw;
         }
         return Duration.parse(raw);
+    }
+
+    public static Predicate<Entity> parseEntityFilter(String raw) {
+        Predicate<Entity> base = e -> true;
+        for (String arg : raw.split(" ")) {
+            String[] parts = arg.split("=");
+            String type = parts[0];
+            String match = parts[1];
+            switch (type) {
+                case "type":
+                    Set<EntityType> types = Splitter.on(',').splitToStream(match)
+                            .map(s -> SpigotUtil.getEnumValue(EntityType.class, s)).collect(Collectors.toSet());
+                    base = base.and(e -> types.contains(e.getType()));
+                    break;
+                case "permission":
+                case "perm":
+                    Collection<String> perms = Splitter.on(',').splitToList(raw);
+                    base = base.and(e -> perms.stream().allMatch(perm -> e.hasPermission(perm)));
+                    break;
+                case "group":
+                    Collection<String> groups = Splitter.on(',').splitToList(raw);
+                    Permission permission = Bukkit.getServicesManager().getRegistration(Permission.class).getProvider();
+                    base = base.and(e -> e instanceof Player
+                            && groups.stream().allMatch(group -> permission.playerInGroup((Player) e, group)));
+                    break;
+            }
+        }
+        return base;
     }
 
     public static ItemStack parseItemStack(ItemStack base, String item) {
