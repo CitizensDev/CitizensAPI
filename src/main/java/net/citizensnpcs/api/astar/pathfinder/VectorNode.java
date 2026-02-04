@@ -58,8 +58,16 @@ public class VectorNode extends AStarNode implements PathPoint {
         return new VectorNode(this, mod, info);
     }
 
+    public float distance(Vector goal) {
+        int dx = Math.abs(location.getBlockX() - goal.getBlockX());
+        int dy = Math.abs(location.getBlockY() - goal.getBlockY());
+        int dz = Math.abs(location.getBlockZ() - goal.getBlockZ());
+
+        return Math.max(dx, Math.max(dy, dz));
+    }
+
     public float distance(VectorNode to) {
-        return (float) location.distance(to.location);
+        return distance(to.location);
     }
 
     @Override
@@ -166,7 +174,7 @@ public class VectorNode extends AStarNode implements PathPoint {
     }
 
     public float heuristicDistance(Vector goal) {
-        return (float) (location.distance(goal) + getBlockCost()) * TIEBREAKER;
+        return (distance(goal) + getBlockCost()) * TIEBREAKER;
     }
 
     private boolean isPassable(PathPoint mod) {
@@ -222,5 +230,5 @@ public class VectorNode extends AStarNode implements PathPoint {
         }
     }
 
-    private static final float TIEBREAKER = 1.001f;
+    private static final float TIEBREAKER = 1.01f;
 }

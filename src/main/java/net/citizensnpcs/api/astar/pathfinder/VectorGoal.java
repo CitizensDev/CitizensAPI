@@ -25,7 +25,7 @@ public class VectorGoal implements AStarGoal<VectorNode> {
 
     @Override
     public float getInitialCost(VectorNode node) {
-        return (float) node.getVector().distance(goal);
+        return (float) node.distance(goal);
     }
 
     @Override
@@ -35,7 +35,7 @@ public class VectorGoal implements AStarGoal<VectorNode> {
 
     @Override
     public boolean isFinished(VectorNode node) {
-        double distance = node.location.distance(goal);
+        double distance = node.distance(goal);
         return goal.equals(node.location) || distance <= leeway;
     }
 }
