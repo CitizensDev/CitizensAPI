@@ -124,6 +124,10 @@ public interface NPC extends Agent, Cloneable {
      */
     public BlockBreaker getBlockBreaker(Block targetBlock, BlockBreakerConfiguration config);
 
+    default public Entity getCosmeticEntity() {
+        return getEntity();
+    }
+
     /**
      * Gets the default {@link GoalController} of this NPC.
      *

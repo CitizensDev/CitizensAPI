@@ -6,8 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
-import com.google.common.collect.Lists;
-
 import net.citizensnpcs.api.ai.tree.Behavior;
 import net.citizensnpcs.api.ai.tree.BehaviorGoalAdapter;
 
@@ -16,12 +14,12 @@ import net.citizensnpcs.api.ai.tree.BehaviorGoalAdapter;
  * {@link Behavior}, {@link Goal} and will also consider {@link PrioritisableGoal}s if implemented.
  */
 public class SimpleGoalController implements GoalController {
-    private final List<Goal> executingGoals = Lists.newArrayList();
+    private final List<Goal> executingGoals = new ArrayList<>();
     private int executingPriority = -1;
     private Goal executingRootGoal;
     private boolean hasPrioritisableGoal;
     private boolean paused;
-    private final List<GoalEntry> possibleGoals = Lists.newArrayList();
+    private final List<GoalEntry> possibleGoals = new ArrayList<>();
     private final GoalSelector selector = new SimpleGoalSelector();
 
     @Override

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -65,14 +66,15 @@ import net.citizensnpcs.api.util.Placeholders;
 import net.citizensnpcs.api.util.SpigotUtil;
 
 public class CommandManager implements TabCompleter {
-    private final Map<Class<? extends Annotation>, CommandAnnotationProcessor> annotationProcessors = Maps.newHashMap();
+    private final Map<Class<? extends Annotation>, CommandAnnotationProcessor> annotationProcessors = Maps
+            .newIdentityHashMap();
     /*
      * Mapping of commands (including aliases) with a description. Root commands
      * are stored under a key of null, whereas child commands are cached under
      * their respective Method. The child map has the key of the command name
      * (one for each alias) with the method.
      */
-    private final Map<String, CommandInfo> commands = Maps.newHashMap();
+    private final Map<String, CommandInfo> commands = new HashMap<>();
     private TimeUnit defaultDurationUnits;
     private Injector injector;
     private Function<Command, String> translationPrefixProvider;
@@ -353,7 +355,7 @@ public class CommandManager implements TabCompleter {
      */
     public List<CommandInfo> getCommands(String topLevelCommand) {
         topLevelCommand = topLevelCommand.toLowerCase(Locale.ROOT);
-        List<CommandInfo> cmds = Lists.newArrayList();
+        List<CommandInfo> cmds = new ArrayList<>();
         for (Entry<String, CommandInfo> entry : commands.entrySet()) {
             if (!entry.getKey().startsWith(topLevelCommand) || entry.getValue() == null)
                 continue;
@@ -540,7 +542,7 @@ public class CommandManager implements TabCompleter {
 
             info.instance = obj;
 
-            List<Annotation> annotations = Lists.newArrayList();
+            List<Annotation> annotations = new ArrayList<>();
             for (Annotation annotation : method.getDeclaringClass().getAnnotations()) {
                 Class<? extends Annotation> annotationClass = annotation.annotationType();
                 if (annotationProcessors.containsKey(annotationClass)) {
@@ -644,11 +646,11 @@ public class CommandManager implements TabCompleter {
     }
 
     public class CommandInfo {
-        private List<Annotation> annotations = Lists.newArrayList();
+        private List<Annotation> annotations = new ArrayList<>();
         private final Command commandAnnotation;
         public Object instance;
         private final Method method;
-        private final Map<Integer, InjectedCommandArgument> methodArguments = Maps.newHashMap();
+        private final Map<Integer, InjectedCommandArgument> methodArguments = new HashMap<>();
         public boolean serverCommand;
         private Collection<String> valueFlags;
 
@@ -687,7 +689,7 @@ public class CommandManager implements TabCompleter {
         }
 
         public Collection<? extends String> getArgTabCompletions(CommandContext args, CommandSender sender, int index) {
-            List<String> completions = Lists.newArrayList();
+            List<String> completions = new ArrayList<>();
             for (InjectedCommandArgument instance : methodArguments.values()) {
                 if (instance.matches(index)) {
                     String needle = index < args.argsLength() ? args.getString(index) : "";
@@ -703,7 +705,7 @@ public class CommandManager implements TabCompleter {
         }
 
         public Collection<String> getFlagTabCompletions(CommandContext args, CommandSender sender, String flag) {
-            List<String> completions = Lists.newArrayList();
+            List<String> completions = new ArrayList<>();
             for (InjectedCommandArgument instance : methodArguments.values()) {
                 if (instance.matches(flag)) {
                     String needle = args.getFlag(flag, "");

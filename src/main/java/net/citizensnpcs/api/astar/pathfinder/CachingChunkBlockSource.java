@@ -1,5 +1,6 @@
 package net.citizensnpcs.api.astar.pathfinder;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.bukkit.Location;
@@ -8,13 +9,11 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 
-import com.google.common.collect.Maps;
-
 import net.citizensnpcs.api.util.BoundingBox;
 import net.citizensnpcs.api.util.SpigotUtil;
 
 public abstract class CachingChunkBlockSource<T> extends BlockSource {
-    private final Map<ChunkCoord, ChunkCache> chunkCache = Maps.newHashMap();
+    private final Map<ChunkCoord, ChunkCache> chunkCache = new HashMap<>();
     private final Object[][] chunks;
     private final int chunkX;
     private final int chunkZ;

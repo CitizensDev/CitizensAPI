@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -28,7 +29,6 @@ import org.bukkit.entity.Player;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.Maps;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
@@ -326,7 +326,7 @@ public class Messaging {
     private static BukkitAudiences AUDIENCES;
     private static final Pattern CHAT_NEWLINE = Pattern.compile("<br>|\\n", Pattern.MULTILINE);
     private static final Splitter CHAT_NEWLINE_SPLITTER = Splitter.on(CHAT_NEWLINE);
-    private static final Map<String, String> COLORCODE_CONVERTER = Maps.newHashMap();
+    private static final Map<String, String> COLORCODE_CONVERTER = new HashMap<>();
     private static boolean DEBUG = false;
     private static Logger DEBUG_LOGGER;
     private static TagResolver DECORATION_TAGS;

@@ -1,5 +1,6 @@
 package net.citizensnpcs.api.gui;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -27,7 +28,7 @@ import net.citizensnpcs.api.util.Messaging;
  */
 public class InventoryMenuSlot {
     private Set<InventoryAction> actionFilter;
-    private final List<Consumer<CitizensInventoryClickEvent>> handlers = Lists.newArrayList();
+    private final List<Consumer<CitizensInventoryClickEvent>> handlers = new ArrayList<>();
     private final int index;
     private final Inventory inventory;
 

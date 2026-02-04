@@ -9,8 +9,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
-import com.google.common.collect.Lists;
-
 import net.citizensnpcs.api.ai.event.CancelReason;
 import net.citizensnpcs.api.ai.event.NavigatorCallback;
 import net.citizensnpcs.api.astar.AStarMachine;
@@ -23,7 +21,7 @@ public class NavigatorParameters implements Cloneable {
     private AttackStrategy attackStrategy;
     private boolean avoidWater;
     private float baseSpeed = 1F;
-    private List<NavigatorCallback> callbacks = Lists.newArrayList();
+    private List<NavigatorCallback> callbacks = new ArrayList<>();
     private boolean debug;
     private AttackStrategy defaultStrategy;
     private double destinationTeleportMargin = -1;
@@ -36,7 +34,7 @@ public class NavigatorParameters implements Cloneable {
     private double pathDistanceMargin = 1F;
     private PathfinderType pathfinderType;
     private float range;
-    private List<Runnable> runCallbacks = Lists.newArrayList();
+    private List<Runnable> runCallbacks = new ArrayList<>();
     private float speedModifier = 1F;
     private int stationaryTicks = -1;
     private float straightLineTargetingDistance;

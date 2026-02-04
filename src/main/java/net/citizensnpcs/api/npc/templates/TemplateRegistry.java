@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -13,8 +15,6 @@ import org.bukkit.NamespacedKey;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 
 import net.citizensnpcs.api.npc.NPC;
@@ -25,7 +25,7 @@ import net.citizensnpcs.api.util.YamlStorage;
 
 public class TemplateRegistry {
     private final Path baseFolder;
-    private final Map<NamespacedKey, Template> fullyQualifiedTemplates = Maps.newHashMap();
+    private final Map<NamespacedKey, Template> fullyQualifiedTemplates = new HashMap<>();
     private final Multimap<String, Template> templatesByName = HashMultimap.create();
 
     public TemplateRegistry(Path folder) {
@@ -166,7 +166,7 @@ public class TemplateRegistry {
     }
 
     public static class TemplateErrorReporter {
-        private final List<String> errors = Lists.newArrayList();
+        private final List<String> errors = new ArrayList<>();
 
         public void addError(String message) {
             this.errors.add(message);

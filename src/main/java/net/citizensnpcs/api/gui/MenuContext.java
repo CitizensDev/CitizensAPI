@@ -1,11 +1,10 @@
 package net.citizensnpcs.api.gui;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.bukkit.inventory.Inventory;
-
-import com.google.common.collect.Maps;
 
 import net.citizensnpcs.api.util.Messaging;
 
@@ -13,7 +12,7 @@ import net.citizensnpcs.api.util.Messaging;
  * A context class passed into the constructor of a {@link Menu} instance.
  */
 public class MenuContext {
-    private final Map<String, Object> data = Maps.newHashMap();
+    private final Map<String, Object> data = new HashMap<>();
     private final Inventory inventory;
     private final InventoryMenu menu;
     private final InventoryMenuSlot[] slots;

@@ -6,8 +6,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 
-import com.google.common.base.Preconditions;
-
 /**
  * Static helper class for creating common {@link Selector}s.
  */

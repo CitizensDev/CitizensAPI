@@ -7,9 +7,11 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +34,6 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 
 import net.citizensnpcs.api.CitizensAPI;
@@ -61,16 +62,16 @@ import net.citizensnpcs.api.util.SpigotUtil.InventoryViewAPI;
  * variables from the {@link MenuContext}.
  */
 public class InventoryMenu implements Listener, Runnable {
-    private final List<Runnable> closeCallbacks = Lists.newArrayList();
+    private final List<Runnable> closeCallbacks = new ArrayList<>();
     private boolean closingViews;
     private boolean delayViewerChanges;
     private PageContext page;
     private final Deque<PageContext> stack = Queues.newArrayDeque();
     private boolean transitioning;
-    private Collection<InventoryViewAPI> views = Lists.newArrayList();
+    private Collection<InventoryViewAPI> views = new ArrayList<>();
 
     public InventoryMenu(InventoryMenuInfo info, InventoryMenuPage instance) {
-        transition(info, instance, Maps.newHashMap());
+        transition(info, instance, new HashMap<>());
     }
 
     private InventoryMenu(InventoryMenuInfo info, Map<String, Object> context) {
@@ -377,16 +378,16 @@ public class InventoryMenu implements Listener, Runnable {
     private InventoryMenuPattern parsePattern(int[] dim, List<InventoryMenuTransition> transitions,
             Bindable<MenuPattern> patternInfo) {
         String pattern = patternInfo.data.value();
-        Map<Character, MenuSlot> slotMap = Maps.newHashMap();
+        Map<Character, MenuSlot> slotMap = new HashMap<>();
         for (MenuSlot slot : patternInfo.data.slots()) {
             slotMap.put(slot.pat(), slot);
         }
-        Map<Character, MenuTransition> transitionMap = Maps.newHashMap();
+        Map<Character, MenuTransition> transitionMap = new HashMap<>();
         for (MenuTransition transition : patternInfo.data.transitions()) {
             transitionMap.put(transition.pat(), transition);
         }
-        List<InventoryMenuSlot> patternSlots = Lists.newArrayList();
-        List<InventoryMenuTransition> patternTransitions = Lists.newArrayList();
+        List<InventoryMenuSlot> patternSlots = new ArrayList<>();
+        List<InventoryMenuTransition> patternTransitions = new ArrayList<>();
         int row = 0;
         int col = 0;
         for (int i = 0; i < pattern.length(); i++) {
@@ -450,7 +451,7 @@ public class InventoryMenu implements Listener, Runnable {
      * closed.
      */
     public void transition(Class<? extends InventoryMenuPage> clazz) {
-        transition(clazz, Maps.newHashMap());
+        transition(clazz, new HashMap<>());
     }
 
     /**
@@ -493,7 +494,7 @@ public class InventoryMenu implements Listener, Runnable {
             type = inventory.getType();
             size = getInventorySize(type, dim);
         }
-        List<InventoryMenuTransition> transitions = Lists.newArrayList();
+        List<InventoryMenuTransition> transitions = new ArrayList<>();
         InventoryMenuSlot[] slots = new InventoryMenuSlot[inventory.getSize()];
         page.patterns = new InventoryMenuPattern[info.patterns.length];
         page.ctx = new MenuContext(this, slots, inventory, title, context);
@@ -546,7 +547,7 @@ public class InventoryMenu implements Listener, Runnable {
      * closed.
      */
     public void transition(InventoryMenuPage instance) {
-        transition(instance, Maps.newHashMap());
+        transition(instance, new HashMap<>());
     }
 
     /**
@@ -657,7 +658,7 @@ public class InventoryMenu implements Listener, Runnable {
         @SuppressWarnings({ "unchecked" })
         private <T extends Annotation> Bindable<T>[] getBindables(Class<?> clazz, Class<T> annotationType,
                 Class<?> concreteType) {
-            List<Bindable<T>> bindables = Lists.newArrayList();
+            List<Bindable<T>> bindables = new ArrayList<>();
             for (Field field : clazz.getDeclaredFields()) {
                 field.setAccessible(true);
                 T[] annotations = field.getAnnotationsByType(annotationType);
@@ -673,7 +674,7 @@ public class InventoryMenu implements Listener, Runnable {
                     bindables.add(new Bindable<>(bind, t));
                 }
             }
-            List<AccessibleObject> reflect = Lists.newArrayList();
+            List<AccessibleObject> reflect = new ArrayList<>();
             reflect.addAll(Arrays.asList(clazz.getDeclaredConstructors()));
             reflect.addAll(Arrays.asList(clazz.getDeclaredMethods()));
             for (AccessibleObject object : reflect) {
@@ -690,7 +691,7 @@ public class InventoryMenu implements Listener, Runnable {
 
         @SuppressWarnings("unchecked")
         private Invokable<ClickHandler>[] getClickHandlers(Class<?> clazz) {
-            List<Invokable<ClickHandler>> invokables = Lists.newArrayList();
+            List<Invokable<ClickHandler>> invokables = new ArrayList<>();
             for (Method method : clazz.getDeclaredMethods()) {
                 method.setAccessible(true);
                 for (ClickHandler handler : method.getAnnotationsByType(ClickHandler.class)) {
@@ -727,7 +728,7 @@ public class InventoryMenu implements Listener, Runnable {
         }
 
         private Map<String, MethodHandle> getInjectables(Class<?> clazz) {
-            Map<String, MethodHandle> injectables = Maps.newHashMap();
+            Map<String, MethodHandle> injectables = new HashMap<>();
             for (Field field : clazz.getDeclaredFields()) {
                 field.setAccessible(true);
                 if (!field.isAnnotationPresent(InjectContext.class)) {
@@ -795,7 +796,7 @@ public class InventoryMenu implements Listener, Runnable {
      * Create an inventory menu instance starting at the given page.
      */
     public static InventoryMenu create(Class<? extends InventoryMenuPage> clazz) {
-        return createWithContext(clazz, Maps.newHashMap());
+        return createWithContext(clazz, new HashMap<>());
     }
 
     /**

@@ -14,7 +14,6 @@ import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
 import net.citizensnpcs.api.astar.Agent;
 import net.citizensnpcs.api.astar.Plan;
@@ -33,7 +32,7 @@ public class Path implements Plan {
     }
 
     Path(Iterable<VectorNode> unfiltered, Vector goal) {
-        List<PathEntry> path = Lists.newArrayList();
+        List<PathEntry> path = new ArrayList<>();
         for (VectorNode node : unfiltered) {
             for (Vector vector : node.getPathVectors()) {
                 path.add(new PathEntry(vector, node.callbacks));
@@ -162,7 +161,6 @@ public class Path implements Plan {
                 result.addAll(simplified.subList(0, simplified.size() - 1));
             }
         }
-
         return result;
     }
 

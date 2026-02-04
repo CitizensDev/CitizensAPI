@@ -1,5 +1,6 @@
 package net.citizensnpcs.api.npc;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -11,7 +12,7 @@ import net.citizensnpcs.api.npc.NPC.Metadata;
 import net.citizensnpcs.api.util.DataKey;
 
 public class SimpleMetadataStore implements MetadataStore {
-    private final Map<String, MetadataObject> metadata = Maps.newHashMap();
+    private final Map<String, MetadataObject> metadata = new HashMap<>();
     private final Map<NPC.Metadata, MetadataObject> npcMetadata = Maps.newEnumMap(NPC.Metadata.class);
 
     private void checkPrimitive(Object data) {

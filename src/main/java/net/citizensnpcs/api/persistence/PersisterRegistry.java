@@ -1,10 +1,10 @@
 package net.citizensnpcs.api.persistence;
 
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
 import java.util.Map;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
 
 import net.citizensnpcs.api.util.DataKey;
 
@@ -12,7 +12,7 @@ import net.citizensnpcs.api.util.DataKey;
  * A stringly-typed registry that loads and saves its types using {@link PersistenceLoader} and {@link DataKey}s.
  **/
 public class PersisterRegistry<T> implements Persister<T> {
-    private final Map<String, WeakReference<Class<? extends T>>> registry = Maps.newHashMap();
+    private final Map<String, WeakReference<Class<? extends T>>> registry = new HashMap<>();
 
     PersisterRegistry() {
     }

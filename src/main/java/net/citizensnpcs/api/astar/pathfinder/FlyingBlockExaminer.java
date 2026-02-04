@@ -1,11 +1,10 @@
 package net.citizensnpcs.api.astar.pathfinder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
-
-import com.google.common.collect.Lists;
 
 import net.citizensnpcs.api.astar.pathfinder.BlockExaminer.NeighbourGeneratorBlockExaminer;
 import net.citizensnpcs.api.util.SpigotUtil;
@@ -28,7 +27,7 @@ public class FlyingBlockExaminer implements NeighbourGeneratorBlockExaminer {
 
     @Override
     public List<PathPoint> getNeighbours(BlockSource source, PathPoint point) {
-        List<PathPoint> neighbours = Lists.newArrayList();
+        List<PathPoint> neighbours = new ArrayList<>();
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
                 for (int z = -1; z <= 1; z++) {

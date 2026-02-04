@@ -1,5 +1,6 @@
 package net.citizensnpcs.api.npc;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -19,7 +20,6 @@ import org.bukkit.inventory.ItemStack;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import net.citizensnpcs.api.CitizensAPI;
@@ -47,7 +47,7 @@ import net.citizensnpcs.api.util.Placeholders;
 import net.citizensnpcs.api.util.SpigotUtil;
 
 public abstract class AbstractNPC implements NPC {
-    private final List<String> clearSaveData = Lists.newArrayList();
+    private final List<String> clearSaveData = new ArrayList<>();
     protected Object coloredNameComponentCache;
     protected String coloredNameStringCache;
     private final GoalController goalController = new SimpleGoalController();
@@ -66,7 +66,7 @@ public abstract class AbstractNPC implements NPC {
     private final MetadataStore metadata = new SimpleMetadataStore();
     private String name;
     private final NPCRegistry registry;
-    private final List<Runnable> runnables = Lists.newArrayList();
+    private final List<Runnable> runnables = new ArrayList<>();
     private final SpeechController speechController = context -> {
         context.setTalker(getEntity());
         NPCSpeechEvent event = new NPCSpeechEvent(context);

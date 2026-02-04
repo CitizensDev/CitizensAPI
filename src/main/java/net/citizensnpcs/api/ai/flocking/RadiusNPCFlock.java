@@ -1,10 +1,9 @@
 package net.citizensnpcs.api.ai.flocking;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.bukkit.entity.Entity;
-
-import com.google.common.collect.Lists;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
@@ -41,7 +40,7 @@ public class RadiusNPCFlock implements NPCFlock {
             return cached;
         cached = null;
         cacheTicks = 0;
-        Collection<NPC> ret = Lists.newArrayList();
+        Collection<NPC> ret = new ArrayList<>();
         for (NPC npc2 : CitizensAPI.getLocationLookup().getNearbyNPCs(npc.getEntity().getLocation(), radius)) {
             if (npc2.getNavigator().isNavigating()) {
                 ret.add(npc2);

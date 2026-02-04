@@ -10,6 +10,7 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -18,14 +19,13 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
 
 public class Translator {
     private final Map<String, String> baseTranslations = getBaseTranslations();
     private final Locale defaultLocale;
-    private final Map<String, MessageFormat> messageFormatCache = Maps.newHashMap();
+    private final Map<String, MessageFormat> messageFormatCache = new HashMap<>();
     private final Map<String, String> translations;
 
     private Translator(File resourceDir, Locale locale) {
@@ -139,7 +139,7 @@ public class Translator {
         try (Reader in = new InputStreamReader(is, charset)) {
             return (JSONObject) jp.parse(in);
         } catch (NullPointerException | ParseException | IOException e) {
-            return Maps.newHashMap();
+            return new HashMap<>();
         }
     }
 

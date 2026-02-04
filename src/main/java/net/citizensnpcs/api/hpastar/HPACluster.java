@@ -294,7 +294,8 @@ public class HPACluster {
                     if (dx == 0 && dz == 0) {
                         continue;
                     }
-                    if (node.x + dx < clusterX || node.z + dz < clusterZ || node.x + dx >= clusterX + clusterSize || node.z + dz >= clusterZ + clusterSize) {
+                    if (node.x + dx < clusterX || node.z + dz < clusterZ || node.x + dx >= clusterX + clusterSize
+                            || node.z + dz >= clusterZ + clusterSize) {
                         continue;
                     }
                     if (!offsetWalkable(node.x + dx - clusterX, node.z + dz - clusterZ)) {

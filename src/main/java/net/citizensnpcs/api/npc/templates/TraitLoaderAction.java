@@ -1,12 +1,11 @@
 package net.citizensnpcs.api.npc.templates;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.bukkit.Bukkit;
-
-import com.google.common.collect.Lists;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.command.CommandContext;
@@ -20,7 +19,7 @@ import net.citizensnpcs.api.trait.TraitTemplateParser.TraitParserContext;
 import net.citizensnpcs.api.util.DataKey;
 
 public class TraitLoaderAction implements Consumer<NPC> {
-    private final List<Function<NPC, Trait>> actions = Lists.newArrayList();
+    private final List<Function<NPC, Trait>> actions = new ArrayList<>();
 
     public TraitLoaderAction(TemplateErrorReporter errors, TemplateWorkspace workspace, DataKey traits) {
         for (DataKey key : traits.getIntegerSubKeys()) {

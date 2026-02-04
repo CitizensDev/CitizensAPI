@@ -4,9 +4,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +29,6 @@ import org.joml.Vector3fc;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Primitives;
 
@@ -180,7 +181,7 @@ public class PersistenceLoader {
             return;
 
         if (List.class.isAssignableFrom(type)) {
-            List<Object> list = (List<Object>) (!List.class.isAssignableFrom(collectionType) ? Lists.newArrayList()
+            List<Object> list = (List<Object>) (!List.class.isAssignableFrom(collectionType) ? new ArrayList<>()
                     : collectionType.newInstance());
             Object raw = root.getRaw(field.key);
             if (raw instanceof List && collectionType.isAssignableFrom(raw.getClass())) {
@@ -209,12 +210,12 @@ public class PersistenceLoader {
             } else {
                 boolean hasConcreteType = oldValue != null && Map.class.isAssignableFrom(oldValue.getClass())
                         && !oldValue.getClass().isInterface();
-                map = (Map<Object, Object>) (hasConcreteType ? oldValue : Maps.newHashMap());
+                map = (Map<Object, Object>) (hasConcreteType ? oldValue : new HashMap<>());
             }
             deserialiseMap(map, root, field);
             value = map;
         } else if (float[].class.isAssignableFrom(type)) {
-            List<Float> floats = Lists.newArrayList();
+            List<Float> floats = new ArrayList<>();
             for (DataKey sub : root.getRelative(field.key).getIntegerSubKeys()) {
                 floats.add((float) sub.getDouble(""));
             }
@@ -223,7 +224,7 @@ public class PersistenceLoader {
                 ((float[]) value)[i] = floats.get(i);
             }
         } else if (double[].class.isAssignableFrom(type)) {
-            List<Double> doubles = Lists.newArrayList();
+            List<Double> doubles = new ArrayList<>();
             for (DataKey sub : root.getRelative(field.key).getIntegerSubKeys()) {
                 doubles.add(sub.getDouble(""));
             }
@@ -232,7 +233,7 @@ public class PersistenceLoader {
                 ((double[]) value)[i] = doubles.get(i);
             }
         } else if (int[].class.isAssignableFrom(type)) {
-            List<Integer> ints = Lists.newArrayList();
+            List<Integer> ints = new ArrayList<>();
             for (DataKey sub : root.getRelative(field.key).getIntegerSubKeys()) {
                 ints.add(sub.getInt(""));
             }

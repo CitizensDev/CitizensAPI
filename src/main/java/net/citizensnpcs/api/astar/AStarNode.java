@@ -1,9 +1,8 @@
 package net.citizensnpcs.api.astar;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.google.common.collect.Lists;
 
 public abstract class AStarNode implements Comparable<AStarNode> {
     float g, h;
@@ -41,7 +40,7 @@ public abstract class AStarNode implements Comparable<AStarNode> {
     protected <T extends AStarNode> Iterable<T> orderedPath() {
         if (parents != null)
             return (Iterable<T>) parents;
-        parents = Lists.newArrayList();
+        parents = new ArrayList<>();
         AStarNode start = this;
         while (start != null) {
             parents.add(start);

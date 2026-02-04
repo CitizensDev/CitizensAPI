@@ -1,10 +1,13 @@
 package net.citizensnpcs.api;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
@@ -23,8 +26,6 @@ import org.bukkit.potion.PotionEffectType;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 import ch.ethz.globis.phtree.PhTreeF;
 import net.citizensnpcs.api.npc.NPC;
@@ -32,12 +33,12 @@ import net.citizensnpcs.api.npc.NPCRegistry;
 import net.citizensnpcs.api.util.schedulers.SchedulerRunnable;
 
 public class LocationLookup extends SchedulerRunnable {
-    private final Map<String, PerPlayerMetadata<?>> metadata = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<String, PerPlayerMetadata<?>> metadata = new ConcurrentHashMap<>();
     private Future<Map<UUID, PhTreeF<NPC>>> npcFuture = null;
-    private Map<UUID, PhTreeF<NPC>> npcWorlds = new java.util.concurrent.ConcurrentHashMap<>();
+    private Map<UUID, PhTreeF<NPC>> npcWorlds = new ConcurrentHashMap<>();
     private Future<Map<UUID, PhTreeF<Player>>> playerFuture = null;
     private final NPCRegistry sourceRegistry;
-    private Map<UUID, PhTreeF<Player>> worlds = new java.util.concurrent.ConcurrentHashMap<>();
+    private Map<UUID, PhTreeF<Player>> worlds = new ConcurrentHashMap<>();
 
     public LocationLookup() {
         this(CitizensAPI.getNPCRegistry());
@@ -177,7 +178,7 @@ public class LocationLookup extends SchedulerRunnable {
                     continue;
                 npc.getEntity().getLocation(loc);
                 Collection<TreeFactory.Node<NPC>> nodes = map.computeIfAbsent(npc.getEntity().getWorld().getUID(),
-                        uid -> Lists.newArrayList());
+                        uid -> new ArrayList<>());
                 nodes.add(new TreeFactory.Node<>(new double[] { loc.getX(), loc.getY(), loc.getZ() }, npc));
             }
             npcFuture = ForkJoinPool.commonPool().submit(new TreeFactory<>(map));
@@ -191,7 +192,7 @@ public class LocationLookup extends SchedulerRunnable {
             playerFuture = null;
         }
         if (playerFuture == null) {
-            Map<UUID, Collection<TreeFactory.Node<Player>>> map = Maps.newHashMap();
+            Map<UUID, Collection<TreeFactory.Node<Player>>> map = new HashMap<>();
             Location loc = new Location(null, 0, 0, 0);
             for (World world : Bukkit.getServer().getWorlds()) {
                 Collection<Player> players = Collections2.filter(world.getPlayers(), p -> !p.hasMetadata("NPC"));
@@ -225,7 +226,7 @@ public class LocationLookup extends SchedulerRunnable {
     // TODO: separate out NPCs and Player lookups into this
     public static abstract class AsyncPhTreeLoader<K, V> implements Runnable {
         private Future<Map<K, PhTreeF<V>>> future;
-        protected Map<K, PhTreeF<V>> mapping = Maps.newHashMap();
+        protected Map<K, PhTreeF<V>> mapping = new HashMap<>();
 
         protected abstract Map<K, Collection<TreeFactory.Node<V>>> generateLoaderMap();
 
@@ -261,7 +262,7 @@ public class LocationLookup extends SchedulerRunnable {
 
     public static class PerPlayerMetadata<T> {
         private final BiConsumer<PerPlayerMetadata<T>, PlayerJoinEvent> onJoin;
-        private final Map<UUID, Map<String, T>> sent = Maps.newHashMap();
+        private final Map<UUID, Map<String, T>> sent = new HashMap<>();
 
         public PerPlayerMetadata(BiConsumer<PerPlayerMetadata<T>, PlayerJoinEvent> onJoin) {
             this.onJoin = onJoin;
@@ -288,7 +289,7 @@ public class LocationLookup extends SchedulerRunnable {
         public void set(UUID key, String value, T marker) {
             if (marker instanceof Location || marker instanceof World)
                 throw new IllegalArgumentException("Invalid marker");
-            sent.computeIfAbsent(key, k -> Maps.newHashMap()).put(value, marker);
+            sent.computeIfAbsent(key, k -> new HashMap<>()).put(value, marker);
         }
     }
 
@@ -301,7 +302,7 @@ public class LocationLookup extends SchedulerRunnable {
 
         @Override
         public Map<K, PhTreeF<V>> call() throws Exception {
-            Map<K, PhTreeF<V>> result = Maps.newHashMap();
+            Map<K, PhTreeF<V>> result = new HashMap<>();
             for (K k : source.keySet()) {
                 PhTreeF<V> tree = PhTreeF.create(3);
                 for (Node<V> entry : source.get(k)) {

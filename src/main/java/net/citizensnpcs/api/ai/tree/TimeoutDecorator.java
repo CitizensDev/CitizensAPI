@@ -25,14 +25,12 @@ public class TimeoutDecorator implements Behavior {
             child.reset();
             return BehaviorStatus.FAILURE;
         }
-
         ticksElapsed++;
         BehaviorStatus status = child.run();
 
         if (status != BehaviorStatus.RUNNING) {
             ticksElapsed = 0;
         }
-
         return status;
     }
 

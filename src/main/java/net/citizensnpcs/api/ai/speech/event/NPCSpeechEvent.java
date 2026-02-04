@@ -8,7 +8,7 @@ import net.citizensnpcs.api.ai.speech.SpeechContext;
 import net.citizensnpcs.api.event.NPCEvent;
 
 /**
- * Represents an event where an NPC speaks using /npc speak. 
+ * Represents an event where an NPC speaks using /npc speak.
  */
 public class NPCSpeechEvent extends NPCEvent implements Cancellable {
     private boolean cancelled = false;
@@ -18,7 +18,7 @@ public class NPCSpeechEvent extends NPCEvent implements Cancellable {
         super(CitizensAPI.getNPCRegistry().getNPC(context.getTalker().getEntity()));
         this.context = context;
     }
- 
+
     public SpeechContext getContext() {
         return context;
     }

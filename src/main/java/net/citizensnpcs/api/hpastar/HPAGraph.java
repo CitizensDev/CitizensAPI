@@ -23,9 +23,9 @@ import net.citizensnpcs.api.util.Messaging;
 
 public class HPAGraph {
     private final BlockSource blockSource;
-    public List<List<HPACluster>> clusters = Lists.newArrayList();
+    public List<List<HPACluster>> clusters = new ArrayList<>();
     private final int cx, cy, cz;
-    private final List<PhTreeSolid<HPACluster>> phtrees = Lists.newArrayList();
+    private final List<PhTreeSolid<HPACluster>> phtrees = new ArrayList<>();
 
     public HPAGraph(BlockSource blockSource, int cx, int cy, int cz) {
         this.blockSource = blockSource;
@@ -51,14 +51,12 @@ public class HPAGraph {
         PhTreeSolid<HPACluster> baseLevel = phtrees.get(0);
 
         // Check if clusters already exist in this region
-        PhQueryS<HPACluster> existingQuery = baseLevel.queryIntersect(
-                new long[] { baseX, 0, baseZ },
+        PhQueryS<HPACluster> existingQuery = baseLevel.queryIntersect(new long[] { baseX, 0, baseZ },
                 new long[] { baseX + MAX_CLUSTER_SIZE, 256, baseZ + MAX_CLUSTER_SIZE });
         if (existingQuery.hasNext()) {
             Messaging.log("Clusters already exist for region:", baseX, baseZ);
             return;
         }
-
         Messaging.log("Building clusters for:", baseX, baseZ);
         List<HPACluster> newClusters = new ArrayList<>();
 
@@ -73,8 +71,7 @@ public class HPAGraph {
                         continue;
                     }
                     newClusters.add(cluster);
-                    baseLevel.put(
-                            new long[] { cluster.clusterX, cluster.clusterY, cluster.clusterZ },
+                    baseLevel.put(new long[] { cluster.clusterX, cluster.clusterY, cluster.clusterZ },
                             new long[] { cluster.clusterX + clusterSize, cluster.clusterY + clusterHeight,
                                     cluster.clusterZ + clusterSize },
                             cluster);
@@ -104,7 +101,6 @@ public class HPAGraph {
                 if (nonZeroCount != 1) {
                     continue;
                 }
-
                 Direction direction = null;
                 if (dx > 0) {
                     direction = Direction.EAST;

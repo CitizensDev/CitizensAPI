@@ -1,9 +1,8 @@
 package net.citizensnpcs.api.trait;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-
-import com.google.common.collect.Lists;
 
 public class ArrayTraitLookup implements TraitLookup {
     private final long[] sig;
@@ -58,7 +57,7 @@ public class ArrayTraitLookup implements TraitLookup {
 
     @Override
     public Iterable<Trait> list() {
-        List<Trait> list = Lists.newArrayList();
+        List<Trait> list = new ArrayList<>();
         forEach(list::add);
         return list;
     }

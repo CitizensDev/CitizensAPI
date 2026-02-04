@@ -1,5 +1,6 @@
 package net.citizensnpcs.api.npc.templates;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -16,7 +17,7 @@ import net.citizensnpcs.api.persistence.PersistenceLoader;
 import net.citizensnpcs.api.util.DataKey;
 
 public class Template {
-    private final List<Consumer<NPC>> actions = Lists.newArrayList();
+    private final List<Consumer<NPC>> actions = new ArrayList<>();
     private final NamespacedKey key;
 
     private Template(NamespacedKey key) {

@@ -1,5 +1,6 @@
 package net.citizensnpcs.api.util;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -227,7 +228,7 @@ public class Placeholders implements Listener {
     private static final Pattern PLACEHOLDER_MATCHER = Pattern.compile(
             "<(id|npc|owner|random_player|random_world_player|random_npc|random_npc_id|nearest_npc_id|nearest_player|world)>");
     private static Boolean PLACEHOLDERAPI_ENABLED = null;
-    private static final List<PlaceholderProvider> PLACEHOLDERS = Lists.newArrayList();
+    private static final List<PlaceholderProvider> PLACEHOLDERS = new ArrayList<>();
     private static final Pattern PLAYER_PLACEHOLDER_MATCHER = Pattern.compile(
             "(<player>|<p>|%player%|<player_uuid>|<random_player>|<random_world_player>|<random_npc>|<random_npc_id>|<nearest_npc_id>|<nearest_player>|<world>)");
     private static final Collection<String> PLAYER_UUID_VARIABLES = ImmutableSet.of("<player_uuid>");

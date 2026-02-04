@@ -18,6 +18,8 @@
 
 package net.citizensnpcs.api.command;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -42,8 +44,6 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 import net.citizensnpcs.api.command.exception.CommandException;
 
@@ -53,7 +53,7 @@ public class CommandContext {
     private Location location = null;
     private final String[] rawArgs;
     private final CommandSender sender;
-    protected final Map<String, String> valueFlags = Maps.newHashMap();
+    protected final Map<String, String> valueFlags = new HashMap<>();
 
     public CommandContext(boolean clearFlags, CommandSender sender, String[] args) {
         this.sender = sender;
@@ -133,7 +133,7 @@ public class CommandContext {
                 args[i] = "";
             }
         }
-        List<String> copied = Lists.newArrayList();
+        List<String> copied = new ArrayList<>();
         for (String arg : args) {
             arg = arg.trim();
             if (arg == null || arg.isEmpty())

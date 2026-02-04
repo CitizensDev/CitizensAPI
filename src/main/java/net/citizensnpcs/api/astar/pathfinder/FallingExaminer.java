@@ -1,13 +1,12 @@
 package net.citizensnpcs.api.astar.pathfinder;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.bukkit.util.Vector;
 
-import com.google.common.collect.Maps;
-
 public class FallingExaminer implements BlockExaminer {
-    private final Map<PathPoint, Integer> fall = Maps.newHashMap();
+    private final Map<PathPoint, Integer> fall = new HashMap<>();
     private final int maxFallDistance;
     private final MinecraftBlockExaminer mc = new MinecraftBlockExaminer();
 

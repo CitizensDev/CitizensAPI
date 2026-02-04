@@ -1,11 +1,10 @@
 package net.citizensnpcs.api.ai.tree;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
-import com.google.common.collect.Lists;
 
 /**
  * A decorator is a wrapper over a {@link Behavior}, which can add functionality such as filtering
@@ -77,7 +76,7 @@ public class Decorator extends BehaviorGoalAdapter {
 
         public Builder withPreRunCallback(Runnable callback) {
             if (runCallbacks == Collections.EMPTY_LIST) {
-                runCallbacks = Lists.newArrayList();
+                runCallbacks = new ArrayList<>();
             }
             runCallbacks.add(callback);
             return this;
@@ -85,7 +84,7 @@ public class Decorator extends BehaviorGoalAdapter {
 
         public Builder withResetCallback(Runnable callback) {
             if (resetCallbacks == Collections.EMPTY_LIST) {
-                resetCallbacks = Lists.newArrayList();
+                resetCallbacks = new ArrayList<>();
             }
             resetCallbacks.add(callback);
             return this;
@@ -93,7 +92,7 @@ public class Decorator extends BehaviorGoalAdapter {
 
         public Builder withShouldExecutePredicate(Predicate<Boolean> predicate) {
             if (shouldExecutePredicates == Collections.EMPTY_LIST) {
-                shouldExecutePredicates = Lists.newArrayList();
+                shouldExecutePredicates = new ArrayList<>();
             }
             shouldExecutePredicates.add(predicate);
             return this;
@@ -101,7 +100,7 @@ public class Decorator extends BehaviorGoalAdapter {
 
         public Builder withStatusTransformer(Function<BehaviorStatus, BehaviorStatus> transformer) {
             if (statusTransformers == Collections.EMPTY_LIST) {
-                statusTransformers = Lists.newArrayList();
+                statusTransformers = new ArrayList<>();
             }
             statusTransformers.add(transformer);
             return this;

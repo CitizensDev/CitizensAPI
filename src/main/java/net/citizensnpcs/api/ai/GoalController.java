@@ -37,8 +37,7 @@ public interface GoalController extends Runnable, Iterable<GoalEntry> {
     /**
      * Registers a goal which can re-prioritise itself dynamically every tick.
      * <p>
-     * Implementation note: This may slow down individual goal controller ticks,
-     * as the list must be sorted every tick.
+     * Implementation note: This may slow down individual goal controller ticks, as the list must be sorted every tick.
      *
      * @param goal
      *            A new {@link PrioritisableGoal}

@@ -1,5 +1,6 @@
 package net.citizensnpcs.api.astar.pathfinder;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -8,7 +9,6 @@ import org.bukkit.util.BlockVector;
 import org.bukkit.util.Vector;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
 import net.citizensnpcs.api.ai.NavigatorParameters;
 import net.citizensnpcs.api.astar.AStarNode;
@@ -43,7 +43,7 @@ public class VectorNode extends AStarNode implements PathPoint {
     @Override
     public void addCallback(PathCallback callback) {
         if (callbacks == null) {
-            callbacks = Lists.newArrayList();
+            callbacks = new ArrayList<>();
         }
         callbacks.add(callback);
     }
@@ -109,7 +109,7 @@ public class VectorNode extends AStarNode implements PathPoint {
         if (neighbours == null) {
             neighbours = getNeighbours(info.blockSource, this);
         }
-        List<AStarNode> nodes = Lists.newArrayList();
+        List<AStarNode> nodes = new ArrayList<>();
         for (PathPoint sub : neighbours) {
             if (!isPassable(sub))
                 continue;
@@ -124,7 +124,7 @@ public class VectorNode extends AStarNode implements PathPoint {
     }
 
     public List<PathPoint> getNeighbours(BlockSource source, PathPoint point, boolean checkPassable) {
-        List<PathPoint> neighbours = Lists.newArrayList();
+        List<PathPoint> neighbours = new ArrayList<>();
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
                 for (int z = -1; z <= 1; z++) {

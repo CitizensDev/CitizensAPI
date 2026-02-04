@@ -1,9 +1,8 @@
 package net.citizensnpcs.api.ai.tree;
 
 /**
- * Wraps a behavior to run in parallel with other behaviors.
- * Implements ParallelBehavior marker interface to signal to composite parents
- * that this behavior should run alongside others.
+ * Wraps a behavior to run in parallel with other behaviors. Implements ParallelBehavior marker interface to signal to
+ * composite parents that this behavior should run alongside others.
  */
 public class ParallelBehaviorWrapper implements Behavior, ParallelBehavior {
     private final Behavior wrapped;
