@@ -111,9 +111,9 @@ public class VectorNode extends AStarNode implements PathPoint {
         }
         List<AStarNode> nodes = Lists.newArrayList();
         for (PathPoint sub : neighbours) {
-            if (!isPassable(sub)) {
+            if (!isPassable(sub))
                 continue;
-            }
+
             nodes.add((AStarNode) sub);
         }
         return nodes;

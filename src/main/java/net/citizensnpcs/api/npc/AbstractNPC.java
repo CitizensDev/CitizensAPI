@@ -1,7 +1,6 @@
 package net.citizensnpcs.api.npc;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -21,7 +20,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import net.citizensnpcs.api.CitizensAPI;
@@ -37,7 +35,9 @@ import net.citizensnpcs.api.event.NPCRemoveTraitEvent;
 import net.citizensnpcs.api.event.NPCRenameEvent;
 import net.citizensnpcs.api.event.NPCTeleportEvent;
 import net.citizensnpcs.api.persistence.PersistenceLoader;
+import net.citizensnpcs.api.trait.ArrayTraitLookup;
 import net.citizensnpcs.api.trait.Trait;
+import net.citizensnpcs.api.trait.TraitLookup;
 import net.citizensnpcs.api.trait.trait.MobType;
 import net.citizensnpcs.api.util.DataKey;
 import net.citizensnpcs.api.util.ItemStorage;
@@ -75,7 +75,8 @@ public abstract class AbstractNPC implements NPC {
             return;
         CitizensAPI.talk(context);
     };
-    protected final Map<Class<? extends Trait>, Trait> traits = Maps.newHashMap();
+    protected final TraitLookup traits = new ArrayTraitLookup(
+            CitizensAPI.getTraitFactory().getRegisteredTraits().size() + 32);
     private final UUID uuid;
 
     protected AbstractNPC(UUID uuid, int id, String name, NPCRegistry registry) {
@@ -102,23 +103,22 @@ public abstract class AbstractNPC implements NPC {
             Messaging.severe("Cannot register a null trait. Was it registered properly?");
             return;
         }
+        // clear existing trait
+        Trait replaced = traits.get(trait.getTraitId());
+        if (replaced != null) {
+            Messaging.debug("NPC", this, "replacing trait", replaced, "with", trait);
+            replaced.onRemove();
+            runnables.remove(replaced);
+        }
         trait.linkToNPC(this);
-        // if an existing trait is being replaced, we need to remove the
-        // currently registered runnable to avoid conflicts
-        Class<? extends Trait> clazz = trait.getClass();
-        Trait replaced = traits.get(clazz);
-
         if (CitizensAPI.getPlugin().isEnabled()) {
             Bukkit.getPluginManager().registerEvents(trait, CitizensAPI.getPlugin());
         }
-        traits.put(clazz, trait);
+        traits.add(trait.getTraitId(), trait);
         if (isSpawned()) {
             trait.onSpawn();
         }
         if (trait.isRunImplemented()) {
-            if (replaced != null) {
-                runnables.remove(replaced);
-            }
             runnables.add(trait);
         }
         Bukkit.getPluginManager().callEvent(new NPCAddTraitEvent(this, trait));
@@ -152,10 +152,10 @@ public abstract class AbstractNPC implements NPC {
     public void destroy() {
         Bukkit.getPluginManager().callEvent(new NPCRemoveEvent(this));
         runnables.clear();
-        for (Trait trait : traits.values()) {
+        traits.forEach(trait -> {
             HandlerList.unregisterAll(trait);
             trait.onRemove(RemoveReason.DESTROYED);
-        }
+        });
         traits.clear();
         goalController.clear();
         registry.deregister(this);
@@ -231,7 +231,7 @@ public abstract class AbstractNPC implements NPC {
 
     @Override
     public <T extends Trait> T getOrAddTrait(Class<T> clazz) {
-        Trait trait = traits.get(clazz);
+        Trait trait = traits.get(CitizensAPI.getTraitFactory().getId(clazz));
         if (trait == null) {
             trait = getTraitFor(clazz);
             addTrait(trait);
@@ -260,12 +260,12 @@ public abstract class AbstractNPC implements NPC {
 
     @Override
     public <T extends Trait> T getTraitNullable(Class<T> clazz) {
-        return clazz.cast(traits.get(clazz));
+        return clazz.cast(traits.get(CitizensAPI.getTraitFactory().getId(clazz)));
     }
 
     @Override
     public Iterable<Trait> getTraits() {
-        return traits.values();
+        return traits.list();
     }
 
     @Override
@@ -279,8 +279,8 @@ public abstract class AbstractNPC implements NPC {
     }
 
     @Override
-    public boolean hasTrait(Class<? extends Trait> trait) {
-        return traits.containsKey(trait);
+    public boolean hasTrait(Class<? extends Trait> clazz) {
+        return traits.has(CitizensAPI.getTraitFactory().getId(clazz));
     }
 
     @Override
@@ -336,8 +336,8 @@ public abstract class AbstractNPC implements NPC {
     }
 
     @Override
-    public void removeTrait(Class<? extends Trait> traitClass) {
-        Trait trait = traits.remove(traitClass);
+    public void removeTrait(Class<? extends Trait> clazz) {
+        Trait trait = traits.remove(CitizensAPI.getTraitFactory().getId(clazz));
         if (trait != null) {
             Bukkit.getPluginManager().callEvent(new NPCRemoveTraitEvent(this, trait));
             clearSaveData.add("traits." + trait.getName());
@@ -374,7 +374,7 @@ public abstract class AbstractNPC implements NPC {
         }
         Set<String> traitNames = Splitter.on(',').omitEmptyStrings().splitToStream(root.getString("traitnames"))
                 .collect(Collectors.toSet());
-        for (Trait trait : traits.values()) {
+        traits.forEach(trait -> {
             clearSaveData.remove("traits." + trait.getName());
             traitNames.add(trait.getName());
 
@@ -384,16 +384,16 @@ public abstract class AbstractNPC implements NPC {
             } catch (Throwable t) {
                 Messaging.severe("Saving trait", trait, "failed for NPC", this);
                 t.printStackTrace();
-                continue;
+                return;
             }
             try {
                 PersistenceLoader.save(trait, traitKey);
             } catch (Throwable t) {
                 Messaging.severe("PersistenceLoader failed saving trait", trait, "for NPC", this);
                 t.printStackTrace();
-                continue;
+                return;
             }
-        }
+        });
         for (String clear : clearSaveData) {
             if (clear.startsWith("traits.")) {
                 traitNames.remove(clear.replace("traits.", ""));

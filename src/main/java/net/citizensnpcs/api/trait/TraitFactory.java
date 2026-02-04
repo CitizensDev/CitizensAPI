@@ -22,6 +22,8 @@ public interface TraitFactory {
      */
     void deregisterTrait(TraitInfo info);
 
+    int getId(Class<? extends Trait> clazz);
+
     /**
      * @return All currently registered traits, including <em>internal</em> traits.
      */

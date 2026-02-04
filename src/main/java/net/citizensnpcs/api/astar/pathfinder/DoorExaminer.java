@@ -167,7 +167,6 @@ public class DoorExaminer implements BlockExaminer {
         private static boolean SUPPORTS_SWING_ANIMATION = true;
     }
 
-    @SuppressWarnings("deprecation")
     private static Block getCorrectDoor(Block point) {
         if (SpigotUtil.isUsing1_13API()) {
             BlockData bd = point.getBlockData();
@@ -192,7 +191,7 @@ public class DoorExaminer implements BlockExaminer {
         MaterialData data = point.getState().getData();
         if (!(data instanceof org.bukkit.material.Door))
         return false;
-
+        
         org.bukkit.material.Door door = (org.bukkit.material.Door) data;
         return !door.isTopHalf();*/
     }

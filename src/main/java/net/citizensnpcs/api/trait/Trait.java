@@ -4,6 +4,7 @@ import java.util.Locale;
 
 import org.bukkit.event.Listener;
 
+import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.event.DespawnReason;
 import net.citizensnpcs.api.exception.NPCLoadException;
 import net.citizensnpcs.api.npc.NPC;
@@ -20,9 +21,11 @@ public abstract class Trait implements Listener, Runnable {
     private final String name;
     protected NPC npc = null;
     private boolean runImplemented = true;
+    private final int traitId;
 
     protected Trait(String name) {
         this.name = name.toLowerCase(Locale.ROOT);
+        this.traitId = CitizensAPI.getTraitFactory().getId(getClass());
     }
 
     /**
@@ -39,6 +42,10 @@ public abstract class Trait implements Listener, Runnable {
      */
     public final NPC getNPC() {
         return npc;
+    }
+
+    public int getTraitId() {
+        return traitId;
     }
 
     public boolean isRunImplemented() {
