@@ -1,6 +1,7 @@
 package net.citizensnpcs.api.ai;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
@@ -27,7 +28,7 @@ public class NavigatorParameters implements Cloneable {
     private AttackStrategy defaultStrategy;
     private double destinationTeleportMargin = -1;
     private double distanceMargin = 2F;
-    private List<BlockExaminer> examiners = Lists.newArrayList();
+    private BlockExaminer[] examiners;
     private int fallDistance = -1;
     private PathStrategyFactory locationStrategyFactory;
     private Function<Navigator, Location> lookAtFunction;
@@ -172,7 +173,7 @@ public class NavigatorParameters implements Cloneable {
      * Clears all current {@link BlockExaminer}s.
      */
     public NavigatorParameters clearExaminers() {
-        examiners.clear();
+        examiners = null;
         return this;
     }
 
@@ -184,8 +185,8 @@ public class NavigatorParameters implements Cloneable {
             if (callbacks instanceof ArrayList) {
                 clone.callbacks = (List<NavigatorCallback>) ((ArrayList<NavigatorCallback>) callbacks).clone();
             }
-            if (examiners instanceof ArrayList) {
-                clone.examiners = (List<BlockExaminer>) ((ArrayList<BlockExaminer>) examiners).clone();
+            if (examiners != null) {
+                clone.examiners = Arrays.copyOf(examiners, examiners.length);
             }
             if (runCallbacks instanceof ArrayList) {
                 clone.runCallbacks = (List<Runnable>) ((ArrayList<Runnable>) runCallbacks).clone();
@@ -310,7 +311,12 @@ public class NavigatorParameters implements Cloneable {
      *            The BlockExaminer to add
      */
     public NavigatorParameters examiner(BlockExaminer examiner) {
-        examiners.add(examiner);
+        if (examiners == null) {
+            examiners = new BlockExaminer[] { examiner };
+            return this;
+        }
+        BlockExaminer[] next = Arrays.copyOf(examiners, examiners.length + 1);
+        next[next.length - 1] = examiner;
         return this;
     }
 
@@ -320,7 +326,7 @@ public class NavigatorParameters implements Cloneable {
      * @return An array of all current examiners
      */
     public BlockExaminer[] examiners() {
-        return examiners.size() == 0 ? EMPTY_EXAMINERS : examiners.toArray(new BlockExaminer[0]);
+        return examiners == null ? EMPTY_EXAMINERS : examiners;
     }
 
     public int fallDistance() {
@@ -333,7 +339,13 @@ public class NavigatorParameters implements Cloneable {
     }
 
     public boolean hasExaminer(Class<? extends BlockExaminer> clazz) {
-        return examiners.stream().anyMatch(e -> clazz.isAssignableFrom(e.getClass()));
+        if (examiners == null)
+            return false;
+        for (BlockExaminer ex : examiners) {
+            if (clazz.isAssignableFrom(ex.getClass()))
+                return true;
+        }
+        return false;
     }
 
     public PathStrategyFactory locationStrategyFactory() {

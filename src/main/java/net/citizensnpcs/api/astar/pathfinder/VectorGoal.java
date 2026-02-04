@@ -35,7 +35,6 @@ public class VectorGoal implements AStarGoal<VectorNode> {
 
     @Override
     public boolean isFinished(VectorNode node) {
-        double distance = node.distance(goal);
-        return goal.equals(node.location) || distance <= leeway;
+        return goal.equals(node.location) || (double) node.distance(goal) <= leeway;
     }
 }

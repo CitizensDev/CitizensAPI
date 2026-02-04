@@ -141,7 +141,6 @@ public class VectorNode extends AStarNode implements PathPoint {
                                 || !isPassable(
                                         point.createAtOffset(new Vector(location.getX(), modY, location.getZ() + z))))
                             continue;
-
                     }
                     neighbours.add(point.createAtOffset(mod));
                 }
