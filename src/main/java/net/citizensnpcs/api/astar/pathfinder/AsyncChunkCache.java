@@ -294,7 +294,7 @@ public class AsyncChunkCache {
 
     private Path runPathfinder(PathRequest req, SnapshotProvider provider) {
         VectorGoal goal = new VectorGoal(req.to, (float) req.parameters.pathDistanceMargin());
-        return AStarMachine.<VectorNode, Path> createWithDefaultStorage().runFully(goal,
+        return AStarMachine.<VectorNode, Path> createWithVectorStorage().runFully(goal,
                 new VectorNode(goal, req.from, new BlockSource() {
                     @Override
                     public BlockData getBlockDataAt(int x, int y, int z) {

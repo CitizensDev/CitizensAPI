@@ -3,6 +3,8 @@ package net.citizensnpcs.api.astar;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+import net.citizensnpcs.api.astar.pathfinder.VectorNode;
+
 public class AStarMachine<N extends AStarNode, P extends Plan> {
     private Supplier<AStarStorage> storageSupplier;
 
@@ -169,5 +171,14 @@ public class AStarMachine<N extends AStarNode, P extends Plan> {
     public static <N extends AStarNode, P extends Plan> AStarMachine<N, P> createWithStorage(
             Supplier<AStarStorage> storageSupplier) {
         return new AStarMachine<>(storageSupplier);
+    }
+
+    /**
+     * Creates an AStarMachine using {@link PackedAStarStorage} as the storage backend.
+     *
+     * @return The created instance
+     */
+    public static <N extends VectorNode, P extends Plan> AStarMachine<N, P> createWithVectorStorage() {
+        return createWithStorage(PackedAStarStorage.FACTORY);
     }
 }
