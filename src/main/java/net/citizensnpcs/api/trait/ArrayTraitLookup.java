@@ -1,9 +1,9 @@
 package net.citizensnpcs.api.trait;
 
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
+
+import com.google.common.collect.Lists;
 
 public class ArrayTraitLookup implements TraitLookup {
     private final long[] sig;
@@ -33,9 +33,15 @@ public class ArrayTraitLookup implements TraitLookup {
 
     @Override
     public void forEach(Consumer<Trait> visitor) {
-        for (Trait trait : traits) {
-            if (trait != null) {
-                visitor.accept(trait);
+        for (int w = 0; w < sig.length; w++) {
+            long bits = sig[w];
+            while (bits != 0L) {
+                int bit = Long.numberOfTrailingZeros(bits);
+                int typeId = (w << 6) + bit;
+
+                visitor.accept(traits[typeId]);
+
+                bits &= bits - 1;
             }
         }
     }
@@ -52,7 +58,9 @@ public class ArrayTraitLookup implements TraitLookup {
 
     @Override
     public Iterable<Trait> list() {
-        return Arrays.stream(traits).filter(Objects::nonNull).collect(Collectors.toList());
+        List<Trait> list = Lists.newArrayList();
+        forEach(list::add);
+        return list;
     }
 
     @Override
