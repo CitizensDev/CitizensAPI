@@ -77,12 +77,11 @@ public class RequirementsProcessor implements CommandAnnotationProcessor {
         }
         cosmeticTypes.removeAll(Sets.newHashSet(requirements.excludedTypes()));
 
-        EntityType type = npc.getOrAddTrait(MobType.class).getType();
-        if (npc.getCosmeticEntity() == null || !cosmeticTypes.contains(npc.getCosmeticEntity().getType()))
-            throw new RequirementMissingException(
-                    Messaging.tr(CommandMessages.REQUIREMENTS_INVALID_MOB_TYPE, npc.getCosmeticEntity() == null ? type
-                            : npc.getCosmeticEntity().getType().name().toLowerCase(Locale.ROOT).replace('_', ' ')));
+        if (!cosmeticTypes.contains(npc.getCosmeticEntityType()))
+            throw new RequirementMissingException(Messaging.tr(CommandMessages.REQUIREMENTS_INVALID_MOB_TYPE,
+                    npc.getCosmeticEntityType().name().toLowerCase(Locale.ROOT).replace('_', ' ')));
 
+        EntityType type = npc.getOrAddTrait(MobType.class).getType();
         if (!types.contains(type))
             throw new RequirementMissingException(Messaging.tr(CommandMessages.REQUIREMENTS_INVALID_MOB_TYPE,
                     type.name().toLowerCase(Locale.ROOT).replace('_', ' ')));
