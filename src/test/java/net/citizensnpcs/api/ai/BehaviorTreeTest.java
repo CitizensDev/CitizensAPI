@@ -14,13 +14,8 @@ import net.citizensnpcs.api.ai.tree.Sequence;
 public class BehaviorTreeTest {
     private BehaviorController test;
 
-    @Before
-    public void setUp() {
-        test = new SimpleBehaviorController();
-    }
-
     @Test
-    public void singleSelector() {
+    public void emptySelector() {
         CountedBehavior goal = new CountedBehavior(BehaviorStatus.SUCCESS);
         Selector p = Selector.selecting(goal).build();
         test.addBehavior(p);
@@ -28,6 +23,16 @@ public class BehaviorTreeTest {
         assertThat("Reset count", goal.resetCount, is(1));
         assertThat("Run count", goal.runCount, is(1));
         assertThat("Should execute count", goal.shouldExecuteCount, is(1));
+    }
+
+    @Before
+    public void setUp() {
+        test = new SimpleBehaviorController();
+    }
+
+    @Test
+    public void singleSelector() {
+        test.run();
     }
 
     @Test

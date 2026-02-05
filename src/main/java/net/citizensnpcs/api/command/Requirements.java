@@ -9,6 +9,8 @@ import net.citizensnpcs.api.trait.Trait;
 
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Requirements {
+    EntityType[] cosmeticTypes() default { EntityType.UNKNOWN };
+
     EntityType[] excludedTypes() default { EntityType.UNKNOWN };
 
     boolean livingEntity() default false;

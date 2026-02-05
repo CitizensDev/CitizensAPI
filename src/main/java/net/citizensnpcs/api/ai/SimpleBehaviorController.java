@@ -4,6 +4,7 @@ import net.citizensnpcs.api.ai.tree.Behavior;
 import net.citizensnpcs.api.ai.tree.Selector;
 
 public class SimpleBehaviorController implements BehaviorController {
+    private boolean executing;
     private boolean paused;
     private final Selector selector = Selector.selecting().build();
 
@@ -30,14 +31,21 @@ public class SimpleBehaviorController implements BehaviorController {
 
     @Override
     public void run() {
-        if (paused)
+        if (paused || (!executing && !selector.shouldExecute()))
             return;
-        selector.run();
+        executing = true;
+        switch (selector.run()) {
+            case FAILURE:
+            case SUCCESS:
+                selector.reset();
+                executing = false;
+            default:
+                break;
+        }
     }
 
     @Override
     public void setPaused(boolean paused) {
         this.paused = paused;
     }
-
 }
