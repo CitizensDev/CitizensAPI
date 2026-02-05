@@ -30,6 +30,7 @@ public class SimpleMetadataStore implements MetadataStore {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T get(NPC.Metadata key) {
         Objects.requireNonNull(key, "key cannot be null");
         MetadataObject normal = this.npcMetadata.get(key);

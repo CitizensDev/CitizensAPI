@@ -121,7 +121,7 @@ public class CommandManager implements TabCompleter {
         boolean help = modifier.equalsIgnoreCase("help");
 
         CommandInfo info = getCommand(cmdName, modifier);
-        if (info == null || info.method == null) {
+        if (info == null || info.handler == null) {
             if (help) {
                 executeHelp(args, sender);
                 return;
@@ -224,7 +224,7 @@ public class CommandManager implements TabCompleter {
             }
         }
         try {
-            info.method.invoke(info.instance, methodArgs);
+            info.handler.handle(info.instance, methodArgs);
         } catch (IllegalArgumentException e) {
             logger.log(Level.SEVERE, "Failed to execute command", e);
         } catch (IllegalAccessException e) {
@@ -372,9 +372,9 @@ public class CommandManager implements TabCompleter {
         for (CommandInfo info : getCommands(baseCommand)) {
             Command command = info.getCommandAnnotation();
             if (processed.contains(info)
-                    || !sender.hasPermission("citizens.admin") && !sender.hasPermission(command.permission())) {
+                    || !sender.hasPermission("citizens.admin") && !sender.hasPermission(command.permission()))
                 continue;
-            }
+
             lines.add(format(command, baseCommand));
             if (command.modifiers().length > 0) {
                 processed.add(info);
@@ -538,7 +538,7 @@ public class CommandManager implements TabCompleter {
                 continue;
             }
             Command cmd = method.getAnnotation(Command.class);
-            CommandInfo info = new CommandInfo(cmd, method);
+            CommandInfo info = new CommandInfo(cmd, (instance, args) -> method.invoke(instance, args));
 
             info.instance = obj;
 
@@ -551,9 +551,9 @@ public class CommandManager implements TabCompleter {
             }
             for (Annotation annotation : method.getAnnotations()) {
                 Class<? extends Annotation> annotationClass = annotation.annotationType();
-                if (!annotationProcessors.containsKey(annotationClass)) {
+                if (!annotationProcessors.containsKey(annotationClass))
                     continue;
-                }
+
                 Iterator<Annotation> itr = annotations.iterator();
                 while (itr.hasNext()) {
                     Annotation previous = itr.next();
@@ -645,18 +645,24 @@ public class CommandManager implements TabCompleter {
         this.translationPrefixProvider = provider;
     }
 
+    @FunctionalInterface
+    public static interface CommandHandler {
+        public void handle(Object instance, Object[] args)
+                throws CommandException, InvocationTargetException, IllegalAccessException;
+    }
+
     public class CommandInfo {
         private List<Annotation> annotations = new ArrayList<>();
         private final Command commandAnnotation;
+        private final CommandHandler handler;
         public Object instance;
-        private final Method method;
         private final Map<Integer, InjectedCommandArgument> methodArguments = new HashMap<>();
         public boolean serverCommand;
         private Collection<String> valueFlags;
 
-        public CommandInfo(Command commandAnnotation, Method method) {
+        public CommandInfo(Command commandAnnotation, CommandHandler handler) {
             this.commandAnnotation = commandAnnotation;
-            this.method = method;
+            this.handler = handler;
         }
 
         public void addArgAnnotation(int idx, Class<?> paramType, Arg arg) {
@@ -683,9 +689,7 @@ public class CommandManager implements TabCompleter {
             if (obj == null || getClass() != obj.getClass())
                 return false;
             CommandInfo other = (CommandInfo) obj;
-            if (!Objects.equals(commandAnnotation, other.commandAnnotation))
-                return false;
-            return true;
+            return Objects.equals(commandAnnotation, other.commandAnnotation);
         }
 
         public Collection<? extends String> getArgTabCompletions(CommandContext args, CommandSender sender, int index) {
