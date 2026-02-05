@@ -34,8 +34,12 @@ public class Path implements Plan {
     Path(Iterable<VectorNode> unfiltered, Vector goal) {
         List<PathEntry> path = new ArrayList<>();
         for (VectorNode node : unfiltered) {
-            for (Vector vector : node.getPathVectors()) {
-                path.add(new PathEntry(vector, node.callbacks));
+            if (node.getPathVectors() != null) {
+                for (Vector vector : node.getPathVectors()) {
+                    path.add(new PathEntry(vector, node.callbacks));
+                }
+            } else {
+                path.add(new PathEntry(node.getVector().clone().add(new Vector(0.5, 0, 0.5)), node.callbacks));
             }
         }
         PathEntry goalEntry = new PathEntry(goal, path.get(path.size() - 1).callbacks);
@@ -52,7 +56,7 @@ public class Path implements Plan {
     }
 
     public List<Block> getBlocks(World world) {
-        return Arrays.asList(path).stream()
+        return Arrays.stream(path)
                 .map(p -> world.getBlockAt(p.vector.getBlockX(), p.vector.getBlockY(), p.vector.getBlockZ()))
                 .collect(Collectors.toList());
     }

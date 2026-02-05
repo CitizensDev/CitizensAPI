@@ -8,8 +8,6 @@ import org.bukkit.Location;
 import org.bukkit.util.BlockVector;
 import org.bukkit.util.Vector;
 
-import com.google.common.collect.ImmutableList;
-
 import net.citizensnpcs.api.ai.NavigatorParameters;
 import net.citizensnpcs.api.astar.AStarNode;
 import net.citizensnpcs.api.astar.Plan;
@@ -169,7 +167,7 @@ public class VectorNode extends AStarNode implements PathPoint {
 
     @Override
     public List<Vector> getPathVectors() {
-        return pathVectors != null ? pathVectors : ImmutableList.of(location);
+        return pathVectors;
     }
 
     @Override

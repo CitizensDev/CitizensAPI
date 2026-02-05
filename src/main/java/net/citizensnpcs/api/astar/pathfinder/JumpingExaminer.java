@@ -108,8 +108,8 @@ public class JumpingExaminer implements AdditionalNeighbourGenerator {
     }
 
     private static class JumpCallback implements PathCallback {
-        private boolean jumped;
         private final Vector jumpPoint;
+        private boolean reached;
 
         public JumpCallback(Vector jumpPoint) {
             this.jumpPoint = jumpPoint;
@@ -117,13 +117,14 @@ public class JumpingExaminer implements AdditionalNeighbourGenerator {
 
         @Override
         public void onReached(NPC npc, Block point) {
+            reached = true;
         }
 
         @Override
         public void run(NPC npc, Block point, List<Block> path, int index) {
-            if (jumped || npc.getEntity().getLocation().toVector().distance(jumpPoint) > 0.2)
+            if (!reached || npc.getEntity().getLocation().toVector().distance(jumpPoint) > 0.2)
                 return;
-            jumped = true;
+            reached = false;
             npc.getEntity().setVelocity(npc.getEntity().getVelocity().setY(0.42));
         }
     }
