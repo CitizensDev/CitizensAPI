@@ -8,11 +8,11 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 
-import net.citizensnpcs.api.ai.Goal;
+import com.destroystokyo.paper.entity.ai.Goal;
+
 import net.citizensnpcs.api.ai.Navigator;
 import net.citizensnpcs.api.ai.event.CancelReason;
 import net.citizensnpcs.api.ai.tree.Behavior;
-import net.citizensnpcs.api.ai.tree.BehaviorGoalAdapter;
 import net.citizensnpcs.api.ai.tree.BehaviorStatus;
 import net.citizensnpcs.api.npc.NPC;
 
@@ -20,7 +20,7 @@ import net.citizensnpcs.api.npc.NPC;
  * A sample {@link Goal}/{@link Behavior} that will target specific {@link EntityType}s within a certain radius and
  * start following them using {@link Navigator#setTarget(Entity, boolean)}.
  */
-public class TargetNearbyEntityGoal extends BehaviorGoalAdapter {
+public class TargetNearbyEntityGoal implements Behavior {
     private final boolean aggressive;
     private final Function<Entity, Boolean> filter;
     private boolean finished;

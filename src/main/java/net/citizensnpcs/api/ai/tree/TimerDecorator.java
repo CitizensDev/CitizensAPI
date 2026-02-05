@@ -4,7 +4,7 @@ package net.citizensnpcs.api.ai.tree;
  * Wraps a {@link Behavior} and enforces a tick limit, after which it will return {@link BehaviorStatus#FAILURE} and
  * reset the child {@link Behavior}.
  */
-public class TimerDecorator extends BehaviorGoalAdapter {
+public class TimerDecorator implements Behavior {
     private final int limit;
     private int ticks;
     private final Behavior wrapping;

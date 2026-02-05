@@ -8,27 +8,15 @@ import java.util.List;
  * Runs each {@link Behavior} in sequence.
  */
 public class Sequence extends Composite {
-    private final boolean continueRunning;
     private Behavior executing;
     private int executingIndex = -1;
 
-    private Sequence(boolean retryChildren, Behavior... behaviors) {
-        this(retryChildren, Arrays.asList(behaviors));
+    private Sequence(Behavior... behaviors) {
+        this(Arrays.asList(behaviors));
     }
 
-    private Sequence(boolean retryChildren, Collection<Behavior> behaviors) {
+    private Sequence(Collection<Behavior> behaviors) {
         super(behaviors);
-        this.continueRunning = retryChildren;
-    }
-
-    private BehaviorStatus getContinuationStatus() {
-        resetCurrent();
-        if (continueRunning) {
-            if (++executingIndex >= getBehaviors().size())
-                return BehaviorStatus.FAILURE;
-            return BehaviorStatus.RUNNING;
-        } else
-            return BehaviorStatus.FAILURE;
     }
 
     @Override
@@ -41,10 +29,6 @@ public class Sequence extends Composite {
     private void resetCurrent() {
         stopExecution(executing);
         executing = null;
-    }
-
-    public boolean retryChildren() {
-        return continueRunning;
     }
 
     @Override
@@ -60,10 +44,9 @@ public class Sequence extends Composite {
         }
         BehaviorStatus status = executing.run();
         switch (status) {
-            case RUNNING:
-                return BehaviorStatus.RUNNING;
             case FAILURE:
-                return getContinuationStatus();
+                resetCurrent();
+                return BehaviorStatus.FAILURE;
             case RESET_AND_REMOVE:
                 behaviors.remove(executingIndex--);
                 return selectNext(behaviors);
@@ -71,7 +54,7 @@ public class Sequence extends Composite {
                 resetCurrent();
                 return selectNext(behaviors);
             default:
-                throw new IllegalStateException();
+                return status;
         }
     }
 
@@ -79,27 +62,17 @@ public class Sequence extends Composite {
         if (++executingIndex >= behaviors.size())
             return BehaviorStatus.SUCCESS;
         executing = behaviors.get(executingIndex);
-        if (!executing.shouldExecute())
-            return getContinuationStatus();
+        if (!executing.shouldExecute()) {
+            resetCurrent();
+            return BehaviorStatus.FAILURE;
+        }
         return BehaviorStatus.RUNNING;
     }
 
     @Override
     public String toString() {
-        return "Sequence [executing=" + executing + ", executingIndex=" + executingIndex + ", retryChildren="
-                + continueRunning + ", getBehaviors()=" + getBehaviors() + "]";
-    }
-
-    public static Sequence createRetryingSequence(Behavior... behaviors) {
-        return createRetryingSequence(Arrays.asList(behaviors));
-    }
-
-    /**
-     * Creates a <code>retrying</code> sequence that will continue from the current {@link Behavior} if it returns
-     * {@link BehaviorStatus#FAILURE} instead of propagating the failure up to its parent.
-     */
-    public static Sequence createRetryingSequence(Collection<Behavior> behaviors) {
-        return new Sequence(true, behaviors);
+        return "Sequence [executing=" + executing + ", executingIndex=" + executingIndex + ", getBehaviors()="
+                + getBehaviors() + "]";
     }
 
     public static Sequence createSequence(Behavior... behaviors) {
@@ -110,6 +83,6 @@ public class Sequence extends Composite {
      * Creates sequence that will stop executing if the current {@link Behavior} returns {@link BehaviorStatus#FAILURE}.
      */
     public static Sequence createSequence(Collection<Behavior> behaviors) {
-        return new Sequence(false, behaviors);
+        return new Sequence(behaviors);
     }
 }

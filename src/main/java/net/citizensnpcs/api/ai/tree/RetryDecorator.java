@@ -3,7 +3,7 @@ package net.citizensnpcs.api.ai.tree;
 /**
  * Decorates a {@link Behavior} and retries failures a certain number of times.
  */
-public class RetryDecorator extends BehaviorGoalAdapter {
+public class RetryDecorator implements Behavior {
     private final int limit;
     private int retries;
     private final Behavior wrapping;

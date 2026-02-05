@@ -5,7 +5,7 @@ import java.util.function.Supplier;
 /**
  * Wraps an {@link Behavior} and returns a supplied {@link BehaviorStatus} instead of the underlying status.
  */
-public class StatusMapper extends BehaviorGoalAdapter {
+public class StatusMapper implements Behavior {
     private final Supplier<BehaviorStatus> to;
     private final Behavior wrapping;
 

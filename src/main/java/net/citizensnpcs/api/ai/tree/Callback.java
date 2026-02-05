@@ -5,7 +5,7 @@ import java.util.function.Consumer;
 /**
  * Wraps an {@link Behavior} and runs callbacks when the underlying Behavior is finished.
  */
-public class Callback extends BehaviorGoalAdapter {
+public class Callback implements Behavior {
     private final Consumer<BehaviorStatus> cb;
     private final Behavior wrapping;
 

@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import net.citizensnpcs.api.ai.tree.Behavior;
-import net.citizensnpcs.api.ai.tree.BehaviorGoalAdapter;
 
 /**
  * A {@link Runnable} task that will break a block over time just as a normal Minecraft {@link Player} would. Should be
@@ -17,7 +16,7 @@ import net.citizensnpcs.api.ai.tree.BehaviorGoalAdapter;
  * <p>
  * Due to NMS constraints, this is currently implemented inside Citizens2.
  */
-public abstract class BlockBreaker extends BehaviorGoalAdapter {
+public abstract class BlockBreaker implements Behavior {
     public static class BlockBreakerConfiguration {
         private BiConsumer<Block, ItemStack> blockBreaker = Block::breakNaturally;
         private Runnable callback;

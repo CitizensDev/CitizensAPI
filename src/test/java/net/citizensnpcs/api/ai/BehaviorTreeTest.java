@@ -10,19 +10,18 @@ import org.junit.Before;
 import org.junit.Test;
 
 import net.citizensnpcs.api.ai.tree.Behavior;
-import net.citizensnpcs.api.ai.tree.BehaviorGoalAdapter;
 import net.citizensnpcs.api.ai.tree.BehaviorStatus;
 import net.citizensnpcs.api.ai.tree.Selector;
 import net.citizensnpcs.api.ai.tree.Sequence;
 
 public class BehaviorTreeTest {
-    private GoalController test;
+    private BehaviorController test;
 
     @Test
     public void failureSelector() {
         final CountedBehavior goal = new CountedBehavior(BehaviorStatus.SUCCESS);
         CountedBehavior goal2 = new CountedBehavior(BehaviorStatus.FAILURE);
-        Selector p = Selector.selecting(goal2, goal).selectionFunction(new Function<List<Behavior>, Behavior>() {
+        Selector p = Selector.selecting(goal, goal2).selectionFunction(new Function<List<Behavior>, Behavior>() {
             int idx;
 
             @Override
@@ -34,7 +33,8 @@ public class BehaviorTreeTest {
                 return b;
             }
         }).retryChildren().build();
-        test.addGoal(p, 1);
+        test.addBehavior(p);
+        test.run();
         test.run();
         assertThat("Reset count first", goal.resetCount, is(1));
         assertThat("Run count first", goal.runCount, is(1));
@@ -44,32 +44,16 @@ public class BehaviorTreeTest {
         assertThat("Should execute count second", goal2.shouldExecuteCount, is(1));
     }
 
-    @Test
-    public void failureSequence() {
-        CountedBehavior goal = new CountedBehavior(BehaviorStatus.FAILURE);
-        CountedBehavior goal2 = new CountedBehavior(BehaviorStatus.SUCCESS);
-        Sequence p = Sequence.createRetryingSequence(goal, goal2);
-        test.addGoal(p, 1);
-        test.run();
-        test.run();
-        assertThat("Reset count", goal.resetCount, is(2));
-        assertThat("Run count", goal.runCount, is(2));
-        assertThat("Should execute count", goal.shouldExecuteCount, is(2));
-        assertThat("Reset count2", goal2.resetCount, is(0));
-        assertThat("Run count2", goal2.runCount, is(0));
-        assertThat("Should execute count2", goal2.shouldExecuteCount, is(0));
-    }
-
     @Before
     public void setUp() {
-        test = new SimpleGoalController();
+        test = new SimpleBehaviorController();
     }
 
     @Test
     public void singleSelector() {
         CountedBehavior goal = new CountedBehavior(BehaviorStatus.SUCCESS);
         Selector p = Selector.selecting(goal).build();
-        test.addGoal(p, 1);
+        test.addBehavior(p);
         test.run();
         assertThat("Reset count", goal.resetCount, is(1));
         assertThat("Run count", goal.runCount, is(1));
@@ -80,14 +64,14 @@ public class BehaviorTreeTest {
     public void singleSequence() {
         CountedBehavior goal = new CountedBehavior(BehaviorStatus.SUCCESS);
         Sequence p = Sequence.createSequence(goal);
-        test.addGoal(p, 1);
+        test.addBehavior(p);
         test.run();
         assertThat("Reset count", goal.resetCount, is(1));
         assertThat("Run count", goal.runCount, is(1));
         assertThat("Should execute count", goal.shouldExecuteCount, is(1));
     }
 
-    private static class CountedBehavior extends BehaviorGoalAdapter {
+    private static class CountedBehavior implements Behavior {
         public int loggingTag = 0;
         private int resetCount;
         private final BehaviorStatus ret;

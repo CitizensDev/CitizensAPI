@@ -56,21 +56,26 @@ public class Selector extends Composite {
             }
         }
         if (status == null) {
+            System.out.println(executing);
             status = executing.run();
         }
-        if (status == BehaviorStatus.FAILURE) {
-            if (retryChildren) {
+        switch (status) {
+            case RESET_AND_REMOVE:
+                getBehaviors().remove(executing);
                 stopExecution(executing);
                 executing = null;
-                return BehaviorStatus.RUNNING;
-            }
-        } else if (status == BehaviorStatus.RESET_AND_REMOVE) {
-            getBehaviors().remove(executing);
-            stopExecution(executing);
-            executing = null;
-            return BehaviorStatus.SUCCESS;
+                return BehaviorStatus.SUCCESS;
+            case SUCCESS:
+            case FAILURE:
+                if (status == BehaviorStatus.FAILURE && retryChildren) {
+                    executing.reset();
+                    return BehaviorStatus.RUNNING;
+                }
+                stopExecution(executing);
+                executing = null;
+            default:
+                return status;
         }
-        return status;
     }
 
     @Override
@@ -134,6 +139,7 @@ public class Selector extends Composite {
     }
 
     private static final Random RANDOM = new Random();
+
     private static final Function<List<Behavior>, Behavior> RANDOM_SELECTION = behaviors -> behaviors
             .get(RANDOM.nextInt(behaviors.size()));
 }

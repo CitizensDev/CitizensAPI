@@ -95,6 +95,8 @@ public class JSR223Engine implements ExpressionEngine {
             }
             return value;
         }
+
+        private static final long serialVersionUID = -3871567433295428695L;
     }
 
     private static class LazyValue {

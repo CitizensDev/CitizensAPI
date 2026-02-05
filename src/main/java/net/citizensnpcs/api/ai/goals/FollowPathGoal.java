@@ -5,16 +5,16 @@ import java.util.stream.Collectors;
 
 import org.bukkit.Location;
 
-import net.citizensnpcs.api.ai.Goal;
+import com.destroystokyo.paper.entity.ai.Goal;
+
 import net.citizensnpcs.api.ai.tree.Behavior;
-import net.citizensnpcs.api.ai.tree.BehaviorGoalAdapter;
 import net.citizensnpcs.api.ai.tree.BehaviorStatus;
 import net.citizensnpcs.api.npc.NPC;
 
 /**
  * A sample {@link Goal}/{@link Behavior} that simply moves an {@link NPC} through a list of {@link Location}s.
  */
-public class FollowPathGoal extends BehaviorGoalAdapter {
+public class FollowPathGoal implements Behavior {
     private int idx;
     private final NPC npc;
     private final List<MoveToGoal> path;

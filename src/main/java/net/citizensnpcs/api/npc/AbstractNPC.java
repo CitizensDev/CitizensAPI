@@ -23,8 +23,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 
 import net.citizensnpcs.api.CitizensAPI;
-import net.citizensnpcs.api.ai.GoalController;
-import net.citizensnpcs.api.ai.SimpleGoalController;
+import net.citizensnpcs.api.ai.BehaviorController;
+import net.citizensnpcs.api.ai.SimpleBehaviorController;
 import net.citizensnpcs.api.ai.speech.SpeechController;
 import net.citizensnpcs.api.ai.speech.event.NPCSpeechEvent;
 import net.citizensnpcs.api.event.DespawnReason;
@@ -50,7 +50,7 @@ public abstract class AbstractNPC implements NPC {
     private final List<String> clearSaveData = new ArrayList<>();
     protected Object coloredNameComponentCache;
     protected String coloredNameStringCache;
-    private final GoalController goalController = new SimpleGoalController();
+    private final BehaviorController goalController = new SimpleBehaviorController();
     private final int id;
     private Supplier<ItemStack> itemProvider = () -> {
         Material id = data().has(NPC.Metadata.ITEM_ID)
@@ -174,7 +174,7 @@ public abstract class AbstractNPC implements NPC {
     }
 
     @Override
-    public GoalController getDefaultGoalController() {
+    public BehaviorController getDefaultBehaviorController() {
         return goalController;
     }
 

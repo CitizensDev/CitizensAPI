@@ -13,7 +13,7 @@ import java.util.function.Predicate;
  * Note that there are often simpler alternatives to a full-blown decorator, which has to be generic for many different
  * scenarios.
  */
-public class Decorator extends BehaviorGoalAdapter {
+public class Decorator implements Behavior {
     private final Collection<Runnable> resetCallbacks;
     private final Collection<Runnable> runCallbacks;
     private final Collection<Predicate<Boolean>> shouldExecutePredicates;

@@ -6,7 +6,7 @@ import java.util.function.Supplier;
  * A simple if-then-else {@link Behavior} which will execute a different {@link Behavior} depending on an
  * {@link Condition} function.
  */
-public class IfElse extends BehaviorGoalAdapter {
+public class IfElse implements Behavior {
     private final Supplier<Boolean> condition;
     private Behavior executing;
     private final Behavior ifBehavior, elseBehavior;

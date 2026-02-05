@@ -10,7 +10,7 @@ import com.google.common.collect.Lists;
 /**
  * The base class for composite {@link Behavior}s, which handle the transition between multiple sub-behaviors.
  */
-public abstract class Composite extends BehaviorGoalAdapter {
+public abstract class Composite implements Behavior {
     private final List<Behavior> behaviors;
     private final List<Behavior> parallel = Lists.newArrayListWithCapacity(0);
     protected final List<Behavior> parallelExecuting = Lists.newArrayListWithCapacity(0);

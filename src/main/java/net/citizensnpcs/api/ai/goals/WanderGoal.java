@@ -9,13 +9,12 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.Listener;
 
+import com.destroystokyo.paper.entity.ai.Goal;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 import ch.ethz.globis.phtree.PhTreeSolid;
-import net.citizensnpcs.api.ai.Goal;
 import net.citizensnpcs.api.ai.tree.Behavior;
-import net.citizensnpcs.api.ai.tree.BehaviorGoalAdapter;
 import net.citizensnpcs.api.ai.tree.BehaviorStatus;
 import net.citizensnpcs.api.astar.pathfinder.MinecraftBlockExaminer;
 import net.citizensnpcs.api.npc.NPC;
@@ -23,7 +22,7 @@ import net.citizensnpcs.api.npc.NPC;
 /**
  * A sample {@link Goal}/{@link Behavior} that will wander within a certain block region.
  */
-public class WanderGoal extends BehaviorGoalAdapter implements Listener {
+public class WanderGoal implements Behavior, Listener {
     private int delay;
     private int delayedTicks;
     private Function<Block, Boolean> filter;
@@ -34,8 +33,6 @@ public class WanderGoal extends BehaviorGoalAdapter implements Listener {
     private boolean paused;
     private final Function<NPC, Location> picker;
     private Location target;
-    private final Supplier<PhTreeSolid<Boolean>> tree;
-    private final Supplier<Object> worldguardRegion;
     private int xrange;
     private int yrange;
 
@@ -44,10 +41,8 @@ public class WanderGoal extends BehaviorGoalAdapter implements Listener {
             Function<NPC, Location> picker) {
         this.npc = npc;
         this.pathfind = pathfind;
-        this.worldguardRegion = worldguardRegion;
         this.xrange = xrange;
         this.yrange = yrange;
-        this.tree = tree;
         this.delay = delay;
         this.picker = picker;
         this.filter = filter == null ? block -> {

@@ -2,7 +2,7 @@ package net.citizensnpcs.api.ai.tree;
 
 import java.util.function.Supplier;
 
-public abstract class Precondition extends BehaviorGoalAdapter {
+public abstract class Precondition implements Behavior {
     protected final Supplier<Boolean> condition;
 
     protected Precondition(Supplier<Boolean> condition) {

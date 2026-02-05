@@ -19,7 +19,7 @@ import org.bukkit.inventory.ItemStack;
 import com.google.common.base.Optional;
 import com.google.common.reflect.TypeToken;
 
-import net.citizensnpcs.api.ai.GoalController;
+import net.citizensnpcs.api.ai.BehaviorController;
 import net.citizensnpcs.api.ai.Navigator;
 import net.citizensnpcs.api.ai.speech.SpeechController;
 import net.citizensnpcs.api.astar.Agent;
@@ -129,11 +129,9 @@ public interface NPC extends Agent, Cloneable {
     }
 
     /**
-     * Gets the default {@link GoalController} of this NPC.
-     *
-     * @return Default goal controller
+     * @return the default {@link BehaviorController} of this NPC.
      */
-    public GoalController getDefaultGoalController();
+    public BehaviorController getDefaultBehaviorController();
 
     /**
      * Gets the default {@link SpeechController} of this NPC.
