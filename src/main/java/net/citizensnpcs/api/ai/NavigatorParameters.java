@@ -313,8 +313,8 @@ public class NavigatorParameters implements Cloneable {
             examiners = new BlockExaminer[] { examiner };
             return this;
         }
-        BlockExaminer[] next = Arrays.copyOf(examiners, examiners.length + 1);
-        next[next.length - 1] = examiner;
+        examiners = Arrays.copyOf(examiners, examiners.length + 1);
+        examiners[examiners.length - 1] = examiner;
         return this;
     }
 

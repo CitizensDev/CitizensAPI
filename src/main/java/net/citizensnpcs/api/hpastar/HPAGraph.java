@@ -197,6 +197,22 @@ public class HPAGraph {
         return new Path(sln.convertToVectors());
     }
 
+    public void invalidateCluster(int x, int y, int z) {
+        for (int depth = 0; depth < phtrees.size(); depth++) {
+            PhTreeSolid<HPACluster> phtree = phtrees.get(depth);
+            PhQueryS<HPACluster> q = phtree.queryIntersect(new long[] { x, y, z }, new long[] { x, y, z });
+            while (q.hasNext()) {
+                HPACluster cluster = q.nextValue();
+                phtree.remove(new long[] { cluster.clusterX, cluster.clusterY, cluster.clusterZ },
+                        new long[] { cluster.clusterX + cluster.clusterSize, cluster.clusterY + cluster.clusterHeight,
+                                cluster.clusterZ + cluster.clusterSize });
+                clusters.get(depth).remove(cluster);
+                Messaging.log("Invalidated cluster:", cluster);
+            }
+        }
+        addClusters(x, z);
+    }
+
     AStarSolution pathfind(HPAGraphNode start, HPAGraphNode dest, int level) {
         Map<ReversableAStarNode, Float> open = new HashMap<>();
         Map<ReversableAStarNode, Float> closed = new HashMap<>();
@@ -236,26 +252,6 @@ public class HPAGraph {
         return new AStarSolution(null, Float.POSITIVE_INFINITY);
     }
 
-    public void invalidateCluster(int x, int y, int z) {
-        // Find and remove affected clusters at all depths, then rebuild them
-        for (int depth = 0; depth < phtrees.size(); depth++) {
-            PhTreeSolid<HPACluster> phtree = phtrees.get(depth);
-            PhQueryS<HPACluster> q = phtree.queryIntersect(new long[] { x, y, z }, new long[] { x, y, z });
-            while (q.hasNext()) {
-                HPACluster cluster = q.nextValue();
-                // Remove from phtree
-                phtree.remove(new long[] { cluster.clusterX, cluster.clusterY, cluster.clusterZ },
-                        new long[] { cluster.clusterX + cluster.clusterSize, cluster.clusterY + cluster.clusterHeight,
-                                cluster.clusterZ + cluster.clusterSize });
-                // Remove from clusters list
-                clusters.get(depth).remove(cluster);
-                Messaging.log("Invalidated cluster:", cluster);
-            }
-        }
-        // Rebuild affected region
-        addClusters(x, z);
-    }
-
     public boolean walkable(int x, int y, int z) {
         if (y == 0)
             return false;
@@ -264,8 +260,8 @@ public class HPAGraph {
                 && MinecraftBlockExaminer.canStandOn(blockSource.getMaterialAt(x, y - 1, z));
     }
 
-    private static int BASE_CLUSTER_SIZE = (int) (2 * Math.pow(2, 3));
     private static int BASE_CLUSTER_HEIGHT = (int) (2 * Math.pow(2, 2));
+    private static int BASE_CLUSTER_SIZE = (int) (2 * Math.pow(2, 3));
     private static int MAX_CLUSTER_SIZE = (int) (2 * Math.pow(2, 5));
     private static int MAX_DEPTH = 3;
 }
