@@ -12,14 +12,11 @@ import java.util.function.Function;
  */
 public class Selector extends Composite {
     private Behavior executing;
-    private boolean retryChildren = false;
     private final Function<List<Behavior>, Behavior> selectionFunction;
 
-    private Selector(Function<List<Behavior>, Behavior> selectionFunction, boolean retryChildren,
-            Collection<Behavior> behaviors) {
+    private Selector(Function<List<Behavior>, Behavior> selectionFunction, Collection<Behavior> behaviors) {
         super(behaviors);
         this.selectionFunction = selectionFunction;
-        this.retryChildren = retryChildren;
     }
 
     public Behavior getNextBehavior() {
@@ -39,10 +36,6 @@ public class Selector extends Composite {
         executing = null;
     }
 
-    public boolean retryChildren() {
-        return retryChildren;
-    }
-
     @Override
     public BehaviorStatus run() {
         tickParallel();
@@ -56,7 +49,6 @@ public class Selector extends Composite {
             }
         }
         if (status == null) {
-            System.out.println(executing);
             status = executing.run();
         }
         switch (status) {
@@ -67,10 +59,6 @@ public class Selector extends Composite {
                 return BehaviorStatus.SUCCESS;
             case SUCCESS:
             case FAILURE:
-                if (status == BehaviorStatus.FAILURE && retryChildren) {
-                    executing.reset();
-                    return BehaviorStatus.RUNNING;
-                }
                 stopExecution(executing);
                 executing = null;
             default:
@@ -80,13 +68,12 @@ public class Selector extends Composite {
 
     @Override
     public String toString() {
-        return "Selector [executing=" + executing + ", retryChildren=" + retryChildren + ", selectionFunction="
-                + selectionFunction + ", getBehaviors()=" + getBehaviors() + "]";
+        return "Selector [executing=" + executing + ", selectionFunction=" + selectionFunction + ", getBehaviors()="
+                + getBehaviors() + "]";
     }
 
     public static class Builder {
         private final Collection<Behavior> behaviors;
-        private boolean retryChildren;
         private Function<List<Behavior>, Behavior> selectionFunction = RANDOM_SELECTION;
 
         private Builder(Collection<Behavior> behaviors) {
@@ -94,27 +81,7 @@ public class Selector extends Composite {
         }
 
         public Selector build() {
-            return new Selector(selectionFunction, retryChildren, behaviors);
-        }
-
-        /**
-         * Sets whether to retry child {@link Behavior}s when they return {@link BehaviorStatus#FAILURE}.
-         *
-         */
-        public Builder retryChildren() {
-            retryChildren = true;
-            return this;
-        }
-
-        /**
-         * Sets whether to retry child {@link Behavior}s when they return {@link BehaviorStatus#FAILURE}.
-         *
-         * @param b
-         *            Whether to retry children
-         */
-        public Builder retryChildren(boolean b) {
-            retryChildren = b;
-            return this;
+            return new Selector(selectionFunction, behaviors);
         }
 
         /**
@@ -139,7 +106,6 @@ public class Selector extends Composite {
     }
 
     private static final Random RANDOM = new Random();
-
     private static final Function<List<Behavior>, Behavior> RANDOM_SELECTION = behaviors -> behaviors
             .get(RANDOM.nextInt(behaviors.size()));
 }
