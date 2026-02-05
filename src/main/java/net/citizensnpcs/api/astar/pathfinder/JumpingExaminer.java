@@ -1,6 +1,7 @@
 package net.citizensnpcs.api.astar.pathfinder;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
@@ -12,11 +13,11 @@ import net.citizensnpcs.api.astar.pathfinder.PathPoint.PathCallback;
 import net.citizensnpcs.api.npc.NPC;
 
 public class JumpingExaminer implements AdditionalNeighbourGenerator {
-    private final int entityHeight;
-    private final float speed;
+    private final Supplier<Integer> entityHeight;
+    private final Supplier<Float> speed;
 
-    public JumpingExaminer(double entityHeight, float speed) {
-        this.entityHeight = (int) Math.ceil(entityHeight);
+    public JumpingExaminer(Supplier<Integer> height, Supplier<Float> speed) {
+        this.entityHeight = height;
         this.speed = speed;
     }
 
@@ -26,9 +27,9 @@ public class JumpingExaminer implements AdditionalNeighbourGenerator {
         final int minY = base.getBlockY() - 3;
 
         for (int i = 0; i < 8; i++) {
-            double vx = (DX[i] * INV_LEN[i]) * speed;
+            double vx = (DX[i] * INV_LEN[i]) * speed.get();
             double vy = JUMP_VELOCITY;
-            double vz = (DZ[i] * INV_LEN[i]) * speed;
+            double vz = (DZ[i] * INV_LEN[i]) * speed.get();
 
             double x = base.getBlockX() + 0.5 + DX[i] * INV_LEN[i] * 0.3;
             double y = base.getBlockY();
@@ -71,8 +72,10 @@ public class JumpingExaminer implements AdditionalNeighbourGenerator {
                             Vector jumpPoint = new Vector(cx + 0.5 + DX[i] * INV_LEN[i] * 0.3, cy,
                                     cz + 0.5 + DX[i] * INV_LEN[i] * 0.3);
                             point.addCallback(new JumpCallback(jumpPoint));
-                            point.setPathVectors(ImmutableList.of(jumpPoint));
-                            neighbours.add(point.createAtOffset(new Vector(cx, cy, cz), 1.5f));
+                            Vector vector = new Vector(cx, cy, cz);
+                            PathPoint next = point.createAtOffset(vector, 1.5f);
+                            next.setPathVectors(ImmutableList.of(jumpPoint, vector));
+                            neighbours.add(next);
                             continue loop;
                         }
                     }
@@ -95,7 +98,8 @@ public class JumpingExaminer implements AdditionalNeighbourGenerator {
     }
 
     private boolean isClearColumn(BlockSource source, int x, int y, int z) {
-        for (int h = 0; h < entityHeight; h++) {
+        int height = entityHeight.get();
+        for (int h = 0; h < height; h++) {
             if (!MinecraftBlockExaminer.canStandIn(source.getMaterialAt(x, y + h, z)))
                 return false;
         }

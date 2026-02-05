@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.bukkit.util.Vector;
 
+import com.google.common.collect.ImmutableList;
+
 import net.citizensnpcs.api.astar.pathfinder.BlockExaminer.AdditionalNeighbourGenerator;
 
 public class FallingExaminer implements AdditionalNeighbourGenerator {
@@ -38,8 +40,10 @@ public class FallingExaminer implements AdditionalNeighbourGenerator {
                             source.getBlockDataAt(x, base.getBlockY() - dy + 1, z))
                             && MinecraftBlockExaminer.canStandOn(source.getMaterialAt(x, base.getBlockY() - dy, z),
                                     source.getBlockDataAt(x, base.getBlockY() - dy, z))) {
-                        // TODO: could use setPathVectors
-                        neighbours.add(point.createAtOffset(new Vector(x, base.getBlockY() - dy, z), (dy + 1) * 2.5f));
+                        Vector vector = new Vector(x + 0.5, base.getBlockY() - dy, z + 0.5);
+                        PathPoint next = point.createAtOffset(vector, (dy + 1) * 2.5f);
+                        next.setPathVectors(ImmutableList.of(new Vector(x + 0.5, base.getBlockY(), z + 0.5), vector));
+                        neighbours.add(next);
                         break;
                     }
                 }
