@@ -13,8 +13,9 @@ import com.google.common.collect.ImmutableList;
 import net.citizensnpcs.api.ai.NavigatorParameters;
 import net.citizensnpcs.api.astar.AStarNode;
 import net.citizensnpcs.api.astar.Plan;
-import net.citizensnpcs.api.astar.pathfinder.BlockExaminer.NeighbourGeneratorBlockExaminer;
+import net.citizensnpcs.api.astar.pathfinder.BlockExaminer.AdditionalNeighbourGenerator;
 import net.citizensnpcs.api.astar.pathfinder.BlockExaminer.PassableState;
+import net.citizensnpcs.api.astar.pathfinder.BlockExaminer.ReplacementNeighbourGenerator;
 import net.citizensnpcs.api.astar.pathfinder.BlockExaminer.StandableState;
 
 public class VectorNode extends AStarNode implements PathPoint {
@@ -56,6 +57,13 @@ public class VectorNode extends AStarNode implements PathPoint {
     @Override
     public VectorNode createAtOffset(Vector mod) {
         return new VectorNode(this, mod, info);
+    }
+
+    @Override
+    public PathPoint createAtOffset(Vector mod, float fixedCost) {
+        VectorNode node = createAtOffset(mod);
+        node.blockCost = node.getBlockCost() + fixedCost;
+        return node;
     }
 
     public float distance(Vector goal) {
@@ -101,15 +109,20 @@ public class VectorNode extends AStarNode implements PathPoint {
     public Iterable<AStarNode> getNeighbours() {
         List<PathPoint> neighbours = null;
         for (BlockExaminer examiner : info.params.examiners()) {
-            if (examiner instanceof NeighbourGeneratorBlockExaminer) {
-                neighbours = ((NeighbourGeneratorBlockExaminer) examiner).getNeighbours(info.blockSource, this);
+            if (examiner instanceof ReplacementNeighbourGenerator) {
+                neighbours = ((ReplacementNeighbourGenerator) examiner).getNeighbours(info.blockSource, this);
                 break;
             }
         }
         if (neighbours == null) {
             neighbours = getNeighbours(info.blockSource, this);
         }
-        List<AStarNode> nodes = new ArrayList<>();
+        for (BlockExaminer examiner : info.params.examiners()) {
+            if (examiner instanceof AdditionalNeighbourGenerator) {
+                ((AdditionalNeighbourGenerator) examiner).addNeighbours(info.blockSource, this, neighbours);
+            }
+        }
+        List<AStarNode> nodes = new ArrayList<>(neighbours.size());
         for (PathPoint sub : neighbours) {
             if (!isPassable(sub))
                 continue;
@@ -124,7 +137,7 @@ public class VectorNode extends AStarNode implements PathPoint {
     }
 
     public List<PathPoint> getNeighbours(BlockSource source, PathPoint point, boolean checkPassable) {
-        List<PathPoint> neighbours = new ArrayList<>();
+        List<PathPoint> neighbours = new ArrayList<>(25);
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
                 for (int z = -1; z <= 1; z++) {

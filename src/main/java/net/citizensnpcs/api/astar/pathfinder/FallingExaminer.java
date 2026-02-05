@@ -1,54 +1,64 @@
 package net.citizensnpcs.api.astar.pathfinder;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 import org.bukkit.util.Vector;
 
-public class FallingExaminer implements BlockExaminer {
-    private final Map<PathPoint, Integer> fall = new HashMap<>();
+import net.citizensnpcs.api.astar.pathfinder.BlockExaminer.AdditionalNeighbourGenerator;
+
+public class FallingExaminer implements AdditionalNeighbourGenerator {
     private final int maxFallDistance;
-    private final MinecraftBlockExaminer mc = new MinecraftBlockExaminer();
 
     public FallingExaminer(int maxFallDistance) {
         this.maxFallDistance = maxFallDistance;
     }
 
     @Override
-    public StandableState canStandAt(BlockSource source, PathPoint point) {
-        Vector pos = point.getVector();
-        if (!source.isYWithinBounds(pos.getBlockY() - 1))
-            return StandableState.IGNORE;
+    public void addNeighbours(BlockSource source, PathPoint point, List<PathPoint> neighbours) {
+        Vector base = point.getVector();
+        if (!source.isYWithinBounds(base.getBlockY() - 1))
+            return;
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
 
-        if (fall.containsKey(point))
-            return StandableState.STANDABLE;
+                int x = base.getBlockX() + dx;
+                int z = base.getBlockZ() + dz;
 
-        Vector ppos = point.getParentPoint().getVector();
-        if (!MinecraftBlockExaminer.canStandOn(
-                source.getMaterialAt(pos.getBlockX(), pos.getBlockY() - 1, pos.getBlockZ()),
-                source.getBlockDataAt(pos.getBlockX(), pos.getBlockY(), pos.getBlockZ()))) {
-            Integer dist = fall.get(point.getParentPoint());
-            if (dist == null && mc.isPassable(source, point.getParentPoint()) == PassableState.PASSABLE) {
-                // start a fall
-                fall.put(point, 0);
-                return StandableState.STANDABLE;
-            } else if (dist != null && dist < maxFallDistance && pos.getBlockY() < ppos.getBlockY()
-                    && pos.getBlockX() == ppos.getBlockX() && pos.getBlockZ() == ppos.getBlockZ()
-                    && MinecraftBlockExaminer.canStandIn(source.getMaterialAt(pos), source.getBlockDataAt(ppos))) {
-                fall.put(point, dist + 1);
-                return StandableState.STANDABLE;
+                if (!MinecraftBlockExaminer.canStandIn(source.getMaterialAt(x, base.getBlockY(), z),
+                        source.getBlockDataAt(x, base.getBlockY(), z))
+                        || MinecraftBlockExaminer.canStandOn(source.getMaterialAt(x, base.getBlockY() - 1, z),
+                                source.getBlockDataAt(x, base.getBlockY() - 1, z)))
+                    continue;
+
+                for (int dy = 2; dy <= maxFallDistance; dy++) {
+                    if (!source.isYWithinBounds(base.getBlockY() - dy))
+                        break;
+
+                    if (MinecraftBlockExaminer.canStandIn(source.getMaterialAt(x, base.getBlockY() - dy + 1, z),
+                            source.getBlockDataAt(x, base.getBlockY() - dy + 1, z))
+                            && MinecraftBlockExaminer.canStandOn(source.getMaterialAt(x, base.getBlockY() - dy, z),
+                                    source.getBlockDataAt(x, base.getBlockY() - dy, z))) {
+                        // TODO: could use setPathVectors
+                        neighbours.add(point.createAtOffset(new Vector(x, base.getBlockY() - dy, z), (dy + 1) * 2.5f));
+                        break;
+                    }
+                }
             }
         }
+    }
+
+    @Override
+    public StandableState canStandAt(BlockSource source, PathPoint point) {
         return StandableState.IGNORE;
     }
 
     @Override
     public float getCost(BlockSource source, PathPoint point) {
-        return fall.containsKey(point) ? 0.25f : 0;
+        return 0;
     }
 
     @Override
     public PassableState isPassable(BlockSource source, PathPoint point) {
-        return fall.containsKey(point) ? PassableState.PASSABLE : PassableState.IGNORE;
+        return PassableState.IGNORE;
     }
 }

@@ -19,6 +19,11 @@ public interface PathPoint {
     PathPoint createAtOffset(Vector vector);
 
     /**
+     * Returns a new PathPoint at a given Vector.
+     */
+    PathPoint createAtOffset(Vector vector, float fixedCost);
+
+    /**
      * Gets the destination Vector
      */
     Vector getGoal();

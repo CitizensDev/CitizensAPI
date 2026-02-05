@@ -21,14 +21,18 @@ public interface BlockExaminer {
      */
     PassableState isPassable(BlockSource source, PathPoint point);
 
-    public static interface NeighbourGeneratorBlockExaminer extends BlockExaminer {
-        public List<PathPoint> getNeighbours(BlockSource source, PathPoint point);
+    public static interface AdditionalNeighbourGenerator extends BlockExaminer {
+        public void addNeighbours(BlockSource source, PathPoint point, List<PathPoint> neighbours);
     }
 
     public enum PassableState {
         IGNORE,
         IMPASSABLE,
         PASSABLE;
+    }
+
+    public static interface ReplacementNeighbourGenerator extends BlockExaminer {
+        public List<PathPoint> getNeighbours(BlockSource source, PathPoint point);
     }
 
     public enum StandableState {
