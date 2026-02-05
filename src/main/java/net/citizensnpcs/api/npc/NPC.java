@@ -30,6 +30,7 @@ import net.citizensnpcs.api.event.SpawnReason;
 import net.citizensnpcs.api.npc.BlockBreaker.BlockBreakerConfiguration;
 import net.citizensnpcs.api.trait.Trait;
 import net.citizensnpcs.api.trait.TraitFactory;
+import net.citizensnpcs.api.trait.trait.MobType;
 import net.citizensnpcs.api.trait.trait.PlayerFilter;
 import net.citizensnpcs.api.util.BoundingBox;
 import net.citizensnpcs.api.util.DataKey;
@@ -126,6 +127,10 @@ public interface NPC extends Agent, Cloneable {
 
     default public Entity getCosmeticEntity() {
         return getEntity();
+    }
+
+    default public EntityType getCosmeticEntityType() {
+        return getOrAddTrait(MobType.class).getType();
     }
 
     /**
