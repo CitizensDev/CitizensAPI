@@ -16,12 +16,26 @@ public interface PathPoint {
     /**
      * Returns a new PathPoint at a given Vector.
      */
-    PathPoint createAtOffset(Vector vector);
+    default PathPoint createAtOffset(Vector vector) {
+        return createChild(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
+    }
 
     /**
      * Returns a new PathPoint at a given Vector.
      */
-    PathPoint createAtOffset(Vector vector, float fixedCost);
+    default PathPoint createAtOffset(Vector vector, float fixedCost) {
+        return createChild(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ(), fixedCost);
+    }
+
+    /**
+     * Returns a new PathPoint at a given point.
+     */
+    PathPoint createChild(int x, int y, int z);
+
+    /**
+     * Returns a new PathPoint at a given point.
+     */
+    PathPoint createChild(int x, int y, int z, float fixedCost);
 
     /**
      * Gets the destination Vector

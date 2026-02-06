@@ -25,18 +25,14 @@ public class VectorNode extends AStarNode implements PathPoint {
     List<Vector> pathVectors;
 
     public VectorNode(VectorGoal goal, Location location, BlockSource source, NavigatorParameters params) {
-        this(null, goal, location.toVector(), source, params);
+        this(null, new BlockVector(location.getBlockX(), location.getBlockY(), location.getBlockZ()),
+                new PathInfo(source, params, goal));
     }
 
     public VectorNode(VectorNode parent, Vector location, PathInfo info) {
         super(parent);
-        this.location = new BlockVector(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+        this.location = location;
         this.info = info;
-    }
-
-    public VectorNode(VectorNode parent, VectorGoal goal, Vector location, BlockSource source,
-            NavigatorParameters params) {
-        this(parent, location, new PathInfo(source, params, goal));
     }
 
     @Override
@@ -53,13 +49,13 @@ public class VectorNode extends AStarNode implements PathPoint {
     }
 
     @Override
-    public VectorNode createAtOffset(Vector mod) {
-        return new VectorNode(this, mod, info);
+    public VectorNode createChild(int x, int y, int z) {
+        return new VectorNode(this, new BlockVector(x, y, z), info);
     }
 
     @Override
-    public PathPoint createAtOffset(Vector mod, float fixedCost) {
-        VectorNode node = createAtOffset(mod);
+    public PathPoint createChild(int x, int y, int z, float fixedCost) {
+        VectorNode node = createChild(x, y, z);
         node.blockCost = node.getBlockCost() + fixedCost;
         return node;
     }
@@ -135,25 +131,22 @@ public class VectorNode extends AStarNode implements PathPoint {
     }
 
     public List<PathPoint> getNeighbours(BlockSource source, PathPoint point, boolean checkPassable) {
-        List<PathPoint> neighbours = new ArrayList<>(25);
+        List<PathPoint> neighbours = new ArrayList<>(26);
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
+                int modY = location.getBlockY() + y;
+                if (!source.isYWithinBounds(modY))
+                    continue;
                 for (int z = -1; z <= 1; z++) {
                     if (x == 0 && y == 0 && z == 0)
                         continue;
 
-                    int modY = location.getBlockY() + y;
-                    if (!source.isYWithinBounds(modY))
-                        continue;
-
-                    Vector mod = new Vector(location.getX() + x, modY, location.getZ() + z);
-                    if (x != 0 && z != 0 && checkPassable) {
-                        if (!isPassable(point.createAtOffset(new Vector(location.getX() + x, modY, location.getZ())))
-                                || !isPassable(
-                                        point.createAtOffset(new Vector(location.getX(), modY, location.getZ() + z))))
+                    if (checkPassable && x != 0 && z != 0) {
+                        if (!isPassable(point.createChild(location.getBlockX() + x, modY, location.getBlockZ()))
+                                || !isPassable(point.createChild(location.getBlockX(), modY, location.getBlockZ() + z)))
                             continue;
                     }
-                    neighbours.add(point.createAtOffset(mod));
+                    neighbours.add(point.createChild(location.getBlockX() + x, modY, location.getBlockZ() + z));
                 }
             }
         }

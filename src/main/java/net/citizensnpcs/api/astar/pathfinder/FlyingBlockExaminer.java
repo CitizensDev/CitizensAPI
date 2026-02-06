@@ -6,9 +6,7 @@ import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
-import net.citizensnpcs.api.astar.pathfinder.BlockExaminer.PassableState;
 import net.citizensnpcs.api.astar.pathfinder.BlockExaminer.ReplacementNeighbourGenerator;
-import net.citizensnpcs.api.astar.pathfinder.BlockExaminer.StandableState;
 import net.citizensnpcs.api.util.SpigotUtil;
 
 public class FlyingBlockExaminer implements ReplacementNeighbourGenerator {
@@ -23,24 +21,23 @@ public class FlyingBlockExaminer implements ReplacementNeighbourGenerator {
         Material above = source.getMaterialAt(pos.clone().add(UP));
         Material in = source.getMaterialAt(pos);
         if (above == WEB || in == WEB)
-            return 0.5F;
+            return 2F;
         return 0F;
     }
 
     @Override
     public List<PathPoint> getNeighbours(BlockSource source, PathPoint point) {
-        List<PathPoint> neighbours = new ArrayList<>(25);
+        List<PathPoint> neighbours = new ArrayList<>(26);
+        Vector base = point.getVector();
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
+                if (!source.isYWithinBounds(base.getBlockY() + y))
+                    continue;
                 for (int z = -1; z <= 1; z++) {
                     if (x == 0 && y == 0 && z == 0)
                         continue;
 
-                    Vector mod = point.getVector().clone().add(new Vector(x, y, z));
-                    if (mod.getY() < 0 || mod.getY() > 255 || mod.equals(point.getVector()))
-                        continue;
-
-                    neighbours.add(point.createAtOffset(mod));
+                    neighbours.add(point.createChild(base.getBlockX() + x, base.getBlockY() + y, base.getBlockZ() + z));
                 }
             }
         }

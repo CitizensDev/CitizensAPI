@@ -14,6 +14,9 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.block.data.type.Slab;
 import org.bukkit.block.data.type.TrapDoor;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Squid;
+import org.bukkit.entity.WaterMob;
 import org.bukkit.util.Vector;
 
 import com.google.common.collect.Lists;
@@ -23,6 +26,15 @@ import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.util.SpigotUtil;
 
 public class MinecraftBlockExaminer implements BlockExaminer {
+    private NPC npc;
+
+    public MinecraftBlockExaminer() {
+    }
+
+    public MinecraftBlockExaminer(NPC npc) {
+        this.npc = npc;
+    }
+
     @Override
     public StandableState canStandAt(BlockSource source, PathPoint point) {
         Vector pos = point.getVector();
@@ -59,12 +71,14 @@ public class MinecraftBlockExaminer implements BlockExaminer {
         Material in = source.getMaterialAt(pos);
         if (above == WEB || in == WEB || below == Material.SOUL_SAND || below == Material.ICE)
             return 2F;
-        if (isLiquidOrWaterlogged(source.getMaterialAt(pos), source.getBlockDataAt(pos))) {
-            if (in == Material.LAVA)
+        if ((npc == null || !isWaterMob(npc.getCosmeticEntity()))
+                && isLiquidOrWaterlogged(source.getMaterialAt(pos), source.getBlockDataAt(pos))) {
+            if (in == Material.LAVA || in.name().equals("STATIONARY_LAVA"))
                 return 4F;
+
             return 2F;
         }
-        return 0F; // TODO: add light level-specific costs?
+        return 0F; // TODO: add light level-specific costs like Minecraft?
     }
 
     private boolean isClimbable(Material mat) {
@@ -295,6 +309,15 @@ public class MinecraftBlockExaminer implements BlockExaminer {
         if (!SpigotUtil.isUsing1_13API())
             return false;
         return data instanceof Waterlogged && ((Waterlogged) data).isWaterlogged();
+    }
+
+    public static boolean isWaterMob(Entity entity) {
+        if (entity == null)
+            return false;
+        if (!SpigotUtil.isUsing1_13API())
+            return entity instanceof Squid;
+        return entity instanceof WaterMob || entity.getType().name().equals("TURTLE")
+                || entity.getType().name().equals("FROG") || entity.getType().name().equals("AXOLOTL");
     }
 
     private static final Set<Material> CLIMBABLE = EnumSet.of(Material.LADDER, Material.VINE);
