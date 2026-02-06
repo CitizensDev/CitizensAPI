@@ -9,8 +9,8 @@ import java.util.Queue;
 import java.util.function.Consumer;
 
 public class HPACluster {
-    final int clusterHeight;
     final int clusterSize;
+    final int clusterHeight;
     final int clusterX;
     final int clusterY;
     final int clusterZ;
@@ -201,6 +201,19 @@ public class HPACluster {
         }
     }
 
+    public void connectDiagonal(HPACluster other, int dx, int dz, float weight) {
+        int fromX = dx > 0 ? clusterSize - 1 : 0;
+        int fromZ = dz > 0 ? clusterSize - 1 : 0;
+        int toX = dx > 0 ? 0 : other.clusterSize - 1;
+        int toZ = dz > 0 ? 0 : other.clusterSize - 1;
+        if (!offsetWalkable(fromX, fromZ) || !other.offsetWalkable(toX, toZ)) {
+            return;
+        }
+        HPAGraphNode from = getOrAddNode(fromX, fromZ);
+        HPAGraphNode to = other.getOrAddNode(toX, toZ);
+        from.connect(level, to, HPAGraphEdge.EdgeType.INTER, weight);
+    }
+
     private void connectEntrance(HPACluster other, HPAEntrance entrance, Consumer<HPAEntrance> consumer) {
         HPAGraphNode[] from = addEntranceNode(entrance);
         consumer.accept(entrance);
@@ -227,10 +240,6 @@ public class HPACluster {
                 && other.clusterZ >= clusterZ;
     }
 
-    private HPAGraphNode getOrAddNode(int x, int z) {
-        return getOrAddNode(x, 0, z);
-    }
-
     private HPAGraphNode getOrAddNode(int x, int y, int z) {
         for (HPAGraphNode node : nodes) {
             if (node.x == this.clusterX + x && node.y == this.clusterY + y && node.z == this.clusterZ + z)
@@ -239,6 +248,10 @@ public class HPACluster {
         HPAGraphNode node = new HPAGraphNode(this.clusterX + x, this.clusterY + y, this.clusterZ + z);
         nodes.add(node);
         return node;
+    }
+
+    private HPAGraphNode getOrAddNode(int x, int z) {
+        return getOrAddNode(x, 0, z);
     }
 
     public boolean hasWalkableNodes() {
@@ -266,12 +279,12 @@ public class HPACluster {
         }
     }
 
-    private boolean offsetWalkable(int x, int z) {
-        return offsetWalkable(x, 0, z);
-    }
-
     private boolean offsetWalkable(int x, int y, int z) {
         return graph.walkable(clusterX + x, clusterY + y, clusterZ + z);
+    }
+
+    private boolean offsetWalkable(int x, int z) {
+        return offsetWalkable(x, 0, z);
     }
 
     private AStarSolution pathfind(HPAGraphNode start, HPAGraphNode dest, boolean getPath) {
@@ -306,16 +319,13 @@ public class HPACluster {
                         continue;
                     }
                     neighbour.parent = node;
-                    // TODO: chebyshev?
-                    neighbour.g = (float) (node.g
-                            + Math.sqrt(Math.pow(node.x - neighbour.x, 2) + Math.pow(node.z - neighbour.z, 2)));
-                    neighbour.h = (float) Math
-                            .sqrt(Math.pow(neighbour.x - dest.x, 2) + Math.pow(neighbour.z - dest.z, 2));
+                    neighbour.g = node.g + movementCost(dx, dz);
+                    neighbour.h = octileDistance(neighbour.x, neighbour.z, dest.x, dest.z);
                     if (open.containsKey(neighbour)) {
-                        if (neighbour.g > open.get(neighbour)) {
+                        if (neighbour.g >= open.get(neighbour)) {
                             continue;
-                            // TODO: do we have to do this? frontier.remove(neighbour);
                         }
+                        frontier.remove(neighbour);
                     }
                     open.put(neighbour, neighbour.g);
                     frontier.add(neighbour);
@@ -341,6 +351,21 @@ public class HPACluster {
             this.nodes.removeIf(other -> other == node);
         }
     }
+
+    private static float movementCost(int dx, int dz) {
+        return dx != 0 && dz != 0 ? DIAGONAL_COST : STRAIGHT_COST;
+    }
+
+    private static float octileDistance(int x1, int z1, int x2, int z2) {
+        int dx = Math.abs(x1 - x2);
+        int dz = Math.abs(z1 - z2);
+        int min = Math.min(dx, dz);
+        int max = Math.max(dx, dz);
+        return min * DIAGONAL_COST + (max - min) * STRAIGHT_COST;
+    }
+
+    private static final float DIAGONAL_COST = (float) Math.sqrt(2);
+    private static final float STRAIGHT_COST = 1F;
 
     @Override
     public String toString() {
