@@ -70,7 +70,7 @@ public class JumpingExaminer implements AdditionalNeighbourGenerator {
                         if (source.isYWithinBounds(cy - 1)
                                 && MinecraftBlockExaminer.canStandOn(source.getMaterialAt(cx, cy - 1, cz))) {
                             Vector jumpPoint = new Vector(cx + 0.5 + DX[i] * INV_LEN[i] * 0.3, cy,
-                                    cz + 0.5 + DX[i] * INV_LEN[i] * 0.3);
+                                    cz + 0.5 + DZ[i] * INV_LEN[i] * 0.3);
                             point.addCallback(new JumpCallback(jumpPoint));
                             Vector vector = new Vector(cx, cy, cz);
                             PathPoint next = point.createAtOffset(vector, 1.5f);
