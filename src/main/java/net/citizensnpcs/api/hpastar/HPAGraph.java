@@ -233,16 +233,17 @@ public class HPAGraph {
             open.remove(node);
             for (HPAGraphEdge edge : edges) {
                 HPAGraphAStarNode neighbour = new HPAGraphAStarNode(edge.to, edge);
-                if (closed.containsKey(neighbour)) {
+                if (closed.containsKey(neighbour))
                     continue;
-                }
                 neighbour.parent = node;
                 neighbour.g = node.g + edge.weight;
-                neighbour.h = (float) Math.sqrt(Math.pow(edge.to.x - dest.x, 2) + Math.pow(edge.to.z - dest.z, 2));
+                neighbour.h = (float) edge.to.distance(dest);
+                if (edge.to.equals(dest))
+                    return new AStarSolution(neighbour.reconstructSolution(), neighbour.g);
                 if (open.containsKey(neighbour)) {
-                    if (neighbour.g > open.get(neighbour)) {
+                    if (neighbour.g > open.get(neighbour))
                         continue;
-                    }
+
                     frontier.remove(neighbour);
                 }
                 open.put(neighbour, neighbour.g);

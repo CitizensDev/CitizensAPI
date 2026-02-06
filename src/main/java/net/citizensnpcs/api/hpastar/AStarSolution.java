@@ -1,6 +1,7 @@
 package net.citizensnpcs.api.hpastar;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.bukkit.util.Vector;
@@ -17,6 +18,8 @@ public class AStarSolution {
     }
 
     public Collection<Vector> convertToVectors() {
+        if (path == null || path.isEmpty())
+            return Collections.emptyList();
         return Lists.transform(path, input -> {
             HPAGraphNode node = ((HPAGraphAStarNode) input).node;
             return new Vector(node.x, node.y, node.z);

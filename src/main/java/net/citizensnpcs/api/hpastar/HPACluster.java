@@ -9,8 +9,8 @@ import java.util.Queue;
 import java.util.function.Consumer;
 
 public class HPACluster {
-    final int clusterSize;
     final int clusterHeight;
+    final int clusterSize;
     final int clusterX;
     final int clusterY;
     final int clusterZ;
@@ -227,6 +227,10 @@ public class HPACluster {
                 && other.clusterZ >= clusterZ;
     }
 
+    private HPAGraphNode getOrAddNode(int x, int z) {
+        return getOrAddNode(x, 0, z);
+    }
+
     private HPAGraphNode getOrAddNode(int x, int y, int z) {
         for (HPAGraphNode node : nodes) {
             if (node.x == this.clusterX + x && node.y == this.clusterY + y && node.z == this.clusterZ + z)
@@ -235,10 +239,6 @@ public class HPACluster {
         HPAGraphNode node = new HPAGraphNode(this.clusterX + x, this.clusterY + y, this.clusterZ + z);
         nodes.add(node);
         return node;
-    }
-
-    private HPAGraphNode getOrAddNode(int x, int z) {
-        return getOrAddNode(x, 0, z);
     }
 
     public boolean hasWalkableNodes() {
@@ -266,12 +266,12 @@ public class HPACluster {
         }
     }
 
-    private boolean offsetWalkable(int x, int y, int z) {
-        return graph.walkable(clusterX + x, clusterY + y, clusterZ + z);
-    }
-
     private boolean offsetWalkable(int x, int z) {
         return offsetWalkable(x, 0, z);
+    }
+
+    private boolean offsetWalkable(int x, int y, int z) {
+        return graph.walkable(clusterX + x, clusterY + y, clusterZ + z);
     }
 
     private AStarSolution pathfind(HPAGraphNode start, HPAGraphNode dest, boolean getPath) {
@@ -286,7 +286,7 @@ public class HPACluster {
         while (!frontier.isEmpty()) {
             ClusterNode node = (ClusterNode) frontier.poll();
             if (node.x == dest.x && node.z == dest.z)
-                return new AStarSolution(getPath ? null : node.reconstructSolution(), node.g);
+                return new AStarSolution(getPath ? node.reconstructSolution() : null, node.g);
             closed.put(node, node.g);
             open.remove(node);
             for (int dx = -1; dx <= 1; dx++) {
@@ -331,10 +331,14 @@ public class HPACluster {
             for (int i = 0; i < edges2.size(); i++) {
                 List<HPAGraphEdge> edges = edges2.get(i);
                 for (HPAGraphEdge edge : edges) {
-                    edge.to.edges.get(i).remove(edge);
+                    if (i >= edge.to.edges.size()) {
+                        continue;
+                    }
+                    edge.to.edges.get(i).removeIf(other -> other.to == node);
                 }
+                edges.clear();
             }
-            this.nodes.remove(node);
+            this.nodes.removeIf(other -> other == node);
         }
     }
 

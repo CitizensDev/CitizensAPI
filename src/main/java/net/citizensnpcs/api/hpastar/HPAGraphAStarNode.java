@@ -16,12 +16,12 @@ public class HPAGraphAStarNode extends ReversableAStarNode {
         if (obj == null || getClass() != obj.getClass())
             return false;
         HPAGraphAStarNode other = (HPAGraphAStarNode) obj;
-        return node.x == other.node.x && node.z == other.node.z;
+        return node.x == other.node.x && node.y == other.node.y && node.z == other.node.z;
     }
 
     @Override
     public int hashCode() {
-        return 31 * (31 + node.x) + node.z;
+        return 31 * (31 * (31 + node.x) + node.y) + node.z;
     }
 
     @Override
