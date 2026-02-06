@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableList;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.ai.NavigatorParameters;
 import net.citizensnpcs.api.astar.AStarMachine;
+import net.citizensnpcs.api.hpastar.HPAGraph;
 import net.citizensnpcs.api.util.BoundingBox;
 import net.citizensnpcs.api.util.Messaging;
 import net.citizensnpcs.api.util.SpigotUtil;
@@ -54,6 +55,49 @@ public class AsyncChunkCache {
         } else {
             evictionExecutor = null;
         }
+    }
+
+    private CompletableFuture<Path> completeOnMainThread(CompletableFuture<Path> workerFuture) {
+        CompletableFuture<Path> result = new CompletableFuture<>();
+        workerFuture.whenComplete((res, ex) -> {
+            Runnable cb = () -> {
+                if (ex != null) {
+                    result.completeExceptionally(ex);
+                } else {
+                    result.complete(res);
+                }
+            };
+            if (Bukkit.isPrimaryThread()) {
+                cb.run();
+            } else {
+                CitizensAPI.getScheduler().runTask(cb);
+            }
+        });
+        return result;
+    }
+
+    private BlockSource createSnapshotBlockSource(SnapshotProvider provider, World world) {
+        return new BlockSource() {
+            @Override
+            public BlockData getBlockDataAt(int x, int y, int z) {
+                return provider.get(x >> 4, z >> 4).getBlockData(x & 15, y, z & 15);
+            }
+
+            @Override
+            public BoundingBox getCollisionBox(int x, int y, int z) {
+                return null;
+            }
+
+            @Override
+            public Material getMaterialAt(int x, int y, int z) {
+                return provider.get(x >> 4, z >> 4).getBlockType(x & 15, y, z & 15);
+            }
+
+            @Override
+            public boolean isYWithinBounds(int y) {
+                return SpigotUtil.checkYSafe(y, world);
+            }
+        };
     }
 
     private void evictStaleChunks() {
@@ -119,66 +163,41 @@ public class AsyncChunkCache {
         return future;
     }
 
+    public CompletableFuture<Path> findHPAPathAsync(HPAPathRequest req) {
+        CompletableFuture<Void>[] futures = prefetchRegions(req.from.getWorld(),
+                getPrefetchRects(req.from, req.to, req.prefetchRadius));
+        CompletableFuture<Path> workerFuture = CompletableFuture.allOf(futures).thenCompose(v -> CompletableFuture
+                .supplyAsync(() -> runHPAPathfinder(req, new SnapshotProvider(req.from.getWorld())), workerPool));
+
+        return completeOnMainThread(workerFuture);
+    }
+
     /**
      * Returned future completes on the main thread
      */
     public CompletableFuture<Path> findPathAsync(PathRequest req) {
         // TODO: setup work currently happens on main thread. request queue could be made async
 
-        Rect start = new Rect((req.from.getBlockX() >> 4) - req.prefetchRadius,
-                (req.from.getBlockZ() >> 4) - req.prefetchRadius, (req.from.getBlockX() >> 4) + req.prefetchRadius,
-                (req.from.getBlockZ() >> 4) + req.prefetchRadius);
-        Rect end = new Rect((req.to.getBlockX() >> 4) - req.prefetchRadius,
-                (req.to.getBlockZ() >> 4) - req.prefetchRadius, (req.to.getBlockX() >> 4) + req.prefetchRadius,
-                (req.to.getBlockZ() >> 4) + req.prefetchRadius);
-
-        List<Rect> rects;
-        if (start.overlaps(end)) {
-            Rect merged = new Rect(Math.min(start.minX, end.minX), Math.min(start.minZ, end.minZ),
-                    Math.max(start.maxX, end.maxX), Math.max(start.maxZ, end.maxZ));
-            rects = ImmutableList.of(merged);
-        } else {
-            rects = ImmutableList.of(start, end);
-        }
-        @SuppressWarnings("unchecked")
-        CompletableFuture<Void>[] futures = new CompletableFuture[rects.size()];
-        for (int i = 0; i < rects.size(); i++) {
-            Rect rect = rects.get(i);
-            int chunkCount = 0;
-            for (int cx = rect.minX; cx <= rect.maxX; cx++) {
-                for (int cz = rect.minZ; cz <= rect.maxZ; cz++) {
-                    CompletableFuture<ChunkSnapshot> old = snapshotCache.putIfAbsent(
-                            new ChunkKey(req.from.getWorld().getUID(), cx, cz), new CompletableFuture<ChunkSnapshot>());
-                    if (old == null || !old.isDone()) {
-                        chunkCount++;
-                    }
-                }
-            }
-            if (chunkCount == 0) {
-                futures[i] = CompletableFuture.completedFuture(null);
-            } else {
-                futures[i] = prefetchRectangle(req.from.getWorld(), rect);
-            }
-        }
+        CompletableFuture<Void>[] futures = prefetchRegions(req.from.getWorld(),
+                getPrefetchRects(req.from, req.to, req.prefetchRadius));
         CompletableFuture<Path> workerFuture = CompletableFuture.allOf(futures).thenCompose(v -> CompletableFuture
                 .supplyAsync(() -> runPathfinder(req, new SnapshotProvider(req.from.getWorld())), workerPool));
 
-        CompletableFuture<Path> result = new CompletableFuture<>();
-        workerFuture.whenComplete((res, ex) -> {
-            Runnable cb = () -> {
-                if (ex != null) {
-                    result.completeExceptionally(ex);
-                } else {
-                    result.complete(res);
-                }
-            };
-            if (Bukkit.isPrimaryThread()) {
-                cb.run();
-            } else {
-                CitizensAPI.getScheduler().runTask(cb);
-            }
-        });
-        return result;
+        return completeOnMainThread(workerFuture);
+    }
+
+    private List<Rect> getPrefetchRects(Location from, Location to, int prefetchRadius) {
+        Rect start = new Rect((from.getBlockX() >> 4) - prefetchRadius, (from.getBlockZ() >> 4) - prefetchRadius,
+                (from.getBlockX() >> 4) + prefetchRadius, (from.getBlockZ() >> 4) + prefetchRadius);
+        Rect end = new Rect((to.getBlockX() >> 4) - prefetchRadius, (to.getBlockZ() >> 4) - prefetchRadius,
+                (to.getBlockX() >> 4) + prefetchRadius, (to.getBlockZ() >> 4) + prefetchRadius);
+
+        if (start.overlaps(end)) {
+            Rect merged = new Rect(Math.min(start.minX, end.minX), Math.min(start.minZ, end.minZ),
+                    Math.max(start.maxX, end.maxX), Math.max(start.maxZ, end.maxZ));
+            return ImmutableList.of(merged);
+        }
+        return ImmutableList.of(start, end);
     }
 
     private CompletableFuture<Void> prefetchIndividualChunks(World world, Rect rect) {
@@ -292,30 +311,44 @@ public class AsyncChunkCache {
         return result;
     }
 
+    @SuppressWarnings("unchecked")
+    private CompletableFuture<Void>[] prefetchRegions(World world, List<Rect> rects) {
+        CompletableFuture<Void>[] futures = new CompletableFuture[rects.size()];
+        for (int i = 0; i < rects.size(); i++) {
+            Rect rect = rects.get(i);
+            int chunkCount = 0;
+            for (int cx = rect.minX; cx <= rect.maxX; cx++) {
+                for (int cz = rect.minZ; cz <= rect.maxZ; cz++) {
+                    CompletableFuture<ChunkSnapshot> old = snapshotCache
+                            .putIfAbsent(new ChunkKey(world.getUID(), cx, cz), new CompletableFuture<ChunkSnapshot>());
+                    if (old == null || !old.isDone()) {
+                        chunkCount++;
+                    }
+                }
+            }
+            futures[i] = chunkCount == 0 ? CompletableFuture.completedFuture(null) : prefetchRectangle(world, rect);
+        }
+        return futures;
+    }
+
+    private Path runHPAPathfinder(HPAPathRequest req, SnapshotProvider provider) {
+        HPAGraph graph = req.graph != null ? req.graph
+                : new HPAGraph(createSnapshotBlockSource(provider, req.from.getWorld()), req.from.getBlockX(),
+                        req.from.getBlockY(), req.from.getBlockZ());
+        synchronized (graph) {
+            graph.applyPendingPatches();
+            graph.addClusters(req.from.getBlockX(), req.from.getBlockZ());
+            graph.addClusters(req.to.getBlockX(), req.to.getBlockZ());
+            Path path = (Path) graph.findPath(req.from, req.to);
+            Messaging.debug("Async HPA returning path", req.from, "->", req.to);
+            return path;
+        }
+    }
+
     private Path runPathfinder(PathRequest req, SnapshotProvider provider) {
         VectorGoal goal = new VectorGoal(req.to, (float) req.parameters.pathDistanceMargin());
-        return AStarMachine.<VectorNode, Path> createWithVectorStorage().runFully(goal,
-                new VectorNode(goal, req.from, new BlockSource() {
-                    @Override
-                    public BlockData getBlockDataAt(int x, int y, int z) {
-                        return provider.get(x >> 4, z >> 4).getBlockData(x & 15, y, z & 15);
-                    }
-
-                    @Override
-                    public BoundingBox getCollisionBox(int x, int y, int z) {
-                        return null;
-                    }
-
-                    @Override
-                    public Material getMaterialAt(int x, int y, int z) {
-                        return provider.get(x >> 4, z >> 4).getBlockType(x & 15, y, z & 15);
-                    }
-
-                    @Override
-                    public boolean isYWithinBounds(int y) {
-                        return SpigotUtil.checkYSafe(y, req.from.getWorld());
-                    }
-                }, req.parameters));
+        return AStarMachine.<VectorNode, Path> createWithVectorStorage().runFully(goal, new VectorNode(goal, req.from,
+                createSnapshotBlockSource(provider, req.from.getWorld()), req.parameters));
     }
 
     public void shutdown() {
@@ -393,6 +426,24 @@ public class AsyncChunkCache {
         @Override
         public boolean isReleasable() {
             return cf.isDone();
+        }
+    }
+
+    public static final class HPAPathRequest {
+        private final Location from;
+        private final HPAGraph graph;
+        private final int prefetchRadius;
+        private final Location to;
+
+        public HPAPathRequest(HPAGraph graph, Location from, Location to, int prefetchRadius) {
+            this.graph = graph;
+            this.from = from;
+            this.to = to;
+            this.prefetchRadius = prefetchRadius;
+        }
+
+        public HPAPathRequest(Location from, Location to, int prefetchRadius) {
+            this(null, from, to, prefetchRadius);
         }
     }
 

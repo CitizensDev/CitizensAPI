@@ -1,22 +1,26 @@
 package net.citizensnpcs.api.hpastar;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.function.Consumer;
 
+import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+
 public class HPACluster {
-    final int clusterSize;
     final int clusterHeight;
+    final int clusterSize;
     final int clusterX;
     final int clusterY;
     final int clusterZ;
     private final HPAGraph graph;
     private final int level;
     private final List<HPAGraphNode> nodes = new ArrayList<>();
+    private final Long2ObjectOpenHashMap<HPAGraphNode> nodesByPosition = new Long2ObjectOpenHashMap<>();
+    private final byte[] walkableCache;
 
     public HPACluster(HPAGraph graph, int level, int clusterSize, int clusterHeight, int clusterX, int clusterY,
             int clusterZ) {
@@ -27,6 +31,8 @@ public class HPACluster {
         this.clusterX = clusterX;
         this.clusterY = clusterY;
         this.clusterZ = clusterZ;
+        walkableCache = new byte[clusterSize * clusterHeight * clusterSize];
+        Arrays.fill(walkableCache, (byte) -1);
     }
 
     private HPAGraphNode[] addEntranceNode(HPAEntrance entrance) {
@@ -51,13 +57,21 @@ public class HPACluster {
         return new HPAGraphNode[] { getOrAddNode(x, y, z) };
     }
 
+    private void addNodeReference(HPAGraphNode node) {
+        long key = packPosition(node.x, node.y, node.z);
+        HPAGraphNode old = nodesByPosition.put(key, node);
+        if (old != null)
+            throw new IllegalStateException();
+        nodes.add(node);
+    }
+
     public void buildFrom(List<HPACluster> clusters) {
         for (HPACluster other : clusters) {
             for (HPAGraphNode node : other.nodes) {
                 if (node.x == clusterX || node.z == clusterZ || node.y == clusterY
                         || node.x == clusterX + clusterSize - 1 || node.z == clusterZ + clusterSize - 1
                         || node.y == clusterY + clusterHeight - 1) { // border node
-                    nodes.add(node);
+                    addNodeReference(node);
                     for (HPAGraphEdge edge : node.getEdges(level - 1)) {
                         if (edge.type == HPAGraphEdge.EdgeType.INTER) {
                             edge.from.connect(level, edge.to, edge.type, edge.weight);
@@ -67,14 +81,16 @@ public class HPACluster {
             }
         }
         for (int i = 0; i < nodes.size(); i++) {
-            HPAGraphNode node = nodes.get(i);
+            HPAGraphNode source = nodes.get(i);
+            Long2ObjectOpenHashMap<HPAGraphNode> unresolvedTargets = new Long2ObjectOpenHashMap<>();
             for (int j = i + 1; j < nodes.size(); j++) {
-                HPAGraphNode n2 = nodes.get(j);
-                float weight = graph.pathfind(node, n2, level - 1).cost;
-                if (!Float.isFinite(weight)) {
-                    continue;
-                }
-                node.connect(level, n2, HPAGraphEdge.EdgeType.INTRA, weight);
+                HPAGraphNode target = nodes.get(j);
+                HPAGraphNode old = unresolvedTargets.put(packPosition(target.x, target.y, target.z), target);
+                if (old != null)
+                    throw new IllegalStateException();
+            }
+            if (!unresolvedTargets.isEmpty()) {
+                connectLowerLevelFromSource(source, unresolvedTargets);
             }
         }
     }
@@ -83,75 +99,91 @@ public class HPACluster {
         HPAEntrance entrance = null;
         switch (direction) {
             case EAST:
-                for (int z = 0; z < clusterSize; z++) {
-                    if (offsetWalkable(clusterSize - 1, z) && other.offsetWalkable(0, z)) {
-                        if (entrance == null) {
-                            entrance = new HPAEntrance();
-                            entrance.minX = entrance.maxX = clusterSize - 1;
-                            entrance.minZ = z;
+                for (int y = 0; y < clusterHeight; y++) {
+                    for (int z = 0; z < clusterSize; z++) {
+                        if (offsetWalkable(clusterSize - 1, y, z) && other.offsetWalkable(0, y, z)) {
+                            if (entrance == null) {
+                                entrance = new HPAEntrance();
+                                entrance.minY = entrance.maxY = y;
+                                entrance.minX = entrance.maxX = clusterSize - 1;
+                                entrance.minZ = z;
+                            }
+                            entrance.maxZ = z;
+                        } else if (entrance != null) {
+                            connectEntrance(other, entrance, e -> e.minX = e.maxX = 0);
+                            entrance = null;
                         }
-                        entrance.maxZ = z;
-                    } else if (entrance != null) {
+                    }
+                    if (entrance != null) {
                         connectEntrance(other, entrance, e -> e.minX = e.maxX = 0);
                         entrance = null;
                     }
                 }
-                if (entrance != null) {
-                    connectEntrance(other, entrance, e -> e.minX = e.maxX = 0);
-                }
                 break;
             case WEST:
-                for (int z = 0; z < clusterSize; z++) {
-                    if (offsetWalkable(0, z) && other.offsetWalkable(clusterSize - 1, z)) {
-                        if (entrance == null) {
-                            entrance = new HPAEntrance();
-                            entrance.minX = entrance.maxX = 0;
-                            entrance.minZ = z;
+                for (int y = 0; y < clusterHeight; y++) {
+                    for (int z = 0; z < clusterSize; z++) {
+                        if (offsetWalkable(0, y, z) && other.offsetWalkable(clusterSize - 1, y, z)) {
+                            if (entrance == null) {
+                                entrance = new HPAEntrance();
+                                entrance.minY = entrance.maxY = y;
+                                entrance.minX = entrance.maxX = 0;
+                                entrance.minZ = z;
+                            }
+                            entrance.maxZ = z;
+                        } else if (entrance != null) {
+                            connectEntrance(other, entrance, e -> e.minX = e.maxX = clusterSize - 1);
+                            entrance = null;
                         }
-                        entrance.maxZ = z;
-                    } else if (entrance != null) {
+                    }
+                    if (entrance != null) {
                         connectEntrance(other, entrance, e -> e.minX = e.maxX = clusterSize - 1);
                         entrance = null;
                     }
                 }
-                if (entrance != null) {
-                    connectEntrance(other, entrance, e -> e.minX = e.maxX = clusterSize - 1);
-                }
                 break;
             case NORTH:
-                for (int x = 0; x < clusterSize; x++) {
-                    if (offsetWalkable(x, clusterSize - 1) && other.offsetWalkable(x, 0)) {
-                        if (entrance == null) {
-                            entrance = new HPAEntrance();
-                            entrance.minZ = entrance.maxZ = clusterSize - 1;
-                            entrance.minX = x;
+                for (int y = 0; y < clusterHeight; y++) {
+                    for (int x = 0; x < clusterSize; x++) {
+                        if (offsetWalkable(x, y, clusterSize - 1) && other.offsetWalkable(x, y, 0)) {
+                            if (entrance == null) {
+                                entrance = new HPAEntrance();
+                                entrance.minY = entrance.maxY = y;
+                                entrance.minZ = entrance.maxZ = clusterSize - 1;
+                                entrance.minX = x;
+                            }
+                            entrance.maxX = x;
+                        } else if (entrance != null) {
+                            connectEntrance(other, entrance, e -> e.minZ = e.maxZ = 0);
+                            entrance = null;
                         }
-                        entrance.maxX = x;
-                    } else if (entrance != null) {
+                    }
+                    if (entrance != null) {
                         connectEntrance(other, entrance, e -> e.minZ = e.maxZ = 0);
                         entrance = null;
                     }
                 }
-                if (entrance != null) {
-                    connectEntrance(other, entrance, e -> e.minZ = e.maxZ = 0);
-                }
                 break;
             case SOUTH:
-                for (int x = 0; x < clusterSize; x++) {
-                    if (offsetWalkable(x, 0) && other.offsetWalkable(x, clusterSize - 1)) {
-                        if (entrance == null) {
-                            entrance = new HPAEntrance();
-                            entrance.minZ = entrance.maxZ = 0;
-                            entrance.minX = x;
+                for (int y = 0; y < clusterHeight; y++) {
+                    for (int x = 0; x < clusterSize; x++) {
+                        if (offsetWalkable(x, y, 0) && other.offsetWalkable(x, y, clusterSize - 1)) {
+                            if (entrance == null) {
+                                entrance = new HPAEntrance();
+                                entrance.minY = entrance.maxY = y;
+                                entrance.minZ = entrance.maxZ = 0;
+                                entrance.minX = x;
+                            }
+                            entrance.maxX = x;
+                        } else if (entrance != null) {
+                            connectEntrance(other, entrance, e -> e.minZ = e.maxZ = clusterSize - 1);
+                            entrance = null;
                         }
-                        entrance.maxX = x;
-                    } else if (entrance != null) {
+                    }
+                    if (entrance != null) {
                         connectEntrance(other, entrance, e -> e.minZ = e.maxZ = clusterSize - 1);
                         entrance = null;
                     }
-                }
-                if (entrance != null) {
-                    connectEntrance(other, entrance, e -> e.minZ = e.maxZ = clusterSize - 1);
                 }
                 break;
             case UP:
@@ -206,12 +238,14 @@ public class HPACluster {
         int fromZ = dz > 0 ? clusterSize - 1 : 0;
         int toX = dx > 0 ? 0 : other.clusterSize - 1;
         int toZ = dz > 0 ? 0 : other.clusterSize - 1;
-        if (!offsetWalkable(fromX, fromZ) || !other.offsetWalkable(toX, toZ)) {
-            return;
+        for (int y = 0; y < clusterHeight; y++) {
+            if (!offsetWalkable(fromX, y, fromZ) || !other.offsetWalkable(toX, y, toZ)) {
+                continue;
+            }
+            HPAGraphNode from = getOrAddNode(fromX, y, fromZ);
+            HPAGraphNode to = other.getOrAddNode(toX, y, toZ);
+            from.connect(level, to, HPAGraphEdge.EdgeType.INTER, weight);
         }
-        HPAGraphNode from = getOrAddNode(fromX, fromZ);
-        HPAGraphNode to = other.getOrAddNode(toX, toZ);
-        from.connect(level, to, HPAGraphEdge.EdgeType.INTER, weight);
     }
 
     private void connectEntrance(HPACluster other, HPAEntrance entrance, Consumer<HPAEntrance> consumer) {
@@ -225,11 +259,92 @@ public class HPACluster {
 
     public void connectIntra() {
         for (int i = 0; i < nodes.size(); i++) {
-            HPAGraphNode n = nodes.get(i);
+            HPAGraphNode source = nodes.get(i);
+            Long2ObjectOpenHashMap<HPAGraphNode> unresolvedTargets = new Long2ObjectOpenHashMap<>();
             for (int j = i + 1; j < nodes.size(); j++) {
-                HPAGraphNode n2 = nodes.get(j);
-                float cost = pathfind(n, n2, false).cost;
-                n.connect(level, n2, HPAGraphEdge.EdgeType.INTRA, cost);
+                HPAGraphNode target = nodes.get(j);
+                HPAGraphNode old = unresolvedTargets.put(packPosition(target.x, target.y, target.z), target);
+                if (old != null)
+                    throw new IllegalStateException();
+            }
+            if (!unresolvedTargets.isEmpty()) {
+                connectIntraFromSource(source, unresolvedTargets);
+            }
+        }
+    }
+
+    private void connectIntraFromSource(HPAGraphNode source, Long2ObjectOpenHashMap<HPAGraphNode> unresolvedTargets) {
+        Long2FloatOpenHashMap bestCosts = new Long2FloatOpenHashMap();
+        bestCosts.defaultReturnValue(Float.POSITIVE_INFINITY);
+        Queue<IntraFrontierNode> frontier = new PriorityQueue<>();
+
+        long sourceKey = packPosition(source.x, source.y, source.z);
+        bestCosts.put(sourceKey, 0F);
+        frontier.add(new IntraFrontierNode(source.x, source.y, source.z, 0F));
+
+        while (!frontier.isEmpty() && !unresolvedTargets.isEmpty()) {
+            IntraFrontierNode current = frontier.poll();
+            long currentKey = packPosition(current.x, current.y, current.z);
+            if (current.g > bestCosts.get(currentKey))
+                continue;
+
+            HPAGraphNode reached = unresolvedTargets.remove(currentKey);
+            if (reached != null) {
+                source.connect(level, reached, HPAGraphEdge.EdgeType.INTRA, current.g);
+                if (unresolvedTargets.isEmpty())
+                    break;
+            }
+            for (int i = 0; i < NEIGHBOUR_OFFSETS.length; i++) {
+                int nx = current.x + NEIGHBOUR_OFFSETS[i][0];
+                int ny = current.y + NEIGHBOUR_OFFSETS[i][1];
+                int nz = current.z + NEIGHBOUR_OFFSETS[i][2];
+                if (nx < clusterX || nx >= clusterX + clusterSize || ny < clusterY || ny >= clusterY + clusterHeight
+                        || nz < clusterZ || nz >= clusterZ + clusterSize)
+                    continue;
+
+                if (!offsetWalkable(nx - clusterX, ny - clusterY, nz - clusterZ))
+                    continue;
+
+                float tentativeCost = current.g + NEIGHBOUR_COSTS[i];
+                long neighbourKey = packPosition(nx, ny, nz);
+                if (tentativeCost >= bestCosts.get(neighbourKey))
+                    continue;
+
+                bestCosts.put(neighbourKey, tentativeCost);
+                frontier.add(new IntraFrontierNode(nx, ny, nz, tentativeCost));
+            }
+        }
+    }
+
+    private void connectLowerLevelFromSource(HPAGraphNode source,
+            Long2ObjectOpenHashMap<HPAGraphNode> unresolvedTargets) {
+        Long2FloatOpenHashMap bestCosts = new Long2FloatOpenHashMap();
+        bestCosts.defaultReturnValue(Float.POSITIVE_INFINITY);
+        Queue<GraphFrontierNode> frontier = new PriorityQueue<>();
+        long sourceKey = packPosition(source.x, source.y, source.z);
+        bestCosts.put(sourceKey, 0F);
+        frontier.add(new GraphFrontierNode(source, 0F));
+
+        while (!frontier.isEmpty() && !unresolvedTargets.isEmpty()) {
+            GraphFrontierNode current = frontier.poll();
+            long currentKey = packPosition(current.node.x, current.node.y, current.node.z);
+            if (current.g > bestCosts.get(currentKey))
+                continue;
+
+            HPAGraphNode reached = unresolvedTargets.remove(currentKey);
+            if (reached != null) {
+                source.connect(level, reached, HPAGraphEdge.EdgeType.INTRA, current.g);
+                if (unresolvedTargets.isEmpty())
+                    break;
+            }
+            for (HPAGraphEdge edge : current.node.getEdges(level - 1)) {
+                long neighbourKey = packPosition(edge.to.x, edge.to.y, edge.to.z);
+                float tentativeCost = current.g + edge.weight;
+                if (tentativeCost >= bestCosts.get(neighbourKey))
+                    continue;
+
+                bestCosts.put(neighbourKey, tentativeCost);
+                frontier.add(new GraphFrontierNode(edge.to, tentativeCost));
             }
         }
     }
@@ -240,18 +355,20 @@ public class HPACluster {
                 && other.clusterZ >= clusterZ;
     }
 
-    private HPAGraphNode getOrAddNode(int x, int y, int z) {
-        for (HPAGraphNode node : nodes) {
-            if (node.x == this.clusterX + x && node.y == this.clusterY + y && node.z == this.clusterZ + z)
-                return node;
-        }
-        HPAGraphNode node = new HPAGraphNode(this.clusterX + x, this.clusterY + y, this.clusterZ + z);
-        nodes.add(node);
-        return node;
+    public boolean containsPoint(int x, int y, int z) {
+        return x >= clusterX && x < clusterX + clusterSize && y >= clusterY && y < clusterY + clusterHeight
+                && z >= clusterZ && z < clusterZ + clusterSize;
     }
 
-    private HPAGraphNode getOrAddNode(int x, int z) {
-        return getOrAddNode(x, 0, z);
+    private HPAGraphNode getOrAddNode(int x, int y, int z) {
+        long key = packPosition(clusterX + x, clusterY + y, clusterZ + z);
+        HPAGraphNode existing = nodesByPosition.get(key);
+        if (existing != null)
+            return existing;
+
+        HPAGraphNode node = new HPAGraphNode(this.clusterX + x, this.clusterY + y, this.clusterZ + z);
+        addNodeReference(node);
+        return node;
     }
 
     public boolean hasWalkableNodes() {
@@ -267,72 +384,28 @@ public class HPACluster {
     }
 
     public void insert(HPAGraphNode node) {
-        nodes.add(node);
-        for (HPAGraphNode other : nodes) {
-            if (other == node) {
+        addNodeReference(node);
+        Long2ObjectOpenHashMap<HPAGraphNode> unresolvedTargets = new Long2ObjectOpenHashMap<>();
+        for (HPAGraphNode target : nodes) {
+            if (target == node)
                 continue;
-            }
-            float cost = pathfind(node, other, false).cost;
-            if (Float.isFinite(cost)) {
-                node.connect(level, other, HPAGraphEdge.EdgeType.INTRA, cost);
-            }
+            HPAGraphNode old = unresolvedTargets.put(packPosition(target.x, target.y, target.z), target);
+            if (old != null)
+                throw new IllegalStateException();
+        }
+        if (!unresolvedTargets.isEmpty()) {
+            connectIntraFromSource(node, unresolvedTargets);
         }
     }
 
     private boolean offsetWalkable(int x, int y, int z) {
-        return graph.walkable(clusterX + x, clusterY + y, clusterZ + z);
-    }
-
-    private boolean offsetWalkable(int x, int z) {
-        return offsetWalkable(x, 0, z);
-    }
-
-    private AStarSolution pathfind(HPAGraphNode start, HPAGraphNode dest, boolean getPath) {
-        ReversableAStarNode startNode = new ClusterNode(start.x, start.z);
-        if (start.x == dest.x && start.y == dest.y && start.z == dest.z)
-            return new AStarSolution(getPath ? startNode.reconstructSolution() : null, 0);
-        Map<ReversableAStarNode, Float> open = new HashMap<>();
-        Map<ReversableAStarNode, Float> closed = new HashMap<>();
-        Queue<ReversableAStarNode> frontier = new PriorityQueue<>();
-        frontier.add(startNode);
-        open.put(startNode, startNode.g);
-        while (!frontier.isEmpty()) {
-            ClusterNode node = (ClusterNode) frontier.poll();
-            if (node.x == dest.x && node.z == dest.z)
-                return new AStarSolution(getPath ? node.reconstructSolution() : null, node.g);
-            closed.put(node, node.g);
-            open.remove(node);
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dz = -1; dz <= 1; dz++) {
-                    if (dx == 0 && dz == 0) {
-                        continue;
-                    }
-                    if (node.x + dx < clusterX || node.z + dz < clusterZ || node.x + dx >= clusterX + clusterSize
-                            || node.z + dz >= clusterZ + clusterSize) {
-                        continue;
-                    }
-                    if (!offsetWalkable(node.x + dx - clusterX, node.z + dz - clusterZ)) {
-                        continue;
-                    }
-                    ClusterNode neighbour = new ClusterNode(node.x + dx, node.z + dz);
-                    if (closed.containsKey(neighbour)) {
-                        continue;
-                    }
-                    neighbour.parent = node;
-                    neighbour.g = node.g + movementCost(dx, dz);
-                    neighbour.h = octileDistance(neighbour.x, neighbour.z, dest.x, dest.z);
-                    if (open.containsKey(neighbour)) {
-                        if (neighbour.g >= open.get(neighbour)) {
-                            continue;
-                        }
-                        frontier.remove(neighbour);
-                    }
-                    open.put(neighbour, neighbour.g);
-                    frontier.add(neighbour);
-                }
-            }
+        int index = ((y * clusterSize) + z) * clusterSize + x;
+        byte cached = walkableCache[index];
+        if (cached == -1) {
+            cached = (byte) (graph.walkable(clusterX + x, clusterY + y, clusterZ + z) ? 1 : 0);
+            walkableCache[index] = cached;
         }
-        return new AStarSolution(null, Float.POSITIVE_INFINITY);
+        return cached == 1;
     }
 
     public void remove(HPAGraphNode... nodes) {
@@ -341,35 +414,102 @@ public class HPACluster {
             for (int i = 0; i < edges2.size(); i++) {
                 List<HPAGraphEdge> edges = edges2.get(i);
                 for (HPAGraphEdge edge : edges) {
-                    if (i >= edge.to.edges.size()) {
+                    if (i >= edge.to.edges.size())
                         continue;
-                    }
+
                     edge.to.edges.get(i).removeIf(other -> other.to == node);
                 }
                 edges.clear();
             }
-            this.nodes.removeIf(other -> other == node);
+            removeNodeReference(node);
         }
     }
 
-    private static float movementCost(int dx, int dz) {
-        return dx != 0 && dz != 0 ? DIAGONAL_COST : STRAIGHT_COST;
+    private void removeNodeReference(HPAGraphNode node) {
+        nodes.remove(node);
+        nodesByPosition.remove(packPosition(node.x, node.y, node.z));
     }
-
-    private static float octileDistance(int x1, int z1, int x2, int z2) {
-        int dx = Math.abs(x1 - x2);
-        int dz = Math.abs(z1 - z2);
-        int min = Math.min(dx, dz);
-        int max = Math.max(dx, dz);
-        return min * DIAGONAL_COST + (max - min) * STRAIGHT_COST;
-    }
-
-    private static final float DIAGONAL_COST = (float) Math.sqrt(2);
-    private static final float STRAIGHT_COST = 1F;
 
     @Override
     public String toString() {
         return "C[" + level + "] (" + clusterX + "," + clusterY + "," + clusterZ + ")->(" + (clusterX + clusterSize - 1)
                 + "," + (clusterY + clusterHeight - 1) + "," + (clusterZ + clusterSize - 1) + ")";
+    }
+
+    public enum Direction {
+        DOWN,
+        EAST,
+        NORTH,
+        SOUTH,
+        UP,
+        WEST;
+    }
+
+    private static class GraphFrontierNode implements Comparable<GraphFrontierNode> {
+        final float g;
+        final HPAGraphNode node;
+
+        private GraphFrontierNode(HPAGraphNode node, float g) {
+            this.node = node;
+            this.g = g;
+        }
+
+        @Override
+        public int compareTo(GraphFrontierNode other) {
+            return Float.compare(g, other.g);
+        }
+    }
+
+    private static class IntraFrontierNode implements Comparable<IntraFrontierNode> {
+        final float g;
+        final int x;
+        final int y;
+        final int z;
+
+        private IntraFrontierNode(int x, int y, int z, float g) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.g = g;
+        }
+
+        @Override
+        public int compareTo(IntraFrontierNode other) {
+            return Float.compare(g, other.g);
+        }
+    }
+
+    private static long packPosition(int x, int y, int z) {
+        return (x & 0x3FFFFFFL) << 34 | (z & 0x3FFFFFFL) << 8 | (y & 0xFFL);
+    }
+
+    private static final float[] NEIGHBOUR_COSTS;
+    private static final int[][] NEIGHBOUR_OFFSETS;
+    static {
+        int[][] neighbours = new int[26][3];
+        int index = 0;
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    if (dx == 0 && dy == 0 && dz == 0) {
+                        continue;
+                    }
+                    neighbours[index][0] = dx;
+                    neighbours[index][1] = dy;
+                    neighbours[index][2] = dz;
+                    index++;
+                }
+            }
+        }
+        NEIGHBOUR_OFFSETS = neighbours;
+
+        float[] costs = new float[NEIGHBOUR_OFFSETS.length];
+        for (int i = 0; i < NEIGHBOUR_OFFSETS.length; i++) {
+            int dx = NEIGHBOUR_OFFSETS[i][0];
+            int dy = NEIGHBOUR_OFFSETS[i][1];
+            int dz = NEIGHBOUR_OFFSETS[i][2];
+            costs[i] = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
+        }
+        NEIGHBOUR_COSTS = costs;
     }
 }

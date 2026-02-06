@@ -10,9 +10,9 @@ import com.google.common.collect.Lists;
 
 public class AStarSolution {
     final float cost;
-    private final List<ReversableAStarNode> path;
+    final List<HPAGraphAStarNode> path;
 
-    public AStarSolution(List<ReversableAStarNode> path, float cost) {
+    public AStarSolution(List<HPAGraphAStarNode> path, float cost) {
         this.path = path;
         this.cost = cost;
     }
@@ -21,7 +21,7 @@ public class AStarSolution {
         if (path == null || path.isEmpty())
             return Collections.emptyList();
         return Lists.transform(path, input -> {
-            HPAGraphNode node = ((HPAGraphAStarNode) input).node;
+            HPAGraphNode node = input.node;
             return new Vector(node.x, node.y, node.z);
         });
     }

@@ -26,9 +26,8 @@ public class Path implements Plan {
     private final PathEntry[] path;
 
     public Path(Collection<Vector> vector) {
-        this.path = Iterables.toArray(
-                Iterables.transform(vector, input -> new PathEntry(input, Collections.<PathCallback> emptyList())),
-                PathEntry.class);
+        this.path = vector.stream().map(input -> new PathEntry(input, Collections.emptyList()))
+                .toArray(PathEntry[]::new);
     }
 
     Path(Iterable<VectorNode> unfiltered, Vector goal) {
@@ -72,10 +71,6 @@ public class Path implements Plan {
     @Override
     public boolean isComplete() {
         return index >= path.length;
-    }
-
-    public boolean isFinalEntry() {
-        return index == path.length - 1;
     }
 
     public void run(NPC npc) {

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.bukkit.util.Vector;
+
 public class HPAGraphNode {
     final List<List<HPAGraphEdge>> edges = new ArrayList<>();
     final int x;
@@ -57,5 +59,9 @@ public class HPAGraphNode {
     @Override
     public String toString() {
         return x + "," + y + "," + z;
+    }
+
+    public Vector toVector() {
+        return new Vector(x, y, z);
     }
 }
