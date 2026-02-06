@@ -4,11 +4,15 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Queue;
+import java.util.Set;
 
 import org.bukkit.Location;
 import org.bukkit.block.data.BlockData;
@@ -38,7 +42,7 @@ public class HPAGraphTest {
     @Test
     public void findsPathAcrossOpenGround() {
         TestBlockSource source = new TestBlockSource(true);
-        HPAGraph graph = new TestHPAGraph(source, 0, 64, 0);
+        TestHPAGraph graph = new TestHPAGraph(source, 0, 64, 0);
         graph.addClusters(0, 0);
 
         List<Vector> path = vectors(graph.findPath(loc(2, 64, 2), loc(20, 64, 20)));
@@ -52,7 +56,7 @@ public class HPAGraphTest {
     public void invalidateRegionRebuildsAndBlocksPath() {
         TestBlockSource source = new TestBlockSource(false);
         source.fillWalkableRect(0, 31, 5, 5);
-        HPAGraph graph = new TestHPAGraph(source, 0, 64, 0);
+        TestHPAGraph graph = new TestHPAGraph(source, 0, 64, 0);
         graph.addClusters(0, 0);
 
         List<Vector> before = vectors(graph.findPath(loc(1, 64, 5), loc(20, 64, 5)));
@@ -69,7 +73,7 @@ public class HPAGraphTest {
     public void invalidationRebuildsAndBlocksPath() {
         TestBlockSource source = new TestBlockSource(false);
         source.fillWalkableRect(0, 31, 5, 5);
-        HPAGraph graph = new TestHPAGraph(source, 0, 64, 0);
+        TestHPAGraph graph = new TestHPAGraph(source, 0, 64, 0);
         graph.addClusters(0, 0);
 
         List<Vector> before = vectors(graph.findPath(loc(1, 64, 5), loc(20, 64, 5)));
@@ -221,7 +225,7 @@ public class HPAGraphTest {
     @Test
     public void supportsTransitionsIntoLaterLoadedEastRegion() {
         TestBlockSource source = new TestBlockSource(true);
-        HPAGraph graph = new TestHPAGraph(source, 0, 64, 0);
+        TestHPAGraph graph = new TestHPAGraph(source, 0, 64, 0);
         graph.addClusters(0, 0);
         graph.addClusters(64, 0);
 
@@ -242,6 +246,60 @@ public class HPAGraphTest {
         assertThat(path.isEmpty(), is(false));
         assertVector(path.get(0), 8, 64, 8);
         assertVector(path.get(path.size() - 1), 8, 64, 72);
+    }
+
+    @Test
+    public void supportsMultiStairTransitionsAcrossChunkBoundariesInBothDirections() {
+        TestBlockSource source = new TestBlockSource(false);
+        carveStairCorridor(source, 5, new int[][] {
+                { 1, 15, 64 },
+                { 16, 31, 65 },
+                { 32, 47, 64 },
+                { 48, 63, 65 } });
+
+        TestHPAGraph graph = new TestHPAGraph(source, 0, 64, 0);
+        graph.addClusters(0, 0);
+
+        assertStairPathExists(graph, source, 1, 64, 63, 65, 5, 1, 63);
+        assertStairPathExists(graph, source, 63, 65, 1, 64, 5, 1, 63);
+    }
+
+    @Test
+    public void supportsMultiStairTransitionsAcrossLaterLoadedRegionBoundary() {
+        TestBlockSource source = new TestBlockSource(false);
+        carveStairCorridor(source, 5, new int[][] {
+                { 1, 15, 64 },
+                { 16, 31, 65 },
+                { 32, 47, 64 },
+                { 48, 63, 65 },
+                { 64, 79, 64 },
+                { 80, 95, 65 } });
+
+        TestHPAGraph graph = new TestHPAGraph(source, 0, 64, 0);
+        graph.addClusters(0, 0);
+        graph.addClusters(64, 0);
+
+        assertStairPathExists(graph, source, 1, 64, 95, 65, 5, 1, 95);
+        assertStairPathExists(graph, source, 95, 65, 1, 64, 5, 1, 95);
+    }
+
+    @Test
+    public void supportsMultiStairTransitionsAcrossEarlierLoadedRegionBoundary() {
+        TestBlockSource source = new TestBlockSource(false);
+        carveStairCorridor(source, 5, new int[][] {
+                { 1, 15, 64 },
+                { 16, 31, 65 },
+                { 32, 47, 64 },
+                { 48, 63, 65 },
+                { 64, 79, 64 },
+                { 80, 95, 65 } });
+
+        TestHPAGraph graph = new TestHPAGraph(source, 0, 64, 0);
+        graph.addClusters(64, 0);
+        graph.addClusters(0, 0);
+
+        assertStairPathExists(graph, source, 1, 64, 95, 65, 5, 1, 95);
+        assertStairPathExists(graph, source, 95, 65, 1, 64, 5, 1, 95);
     }
 
     private static class BlockCoord {
@@ -419,8 +477,86 @@ public class HPAGraphTest {
         assertThat(vector.getBlockZ(), is(z));
     }
 
+    private static void assertStairPathExists(TestHPAGraph graph, TestBlockSource source, int startX, int startY,
+            int goalX,
+            int goalY, int z, int minX, int maxX) {
+        assertTrue("reference walkability search should find a path",
+                hasConventionalPath(graph, startX, startY, z, goalX, goalY, z, minX, maxX, z));
+
+        List<Vector> path = vectors(graph.findPath(loc(startX, startY, z), loc(goalX, goalY, z)));
+        assertThat(path.isEmpty(), is(false));
+        assertVector(path.get(0), startX, startY, z);
+        assertVector(path.get(path.size() - 1), goalX, goalY, z);
+        for (int i = 1; i < path.size(); i++) {
+            Vector previous = path.get(i - 1);
+            Vector current = path.get(i);
+            int dx = Math.abs(current.getBlockX() - previous.getBlockX());
+            int dy = Math.abs(current.getBlockY() - previous.getBlockY());
+            int dz = Math.abs(current.getBlockZ() - previous.getBlockZ());
+            assertTrue("path steps should be contiguous: previous=" + previous + " current=" + current,
+                    dx <= 1 && dy <= 1 && dz <= 1 && dx + dy + dz > 0);
+        }
+        for (Vector vector : path) {
+            int x = vector.getBlockX();
+            int y = vector.getBlockY();
+            assertTrue("path should remain in corridor bounds", x >= minX && x <= maxX);
+            assertThat(vector.getBlockZ(), is(z));
+            assertThat(y, is(source.resolveWalkLevel(x, z)));
+        }
+    }
+
+    private static void carveStairCorridor(TestBlockSource source, int z, int[][] segments) {
+        for (int[] segment : segments) {
+            int minX = segment[0];
+            int maxX = segment[1];
+            int walkY = segment[2];
+            for (int x = minX; x <= maxX; x++) {
+                source.setWalkLevelAt(x, z, walkY);
+                source.setBlockedAtWalkLevel(x, z, false);
+            }
+        }
+    }
+
     private static Location loc(int x, int y, int z) {
         return new Location(null, x, y, z);
+    }
+
+    private static boolean hasConventionalPath(TestHPAGraph graph, int startX, int startY, int startZ, int goalX,
+            int goalY, int goalZ, int minX, int maxX, int fixedZ) {
+        BlockCoord start = new BlockCoord(startX, startY, startZ);
+        BlockCoord goal = new BlockCoord(goalX, goalY, goalZ);
+        Queue<BlockCoord> queue = new ArrayDeque<>();
+        Set<BlockCoord> visited = new HashSet<>();
+        queue.add(start);
+        visited.add(start);
+
+        while (!queue.isEmpty()) {
+            BlockCoord current = queue.poll();
+            if (current.equals(goal))
+                return true;
+
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    for (int dz = -1; dz <= 1; dz++) {
+                        if (dx == 0 && dy == 0 && dz == 0)
+                            continue;
+                        int nx = current.x + dx;
+                        int ny = current.y + dy;
+                        int nz = current.z + dz;
+                        if (nx < minX || nx > maxX || nz != fixedZ)
+                            continue;
+                        BlockCoord neighbour = new BlockCoord(nx, ny, nz);
+                        if (visited.contains(neighbour))
+                            continue;
+                        if (!graph.walkable(nx, ny, nz))
+                            continue;
+                        visited.add(neighbour);
+                        queue.add(neighbour);
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private static List<Vector> vectors(Plan plan) {

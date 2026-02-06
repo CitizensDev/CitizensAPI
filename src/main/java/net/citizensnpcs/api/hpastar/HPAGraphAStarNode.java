@@ -42,10 +42,10 @@ public class HPAGraphAStarNode implements Comparable<HPAGraphAStarNode> {
 
     public List<HPAGraphAStarNode> reconstructSolution() {
         List<HPAGraphAStarNode> parents = new ArrayList<>();
-        HPAGraphAStarNode start = this;
-        while (start != null) {
-            parents.add(start);
-            start = start.parent;
+        HPAGraphAStarNode current = this;
+        while (current != null) {
+            parents.add(current);
+            current = current.parent;
         }
         Collections.reverse(parents);
         return parents;

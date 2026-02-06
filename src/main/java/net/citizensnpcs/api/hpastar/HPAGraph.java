@@ -64,9 +64,6 @@ public class HPAGraph {
         int baseX = regionX * MAX_CLUSTER_SIZE + cx;
         int baseZ = regionZ * MAX_CLUSTER_SIZE + cz;
 
-        if (phtrees.size() == 0) {
-            phtrees.add(PhTreeSolid.create(3));
-        }
         PhTreeSolid<HPACluster> baseLevel = phtrees.get(0);
         Messaging.debug("Building clusters for:", baseX, baseZ);
         List<HPACluster> delta = new ArrayList<>();
@@ -102,35 +99,34 @@ public class HPAGraph {
                 if (neighbour == cluster)
                     continue;
                 // New clusters must always connect to pre-existing clusters regardless of coordinate ordering.
-                if (deltaSet.contains(neighbour) && !shouldConnectPair(cluster, neighbour))
+                if (deltaSet.contains(neighbour) && (cluster.clusterX > neighbour.clusterX
+                        || cluster.clusterX == neighbour.clusterX && (cluster.clusterY > neighbour.clusterY
+                                || cluster.clusterY == neighbour.clusterY && cluster.clusterZ > neighbour.clusterZ)))
                     continue;
 
                 int dx = neighbour.clusterX - cluster.clusterX;
                 int dy = neighbour.clusterY - cluster.clusterY;
                 int dz = neighbour.clusterZ - cluster.clusterZ;
 
-                int nonZeroCount = (dx != 0 ? 1 : 0) + (dy != 0 ? 1 : 0) + (dz != 0 ? 1 : 0);
-                if (nonZeroCount == 1) {
-                    Direction direction = null;
-                    if (dx > 0) {
-                        direction = Direction.EAST;
-                    } else if (dx < 0) {
-                        direction = Direction.WEST;
-                    } else if (dz > 0) {
-                        direction = Direction.NORTH;
-                    } else if (dz < 0) {
-                        direction = Direction.SOUTH;
-                    } else if (dy > 0) {
-                        direction = Direction.UP;
-                    } else if (dy < 0) {
-                        direction = Direction.DOWN;
-                    }
-                    if (direction == null) {
-                        continue;
-                    }
-                    cluster.connect(neighbour, direction);
+                if (dx == clusterSize && dy == 0 && dz == 0) {
+                    cluster.connect(neighbour, Direction.EAST);
                     Messaging.debug("CONNECTED", cluster, neighbour);
-                } else if (nonZeroCount == 2 && dy == 0) {
+                } else if (dx == -clusterSize && dy == 0 && dz == 0) {
+                    cluster.connect(neighbour, Direction.WEST);
+                    Messaging.debug("CONNECTED", cluster, neighbour);
+                } else if (dz == clusterSize && dx == 0 && dy == 0) {
+                    cluster.connect(neighbour, Direction.NORTH);
+                    Messaging.debug("CONNECTED", cluster, neighbour);
+                } else if (dz == -clusterSize && dx == 0 && dy == 0) {
+                    cluster.connect(neighbour, Direction.SOUTH);
+                    Messaging.debug("CONNECTED", cluster, neighbour);
+                } else if (dy == clusterHeight && dx == 0 && dz == 0) {
+                    cluster.connect(neighbour, Direction.UP);
+                    Messaging.debug("CONNECTED", cluster, neighbour);
+                } else if (dy == -clusterHeight && dx == 0 && dz == 0) {
+                    cluster.connect(neighbour, Direction.DOWN);
+                    Messaging.debug("CONNECTED", cluster, neighbour);
+                } else if (Math.abs(dx) == clusterSize && Math.abs(dz) == clusterSize && dy == 0) {
                     cluster.connectDiagonal(neighbour, Integer.signum(dx), Integer.signum(dz), DIAGONAL_WEIGHT);
                     Messaging.debug("CONNECTED DIAGONAL", cluster, neighbour);
                 }
@@ -509,16 +505,6 @@ public class HPAGraph {
 
     private static long packRegionKey(int regionX, int regionZ) {
         return ((long) regionX << 32) ^ (regionZ & 0xFFFFFFFFL);
-    }
-
-    private static boolean shouldConnectPair(HPACluster first, HPACluster second) {
-        if (first.clusterX != second.clusterX)
-            return first.clusterX < second.clusterX;
-
-        if (first.clusterY != second.clusterY)
-            return first.clusterY < second.clusterY;
-
-        return first.clusterZ < second.clusterZ;
     }
 
     private static final int BASE_CLUSTER_HEIGHT = 8;

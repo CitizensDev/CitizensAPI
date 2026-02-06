@@ -30,7 +30,10 @@ public class HPAGraphNode {
     }
 
     public double distance(HPAGraphNode dest) {
-        return Math.sqrt(Math.pow(x - dest.x, 2) + Math.pow(y - dest.y, 2) + Math.pow(z - dest.z, 2));
+        int dx = x - dest.x;
+        int dy = y - dest.y;
+        int dz = z - dest.z;
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
     @Override
@@ -40,9 +43,7 @@ public class HPAGraphNode {
         if (obj == null || getClass() != obj.getClass())
             return false;
         HPAGraphNode other = (HPAGraphNode) obj;
-        if (x != other.x || y != other.y || z != other.z)
-            return false;
-        return true;
+        return x == other.x && y == other.y && z == other.z;
     }
 
     public List<HPAGraphEdge> getEdges(int level) {

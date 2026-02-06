@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
-import java.util.function.Consumer;
 
 import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -17,6 +16,7 @@ public class HPACluster {
     final int clusterY;
     final int clusterZ;
     private final HPAGraph graph;
+    private boolean intraConnected;
     private final int level;
     private final List<HPAGraphNode> nodes = new ArrayList<>();
     private final Long2ObjectOpenHashMap<HPAGraphNode> nodesByPosition = new Long2ObjectOpenHashMap<>();
@@ -110,13 +110,33 @@ public class HPACluster {
                             }
                             entrance.maxZ = z;
                         } else if (entrance != null) {
-                            connectEntrance(other, entrance, e -> e.minX = e.maxX = 0);
+                            connectEntrance(other, entrance, 0, 0, entrance.minY, entrance.maxY, entrance.minZ,
+                                    entrance.maxZ);
                             entrance = null;
                         }
                     }
                     if (entrance != null) {
-                        connectEntrance(other, entrance, e -> e.minX = e.maxX = 0);
+                        connectEntrance(other, entrance, 0, 0, entrance.minY, entrance.maxY, entrance.minZ,
+                                entrance.maxZ);
                         entrance = null;
+                    }
+                }
+                for (int y = 0; y < clusterHeight; y++) {
+                    for (int z = 0; z < clusterSize; z++) {
+                        if (!offsetWalkable(clusterSize - 1, y, z))
+                            continue;
+                        int up = y + 1;
+                        if (up < clusterHeight && other.offsetWalkable(0, up, z)) {
+                            HPAGraphNode from = getOrAddNode(clusterSize - 1, y, z);
+                            HPAGraphNode to = other.getOrAddNode(0, up, z);
+                            from.connect(level, to, HPAGraphEdge.EdgeType.INTER, VERTICAL_STEP_WEIGHT);
+                        }
+                        int down = y - 1;
+                        if (down >= 0 && other.offsetWalkable(0, down, z)) {
+                            HPAGraphNode from = getOrAddNode(clusterSize - 1, y, z);
+                            HPAGraphNode to = other.getOrAddNode(0, down, z);
+                            from.connect(level, to, HPAGraphEdge.EdgeType.INTER, VERTICAL_STEP_WEIGHT);
+                        }
                     }
                 }
                 break;
@@ -132,13 +152,33 @@ public class HPACluster {
                             }
                             entrance.maxZ = z;
                         } else if (entrance != null) {
-                            connectEntrance(other, entrance, e -> e.minX = e.maxX = clusterSize - 1);
+                            connectEntrance(other, entrance, clusterSize - 1, clusterSize - 1, entrance.minY,
+                                    entrance.maxY, entrance.minZ, entrance.maxZ);
                             entrance = null;
                         }
                     }
                     if (entrance != null) {
-                        connectEntrance(other, entrance, e -> e.minX = e.maxX = clusterSize - 1);
+                        connectEntrance(other, entrance, clusterSize - 1, clusterSize - 1, entrance.minY,
+                                entrance.maxY, entrance.minZ, entrance.maxZ);
                         entrance = null;
+                    }
+                }
+                for (int y = 0; y < clusterHeight; y++) {
+                    for (int z = 0; z < clusterSize; z++) {
+                        if (!offsetWalkable(0, y, z))
+                            continue;
+                        int up = y + 1;
+                        if (up < clusterHeight && other.offsetWalkable(clusterSize - 1, up, z)) {
+                            HPAGraphNode from = getOrAddNode(0, y, z);
+                            HPAGraphNode to = other.getOrAddNode(clusterSize - 1, up, z);
+                            from.connect(level, to, HPAGraphEdge.EdgeType.INTER, VERTICAL_STEP_WEIGHT);
+                        }
+                        int down = y - 1;
+                        if (down >= 0 && other.offsetWalkable(clusterSize - 1, down, z)) {
+                            HPAGraphNode from = getOrAddNode(0, y, z);
+                            HPAGraphNode to = other.getOrAddNode(clusterSize - 1, down, z);
+                            from.connect(level, to, HPAGraphEdge.EdgeType.INTER, VERTICAL_STEP_WEIGHT);
+                        }
                     }
                 }
                 break;
@@ -154,13 +194,33 @@ public class HPACluster {
                             }
                             entrance.maxX = x;
                         } else if (entrance != null) {
-                            connectEntrance(other, entrance, e -> e.minZ = e.maxZ = 0);
+                            connectEntrance(other, entrance, entrance.minX, entrance.maxX, entrance.minY,
+                                    entrance.maxY, 0, 0);
                             entrance = null;
                         }
                     }
                     if (entrance != null) {
-                        connectEntrance(other, entrance, e -> e.minZ = e.maxZ = 0);
+                        connectEntrance(other, entrance, entrance.minX, entrance.maxX, entrance.minY, entrance.maxY,
+                                0, 0);
                         entrance = null;
+                    }
+                }
+                for (int y = 0; y < clusterHeight; y++) {
+                    for (int x = 0; x < clusterSize; x++) {
+                        if (!offsetWalkable(x, y, clusterSize - 1))
+                            continue;
+                        int up = y + 1;
+                        if (up < clusterHeight && other.offsetWalkable(x, up, 0)) {
+                            HPAGraphNode from = getOrAddNode(x, y, clusterSize - 1);
+                            HPAGraphNode to = other.getOrAddNode(x, up, 0);
+                            from.connect(level, to, HPAGraphEdge.EdgeType.INTER, VERTICAL_STEP_WEIGHT);
+                        }
+                        int down = y - 1;
+                        if (down >= 0 && other.offsetWalkable(x, down, 0)) {
+                            HPAGraphNode from = getOrAddNode(x, y, clusterSize - 1);
+                            HPAGraphNode to = other.getOrAddNode(x, down, 0);
+                            from.connect(level, to, HPAGraphEdge.EdgeType.INTER, VERTICAL_STEP_WEIGHT);
+                        }
                     }
                 }
                 break;
@@ -176,13 +236,33 @@ public class HPACluster {
                             }
                             entrance.maxX = x;
                         } else if (entrance != null) {
-                            connectEntrance(other, entrance, e -> e.minZ = e.maxZ = clusterSize - 1);
+                            connectEntrance(other, entrance, entrance.minX, entrance.maxX, entrance.minY,
+                                    entrance.maxY, clusterSize - 1, clusterSize - 1);
                             entrance = null;
                         }
                     }
                     if (entrance != null) {
-                        connectEntrance(other, entrance, e -> e.minZ = e.maxZ = clusterSize - 1);
+                        connectEntrance(other, entrance, entrance.minX, entrance.maxX, entrance.minY, entrance.maxY,
+                                clusterSize - 1, clusterSize - 1);
                         entrance = null;
+                    }
+                }
+                for (int y = 0; y < clusterHeight; y++) {
+                    for (int x = 0; x < clusterSize; x++) {
+                        if (!offsetWalkable(x, y, 0))
+                            continue;
+                        int up = y + 1;
+                        if (up < clusterHeight && other.offsetWalkable(x, up, clusterSize - 1)) {
+                            HPAGraphNode from = getOrAddNode(x, y, 0);
+                            HPAGraphNode to = other.getOrAddNode(x, up, clusterSize - 1);
+                            from.connect(level, to, HPAGraphEdge.EdgeType.INTER, VERTICAL_STEP_WEIGHT);
+                        }
+                        int down = y - 1;
+                        if (down >= 0 && other.offsetWalkable(x, down, clusterSize - 1)) {
+                            HPAGraphNode from = getOrAddNode(x, y, 0);
+                            HPAGraphNode to = other.getOrAddNode(x, down, clusterSize - 1);
+                            from.connect(level, to, HPAGraphEdge.EdgeType.INTER, VERTICAL_STEP_WEIGHT);
+                        }
                     }
                 }
                 break;
@@ -199,13 +279,15 @@ public class HPACluster {
                             entrance.maxX = x;
                             entrance.maxZ = z;
                         } else if (entrance != null) {
-                            connectEntrance(other, entrance, e -> e.minY = e.maxY = 0);
+                            connectEntrance(other, entrance, entrance.minX, entrance.maxX, 0, 0, entrance.minZ,
+                                    entrance.maxZ);
                             entrance = null;
                         }
                     }
                 }
                 if (entrance != null) {
-                    connectEntrance(other, entrance, e -> e.minY = e.maxY = 0);
+                    connectEntrance(other, entrance, entrance.minX, entrance.maxX, 0, 0, entrance.minZ,
+                            entrance.maxZ);
                 }
                 break;
             case DOWN:
@@ -221,13 +303,15 @@ public class HPACluster {
                             entrance.maxX = x;
                             entrance.maxZ = z;
                         } else if (entrance != null) {
-                            connectEntrance(other, entrance, e -> e.minY = e.maxY = clusterHeight - 1);
+                            connectEntrance(other, entrance, entrance.minX, entrance.maxX, clusterHeight - 1,
+                                    clusterHeight - 1, entrance.minZ, entrance.maxZ);
                             entrance = null;
                         }
                     }
                 }
                 if (entrance != null) {
-                    connectEntrance(other, entrance, e -> e.minY = e.maxY = clusterHeight - 1);
+                    connectEntrance(other, entrance, entrance.minX, entrance.maxX, clusterHeight - 1,
+                            clusterHeight - 1, entrance.minZ, entrance.maxZ);
                 }
                 break;
         }
@@ -248,10 +332,17 @@ public class HPACluster {
         }
     }
 
-    private void connectEntrance(HPACluster other, HPAEntrance entrance, Consumer<HPAEntrance> consumer) {
+    private void connectEntrance(HPACluster other, HPAEntrance entrance, int toMinX, int toMaxX, int toMinY,
+            int toMaxY, int toMinZ, int toMaxZ) {
         HPAGraphNode[] from = addEntranceNode(entrance);
-        consumer.accept(entrance);
-        HPAGraphNode[] to = other.addEntranceNode(entrance);
+        HPAEntrance destination = new HPAEntrance();
+        destination.minX = toMinX;
+        destination.maxX = toMaxX;
+        destination.minY = toMinY;
+        destination.maxY = toMaxY;
+        destination.minZ = toMinZ;
+        destination.maxZ = toMaxZ;
+        HPAGraphNode[] to = other.addEntranceNode(destination);
         for (int i = 0; i < from.length; i++) {
             from[i].connect(level, to[i], HPAGraphEdge.EdgeType.INTER, 1F);
         }
@@ -271,6 +362,7 @@ public class HPACluster {
                 connectIntraFromSource(source, unresolvedTargets);
             }
         }
+        intraConnected = true;
     }
 
     private void connectIntraFromSource(HPAGraphNode source, Long2ObjectOpenHashMap<HPAGraphNode> unresolvedTargets) {
@@ -368,6 +460,19 @@ public class HPACluster {
 
         HPAGraphNode node = new HPAGraphNode(this.clusterX + x, this.clusterY + y, this.clusterZ + z);
         addNodeReference(node);
+        if (intraConnected) {
+            Long2ObjectOpenHashMap<HPAGraphNode> unresolvedTargets = new Long2ObjectOpenHashMap<>();
+            for (HPAGraphNode target : nodes) {
+                if (target == node)
+                    continue;
+                HPAGraphNode old = unresolvedTargets.put(packPosition(target.x, target.y, target.z), target);
+                if (old != null)
+                    throw new IllegalStateException();
+            }
+            if (!unresolvedTargets.isEmpty()) {
+                connectIntraFromSource(node, unresolvedTargets);
+            }
+        }
         return node;
     }
 
@@ -485,6 +590,7 @@ public class HPACluster {
 
     private static final float[] NEIGHBOUR_COSTS;
     private static final int[][] NEIGHBOUR_OFFSETS;
+    private static final float VERTICAL_STEP_WEIGHT = (float) Math.sqrt(2);
     static {
         int[][] neighbours = new int[26][3];
         int index = 0;

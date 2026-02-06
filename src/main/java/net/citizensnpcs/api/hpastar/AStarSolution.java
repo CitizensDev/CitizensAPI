@@ -3,10 +3,9 @@ package net.citizensnpcs.api.hpastar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.ArrayList;
 
 import org.bukkit.util.Vector;
-
-import com.google.common.collect.Lists;
 
 public class AStarSolution {
     final float cost;
@@ -20,9 +19,11 @@ public class AStarSolution {
     public Collection<Vector> convertToVectors() {
         if (path == null || path.isEmpty())
             return Collections.emptyList();
-        return Lists.transform(path, input -> {
+        List<Vector> vectors = new ArrayList<>(path.size());
+        for (HPAGraphAStarNode input : path) {
             HPAGraphNode node = input.node;
-            return new Vector(node.x, node.y, node.z);
-        });
+            vectors.add(new Vector(node.x, node.y, node.z));
+        }
+        return vectors;
     }
 }
