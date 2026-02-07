@@ -23,10 +23,9 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 
 import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.CitizensPlugin;
 import net.citizensnpcs.api.ai.BehaviorController;
 import net.citizensnpcs.api.ai.SimpleBehaviorController;
-import net.citizensnpcs.api.ai.speech.SpeechController;
-import net.citizensnpcs.api.ai.speech.event.NPCSpeechEvent;
 import net.citizensnpcs.api.event.DespawnReason;
 import net.citizensnpcs.api.event.NPCAddTraitEvent;
 import net.citizensnpcs.api.event.NPCCloneEvent;
@@ -65,26 +64,19 @@ public abstract class AbstractNPC implements NPC {
     };
     private final MetadataStore metadata = new SimpleMetadataStore();
     private String name;
+    protected final CitizensPlugin plugin;
     private final NPCRegistry registry;
     private final List<Runnable> runnables = new ArrayList<>();
-    private final SpeechController speechController = context -> {
-        context.setTalker(getEntity());
-        NPCSpeechEvent event = new NPCSpeechEvent(context);
-        Bukkit.getServer().getPluginManager().callEvent(event);
-        if (event.isCancelled())
-            return;
-        CitizensAPI.talk(context);
-    };
-    protected final TraitLookup traits = new ArrayTraitLookup(
-            CitizensAPI.getTraitFactory().getRegisteredTraits().size() + 32);
+    protected final TraitLookup traits;
     private final UUID uuid;
 
-    protected AbstractNPC(UUID uuid, int id, String name, NPCRegistry registry) {
+    protected AbstractNPC(UUID uuid, int id, String name, NPCRegistry registry, CitizensPlugin plugin) {
         this.uuid = uuid;
         this.id = id;
         this.registry = registry;
+        this.plugin = plugin;
+        this.traits = new ArrayTraitLookup(plugin.getTraitFactory().getRegisteredTraits().size() + 32);
         setNameInternal(name);
-        CitizensAPI.getTraitFactory().addDefaultTraits(this);
     }
 
     @Override
@@ -94,7 +86,7 @@ public abstract class AbstractNPC implements NPC {
 
     @Override
     public void addTrait(Class<? extends Trait> clazz) {
-        addTrait(getTraitFor(clazz));
+        addTrait(plugin.getTraitFactory().getTrait(clazz));
     }
 
     @Override
@@ -111,9 +103,7 @@ public abstract class AbstractNPC implements NPC {
             runnables.remove(replaced);
         }
         trait.linkToNPC(this);
-        if (CitizensAPI.getPlugin().isEnabled()) {
-            Bukkit.getPluginManager().registerEvents(trait, CitizensAPI.getPlugin());
-        }
+        Bukkit.getPluginManager().registerEvents(trait, plugin);
         traits.add(trait.getTraitId(), trait);
         if (isSpawned()) {
             trait.onSpawn();
@@ -178,11 +168,6 @@ public abstract class AbstractNPC implements NPC {
         return goalController;
     }
 
-    @Override
-    public SpeechController getDefaultSpeechController() {
-        return speechController;
-    }
-
     protected EntityType getEntityType() {
         return isSpawned() ? getEntity().getType() : getOrAddTrait(MobType.class).getType();
     }
@@ -231,9 +216,9 @@ public abstract class AbstractNPC implements NPC {
 
     @Override
     public <T extends Trait> T getOrAddTrait(Class<T> clazz) {
-        Trait trait = traits.get(CitizensAPI.getTraitFactory().getId(clazz));
+        Trait trait = traits.get(plugin.getTraitFactory().getId(clazz));
         if (trait == null) {
-            trait = getTraitFor(clazz);
+            trait = plugin.getTraitFactory().getTrait(clazz);
             addTrait(trait);
         }
         return clazz.cast(trait);
@@ -252,10 +237,6 @@ public abstract class AbstractNPC implements NPC {
     @Override
     public <T extends Trait> T getTrait(Class<T> trait) {
         return getOrAddTrait(trait);
-    }
-
-    protected Trait getTraitFor(Class<? extends Trait> clazz) {
-        return CitizensAPI.getTraitFactory().getTrait(clazz);
     }
 
     @Override
@@ -280,7 +261,7 @@ public abstract class AbstractNPC implements NPC {
 
     @Override
     public boolean hasTrait(Class<? extends Trait> clazz) {
-        return traits.has(CitizensAPI.getTraitFactory().getId(clazz));
+        return traits.has(plugin.getTraitFactory().getId(clazz));
     }
 
     @Override
@@ -312,12 +293,12 @@ public abstract class AbstractNPC implements NPC {
     }
 
     private void loadTraitFromKey(DataKey traitKey) {
-        Class<? extends Trait> clazz = CitizensAPI.getTraitFactory().getTraitClass(traitKey.name());
+        Class<? extends Trait> clazz = plugin.getTraitFactory().getTraitClass(traitKey.name());
         Trait trait;
         if (hasTrait(clazz)) {
             trait = getTraitNullable(clazz);
         } else {
-            trait = CitizensAPI.getTraitFactory().getTrait(clazz);
+            trait = plugin.getTraitFactory().getTrait(clazz);
             if (trait == null) {
                 Messaging.severeTr("citizens.notifications.trait-load-failed", traitKey.name(), getId());
                 return;
@@ -337,7 +318,7 @@ public abstract class AbstractNPC implements NPC {
 
     @Override
     public void removeTrait(Class<? extends Trait> clazz) {
-        Trait trait = traits.remove(CitizensAPI.getTraitFactory().getId(clazz));
+        Trait trait = traits.remove(plugin.getTraitFactory().getId(clazz));
         if (trait != null) {
             Bukkit.getPluginManager().callEvent(new NPCRemoveTraitEvent(this, trait));
             clearSaveData.add("traits." + trait.getName());

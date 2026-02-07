@@ -2,26 +2,7 @@ package net.citizensnpcs.api.trait;
 
 import java.util.Collection;
 
-import net.citizensnpcs.api.npc.NPC;
-
 public interface TraitFactory {
-    /**
-     * Adds all default traits to a given NPC.
-     *
-     * @param npc
-     *            The NPC to add default traits to
-     */
-    void addDefaultTraits(NPC npc);
-
-    /**
-     * Removes a trait. This prevents a trait from being added to an NPC but does not remove existing traits from the
-     * NPCs.
-     *
-     * @param info
-     *            The TraitInfo to deregister
-     */
-    void deregisterTrait(TraitInfo info);
-
     int getId(Class<? extends Trait> clazz);
 
     /**

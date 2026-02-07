@@ -6,7 +6,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 
-import net.citizensnpcs.api.ai.speech.SpeechContext;
 import net.citizensnpcs.api.ai.tree.BehaviorRegistry;
 import net.citizensnpcs.api.astar.pathfinder.AsyncChunkCache;
 import net.citizensnpcs.api.command.CommandManager;
@@ -20,12 +19,13 @@ import net.citizensnpcs.api.npc.templates.TemplateRegistry;
 import net.citizensnpcs.api.trait.TraitFactory;
 import net.citizensnpcs.api.util.SpigotUtil;
 import net.citizensnpcs.api.util.schedulers.SchedulerAdapter;
+import net.citizensnpcs.api.util.schedulers.adapter.FoliaScheduler;
+import net.citizensnpcs.api.util.schedulers.adapter.SpigotScheduler;
 
 /**
  * Contains methods used in order to utilize the Citizens API.
  */
 public final class CitizensAPI {
-
     private CitizensAPI() {
     }
 
@@ -150,9 +150,9 @@ public final class CitizensAPI {
     public static SchedulerAdapter getScheduler() {
         if (scheduler == null) {
             if (SpigotUtil.isFoliaServer()) {
-                scheduler = new net.citizensnpcs.api.util.schedulers.adapter.FoliaScheduler(getPlugin());
+                scheduler = new FoliaScheduler(getPlugin());
             } else {
-                scheduler = new net.citizensnpcs.api.util.schedulers.adapter.SpigotScheduler(getPlugin());
+                scheduler = new SpigotScheduler(getPlugin());
             }
         }
         return scheduler;
@@ -230,10 +230,6 @@ public final class CitizensAPI {
      */
     public static void shutdown() {
         instance = null;
-    }
-
-    public static void talk(SpeechContext context) {
-        getImplementation().talk(context);
     }
 
     private static volatile CitizensPlugin instance = null;

@@ -2,7 +2,6 @@ package net.citizensnpcs.api;
 
 import org.bukkit.plugin.Plugin;
 
-import net.citizensnpcs.api.ai.speech.SpeechContext;
 import net.citizensnpcs.api.ai.tree.BehaviorRegistry;
 import net.citizensnpcs.api.astar.pathfinder.AsyncChunkCache;
 import net.citizensnpcs.api.command.CommandManager;
@@ -101,6 +100,4 @@ public interface CitizensPlugin extends Plugin {
      *            The new default store
      */
     public void setDefaultNPCDataStore(NPCDataStore store);
-
-    public void talk(SpeechContext context);
 }

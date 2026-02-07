@@ -21,7 +21,6 @@ import com.google.common.reflect.TypeToken;
 
 import net.citizensnpcs.api.ai.BehaviorController;
 import net.citizensnpcs.api.ai.Navigator;
-import net.citizensnpcs.api.ai.speech.SpeechController;
 import net.citizensnpcs.api.astar.Agent;
 import net.citizensnpcs.api.event.DespawnReason;
 import net.citizensnpcs.api.event.NPCDespawnEvent;
@@ -137,13 +136,6 @@ public interface NPC extends Agent, Cloneable {
      * @return the default {@link BehaviorController} of this NPC.
      */
     public BehaviorController getDefaultBehaviorController();
-
-    /**
-     * Gets the default {@link SpeechController} of this NPC.
-     *
-     * @return Default speech controller
-     */
-    public SpeechController getDefaultSpeechController();
 
     /**
      * Gets the Bukkit entity associated with this NPC. This may be <code>null</code> if {@link #isSpawned()} is false.

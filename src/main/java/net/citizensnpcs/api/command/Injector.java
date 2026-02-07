@@ -41,5 +41,5 @@ public class Injector {
         }
     }
 
-    private static MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
+    private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
 }
