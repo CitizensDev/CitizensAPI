@@ -294,6 +294,10 @@ public abstract class AbstractNPC implements NPC {
 
     private void loadTraitFromKey(DataKey traitKey) {
         Class<? extends Trait> clazz = plugin.getTraitFactory().getTraitClass(traitKey.name());
+        if (clazz == null) {
+            Messaging.severeTr("citizens.notifications.trait-load-failed", traitKey.name(), getId());
+            return;
+        }
         Trait trait;
         if (hasTrait(clazz)) {
             trait = getTraitNullable(clazz);
