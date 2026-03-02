@@ -176,8 +176,7 @@ public class Equipment extends Trait {
             if (SUPPORT_OFFHAND) {
                 equip.setItemInOffHand(equipment[5]);
             }
-            if (SUPPORT_BODY
-                    && (npc.getEntity().getType() == EntityType.WOLF || npc.getEntity() instanceof AbstractHorse)) {
+            if (supportsBodySlot()) {
                 equip.setItem(org.bukkit.inventory.EquipmentSlot.BODY, equipment[6]);
             }
         }
