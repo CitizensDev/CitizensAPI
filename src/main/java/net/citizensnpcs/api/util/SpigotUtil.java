@@ -37,8 +37,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 
-import net.milkbowl.vault.permission.Permission;
-
 public class SpigotUtil {
     /**
      * Spigot has changed InventoryViews to be an abstract class instead of an interface necessitating an abstraction
@@ -280,9 +278,7 @@ public class SpigotUtil {
                     break;
                 case "group":
                     Collection<String> groups = Splitter.on(',').splitToList(raw);
-                    Permission permission = Bukkit.getServicesManager().getRegistration(Permission.class).getProvider();
-                    base = base.and(e -> e instanceof Player
-                            && groups.stream().allMatch(group -> permission.playerInGroup((Player) e, group)));
+                    base = base.and(e -> e instanceof Player && PermissionUtil.inGroup(groups, (Player) e));
                     break;
             }
         }

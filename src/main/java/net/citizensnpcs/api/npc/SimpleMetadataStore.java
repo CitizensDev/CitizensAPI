@@ -26,6 +26,7 @@ public class SimpleMetadataStore implements MetadataStore {
     public MetadataStore clone() {
         SimpleMetadataStore copy = new SimpleMetadataStore();
         copy.metadata.putAll(metadata);
+        copy.npcMetadata.putAll(npcMetadata);
         return copy;
     }
 

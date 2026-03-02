@@ -3,9 +3,9 @@ package net.citizensnpcs.api.ai.speech.event;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 
-import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.ai.speech.SpeechContext;
 import net.citizensnpcs.api.event.NPCEvent;
+import net.citizensnpcs.api.npc.NPC;
 
 /**
  * Represents an event where an NPC speaks using /npc speak.
@@ -14,8 +14,8 @@ public class NPCSpeechEvent extends NPCEvent implements Cancellable {
     private boolean cancelled = false;
     private final SpeechContext context;
 
-    public NPCSpeechEvent(SpeechContext context) {
-        super(CitizensAPI.getNPCRegistry().getNPC(context.getTalker().getEntity()));
+    public NPCSpeechEvent(NPC npc, SpeechContext context) {
+        super(npc);
         this.context = context;
     }
 
