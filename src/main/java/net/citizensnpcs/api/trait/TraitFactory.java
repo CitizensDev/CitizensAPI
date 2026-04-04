@@ -3,6 +3,15 @@ package net.citizensnpcs.api.trait;
 import java.util.Collection;
 
 public interface TraitFactory {
+    /**
+     * Removes a trait. This prevents a trait from being added to an NPC but does not remove existing traits from the
+     * NPCs.
+     *
+     * @param info
+     *            The TraitInfo to deregister
+     */
+    void deregisterTrait(TraitInfo info);
+
     int getId(Class<? extends Trait> clazz);
 
     /**

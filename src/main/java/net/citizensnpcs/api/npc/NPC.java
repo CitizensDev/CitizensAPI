@@ -21,6 +21,7 @@ import com.google.common.reflect.TypeToken;
 
 import net.citizensnpcs.api.ai.BehaviorController;
 import net.citizensnpcs.api.ai.Navigator;
+import net.citizensnpcs.api.ai.speech.SpeechContext;
 import net.citizensnpcs.api.astar.Agent;
 import net.citizensnpcs.api.event.DespawnReason;
 import net.citizensnpcs.api.event.NPCDespawnEvent;
@@ -479,6 +480,8 @@ public interface NPC extends Agent, Cloneable {
      * @return Whether this NPC was able to spawn at the location
      */
     public boolean spawn(Location at, SpawnReason reason, Consumer<Entity> callback);
+
+    public void speak(SpeechContext context);
 
     /**
      * An alternative to <code>npc.getEntity().getLocation()</code> that teleports passengers as well.

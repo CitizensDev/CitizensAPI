@@ -10,6 +10,10 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import net.citizensnpcs.api.event.DespawnReason;
+import net.citizensnpcs.api.event.NPCDamageEvent;
+import net.citizensnpcs.api.event.NPCDeathEvent;
+import net.citizensnpcs.api.event.NPCLeftClickEvent;
+import net.citizensnpcs.api.event.NPCRightClickEvent;
 import net.citizensnpcs.api.event.NPCSpawnEvent;
 import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.npc.templates.TemplateRegistry.TemplateErrorReporter;
@@ -66,6 +70,14 @@ public class Template {
                     .newArrayList(Iterables.transform(sub.getIntegerSubKeys(), k -> k.getString("")));
             if (sub.name().equals("on_spawn")) {
                 template.addAction(new CommandEventAction(NPCSpawnEvent.class, new CommandListExecutor(commands)));
+            } else if (sub.name().equals("on_death")) {
+                template.addAction(new CommandEventAction(NPCDeathEvent.class, new CommandListExecutor(commands)));
+            } else if (sub.name().equals("on_damage")) {
+                template.addAction(new CommandEventAction(NPCDamageEvent.class, new CommandListExecutor(commands)));
+            } else if (sub.name().equals("on_left_click")) {
+                template.addAction(new CommandEventAction(NPCLeftClickEvent.class, new CommandListExecutor(commands)));
+            } else if (sub.name().equals("on_right_click")) {
+                template.addAction(new CommandEventAction(NPCRightClickEvent.class, new CommandListExecutor(commands)));
             } else if (sub.name().equals("on_template_apply")) {
                 CommandListExecutor cle = new CommandListExecutor(commands);
                 template.addAction(npc -> cle.accept(npc));
