@@ -15,17 +15,16 @@ public class LocationPersister implements Persister<Location> {
     public Location create(DataKey root) {
         if (!root.keyExists("world") && !root.keyExists("worldid"))
             return null;
-        World world;
+        World world = null;
         UUID worldUUID = null;
-        String worldName;
-        if (root.keyExists("world")) {
-            world = Bukkit.getWorld(root.getString("world"));
-            worldName = root.getString("world");
-            root.removeKey("world");
-        } else {
-            worldName = null;
+        String worldName = null;
+        if (root.keyExists("worldid")) {
             worldUUID = UUID.fromString(root.getString("worldid"));
             world = Bukkit.getWorld(worldUUID);
+        }
+        if (world == null && root.keyExists("world")) {
+            world = Bukkit.getWorld(root.getString("world"));
+            worldName = root.getString("world");
         }
         double x = root.getDouble("x"), y = root.getDouble("y"), z = root.getDouble("z");
         float yaw = normalise(root.getDouble("yaw")), pitch = normalise(root.getDouble("pitch"));
@@ -49,6 +48,7 @@ public class LocationPersister implements Persister<Location> {
     public void save(Location location, DataKey root) {
         if (location.getWorld() != null) {
             root.setString("worldid", location.getWorld().getUID().toString());
+            root.setString("world", location.getWorld().getName());
         }
         root.setDouble("x", round(location.getX()));
         root.setDouble("y", round(location.getY()));

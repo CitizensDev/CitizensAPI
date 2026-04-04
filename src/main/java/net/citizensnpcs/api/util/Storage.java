@@ -22,5 +22,8 @@ public interface Storage {
      */
     public void save();
 
+    /**
+     * Saves the in-memory aspects of the storage to disk (async).
+     */
     public void saveAsync();
 }
