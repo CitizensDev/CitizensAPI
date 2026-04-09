@@ -60,7 +60,7 @@ public abstract class AbstractNPC implements NPC {
             id = Material.STONE;
             Messaging.severe(getId(), "invalid Material: converted to stone");
         }
-        return new org.bukkit.inventory.ItemStack(id, data().get(NPC.Metadata.ITEM_AMOUNT, 1), (short) data);
+        return new ItemStack(id, data().get(NPC.Metadata.ITEM_AMOUNT, 1), (short) data);
     };
     private final MetadataStore metadata = new SimpleMetadataStore();
     private String name;

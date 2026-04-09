@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Keyed;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -187,6 +188,8 @@ public class CommandManager implements TabCompleter {
                     } catch (IllegalArgumentException ex) {
                         val = Bukkit.getPlayerExact(val.toString());
                     }
+                } else if (desiredType == Color.class) {
+                    val = SpigotUtil.parseColor(val.toString());
                 } else if (SpigotUtil.isRegistryKeyed(desiredType) && SpigotUtil.getKey(val.toString()) != null) {
                     val = Bukkit.getRegistry((Class<? extends Keyed>) desiredType)
                             .get(SpigotUtil.getKey(val.toString()));

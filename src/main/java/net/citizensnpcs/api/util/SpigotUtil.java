@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -17,6 +18,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Keyed;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -241,6 +243,18 @@ public class SpigotUtil {
             }
         }
         return using1_13API;
+    }
+
+    public static Color parseColor(String string) {
+        if (!string.contains(","))
+            return Color.fromRGB(Integer.decode(string));
+        List<Integer> list = Splitter.on(',').splitToStream(string).map(Integer::parseInt).collect(Collectors.toList());
+        if (list.size() == 3) {
+            return Color.fromRGB(list.get(0), list.get(1), list.get(2));
+        } else if (list.size() == 4) {
+            return Color.fromARGB(list.get(3), list.get(0), list.get(1), list.get(2));
+        }
+        throw new NumberFormatException();
     }
 
     public static Duration parseDuration(String raw, TimeUnit defaultUnits) {
