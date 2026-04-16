@@ -7,6 +7,8 @@ import net.citizensnpcs.api.util.DataKey;
 public class EulerAnglePersister implements Persister<EulerAngle> {
     @Override
     public EulerAngle create(DataKey root) {
+        if (!root.keyExists())
+            return null;
         double x = root.getDouble("x");
         double y = root.getDouble("y");
         double z = root.getDouble("z");

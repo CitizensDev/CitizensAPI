@@ -8,6 +8,8 @@ import net.citizensnpcs.api.util.DataKey;
 public class Vector3fPersister implements Persister<Vector3fc> {
     @Override
     public Vector3fc create(DataKey root) {
+        if (!root.keyExists())
+            return null;
         return new Vector3f().set(root.getDouble("0"), root.getDouble("1"), root.getDouble("2"));
     }
 

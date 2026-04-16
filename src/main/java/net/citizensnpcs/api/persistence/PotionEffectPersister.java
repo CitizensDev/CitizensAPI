@@ -10,6 +10,8 @@ import net.citizensnpcs.api.util.SpigotUtil;
 public class PotionEffectPersister implements Persister<PotionEffect> {
     @Override
     public PotionEffect create(DataKey root) {
+        if (!root.keyExists())
+            return null;
         return new PotionEffect(
                 Bukkit.getRegistry(PotionEffectType.class).get(SpigotUtil.getKey(root.getString("type"))),
                 root.getInt("duration"), root.getInt("amplifier"), root.getBoolean("ambient"),

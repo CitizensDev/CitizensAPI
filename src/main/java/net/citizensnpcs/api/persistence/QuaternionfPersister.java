@@ -8,6 +8,8 @@ import net.citizensnpcs.api.util.DataKey;
 public class QuaternionfPersister implements Persister<Quaternionfc> {
     @Override
     public Quaternionfc create(DataKey root) {
+        if (!root.keyExists())
+            return null;
         return new Quaternionf(root.getDouble("x"), root.getDouble("y"), root.getDouble("z"), root.getDouble("w", 1));
     }
 

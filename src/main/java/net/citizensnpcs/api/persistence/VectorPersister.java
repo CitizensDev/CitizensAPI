@@ -7,6 +7,8 @@ import net.citizensnpcs.api.util.DataKey;
 public class VectorPersister implements Persister<Vector> {
     @Override
     public Vector create(DataKey root) {
+        if (!root.keyExists())
+            return null;
         return new Vector(root.getDouble("x"), root.getDouble("y"), root.getDouble("z"));
     }
 

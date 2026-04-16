@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Horse;
+import org.joml.Quaternionf;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -136,6 +137,11 @@ public class PersistenceLoaderTest {
     @Test
     public void processesRequiredCorrectly() {
         assertThat(PersistenceLoader.load(RequiredTest.class, root), is(nullValue()));
+    }
+
+    @Test
+    public void quaternionDefaults() {
+        assertThat(PersistenceLoader.load(QuaternionDefaults.class, root).test, is(nullValue()));
     }
 
     @Test
@@ -348,6 +354,11 @@ public class PersistenceLoaderTest {
     public static class NullUUIDTest {
         @Persist
         private UUID uuid;
+    }
+
+    public static class QuaternionDefaults {
+        @Persist
+        Quaternionf test;
     }
 
     public static class ReifiedListTest {
