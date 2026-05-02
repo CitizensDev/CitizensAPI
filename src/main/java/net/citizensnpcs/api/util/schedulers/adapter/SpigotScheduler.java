@@ -19,6 +19,26 @@ public class SpigotScheduler implements SchedulerAdapter {
     }
 
     @Override
+    public boolean isOnOwnerThread(Block block) {
+        return Bukkit.isPrimaryThread();
+    }
+
+    @Override
+    public boolean isOnOwnerThread(Entity entity) {
+        return Bukkit.isPrimaryThread();
+    }
+
+    @Override
+    public boolean isOnOwnerThread(Location location) {
+        return Bukkit.isPrimaryThread();
+    }
+
+    @Override
+    public boolean isOnOwnerThread(World world, int chunkX, int chunkZ) {
+        return Bukkit.isPrimaryThread();
+    }
+
+    @Override
     public SchedulerTask runEntityTask(Entity entity, Runnable runnable) {
         return runTask(runnable);
     }
@@ -26,6 +46,12 @@ public class SpigotScheduler implements SchedulerAdapter {
     @Override
     public SchedulerTask runEntityTaskLater(Entity entity, Runnable runnable, long delayTicks) {
         return runTaskLater(runnable, delayTicks);
+    }
+
+    @Override
+    public SchedulerTask runEntityTaskNow(Entity entity, Runnable runnable) {
+        runnable.run();
+        return null;
     }
 
     @Override
@@ -92,26 +118,6 @@ public class SpigotScheduler implements SchedulerAdapter {
     @Override
     public SchedulerTask runTaskTimerAsynchronously(Runnable runnable, long delayTicks, long periodTicks) {
         return wrap(Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, runnable, delayTicks, periodTicks));
-    }
-
-    @Override
-    public boolean isOnOwnerThread(Entity entity) {
-        return Bukkit.isPrimaryThread();
-    }
-
-    @Override
-    public boolean isOnOwnerThread(Location location) {
-        return Bukkit.isPrimaryThread();
-    }
-
-    @Override
-    public boolean isOnOwnerThread(World world, int chunkX, int chunkZ) {
-        return Bukkit.isPrimaryThread();
-    }
-
-    @Override
-    public boolean isOnOwnerThread(Block block) {
-        return Bukkit.isPrimaryThread();
     }
 
     private SchedulerTask wrap(BukkitTask task) {

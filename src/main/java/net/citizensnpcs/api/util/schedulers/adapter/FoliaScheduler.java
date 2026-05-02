@@ -30,6 +30,26 @@ public class FoliaScheduler implements SchedulerAdapter {
     }
 
     @Override
+    public boolean isOnOwnerThread(Block block) {
+        return Bukkit.isOwnedByCurrentRegion(block);
+    }
+
+    @Override
+    public boolean isOnOwnerThread(Entity entity) {
+        return Bukkit.isOwnedByCurrentRegion(entity);
+    }
+
+    @Override
+    public boolean isOnOwnerThread(Location location) {
+        return Bukkit.isOwnedByCurrentRegion(location);
+    }
+
+    @Override
+    public boolean isOnOwnerThread(World world, int chunkX, int chunkZ) {
+        return Bukkit.isOwnedByCurrentRegion(world, chunkX, chunkZ);
+    }
+
+    @Override
     public SchedulerTask runEntityTask(Entity entity, Runnable runnable) {
         if (!plugin.isEnabled())
             return null;
@@ -44,6 +64,17 @@ public class FoliaScheduler implements SchedulerAdapter {
         ScheduledTask task = entity.getScheduler().runDelayed(plugin, t -> runnable.run(), null,
                 Math.max(1, delayTicks));
         return wrap(task);
+    }
+
+    @Override
+    public SchedulerTask runEntityTaskNow(Entity entity, Runnable runnable) {
+        if (!plugin.isEnabled())
+            return null;
+        if (isOnOwnerThread(entity)) {
+            runnable.run();
+            return null;
+        }
+        return runEntityTask(entity, runnable);
     }
 
     @Override
@@ -156,26 +187,6 @@ public class FoliaScheduler implements SchedulerAdapter {
         ScheduledTask task = asyncScheduler.runAtFixedRate(plugin, t -> runnable.run(),
                 ticksToMillis(Math.max(1, delayTicks)), ticksToMillis(Math.max(1, periodTicks)), TimeUnit.MILLISECONDS);
         return wrap(task);
-    }
-
-    @Override
-    public boolean isOnOwnerThread(Entity entity) {
-        return Bukkit.isOwnedByCurrentRegion(entity);
-    }
-
-    @Override
-    public boolean isOnOwnerThread(Location location) {
-        return Bukkit.isOwnedByCurrentRegion(location);
-    }
-
-    @Override
-    public boolean isOnOwnerThread(World world, int chunkX, int chunkZ) {
-        return Bukkit.isOwnedByCurrentRegion(world, chunkX, chunkZ);
-    }
-
-    @Override
-    public boolean isOnOwnerThread(Block block) {
-        return Bukkit.isOwnedByCurrentRegion(block);
     }
 
     private long ticksToMillis(long ticks) {

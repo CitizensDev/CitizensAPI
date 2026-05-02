@@ -14,7 +14,7 @@ public interface SchedulerAdapter {
         if (isOnOwnerThread(entity)) {
             runnable.run();
         } else {
-            runEntityTask(entity, runnable);
+            runEntityTaskNow(entity, runnable);
         }
     }
 
@@ -91,7 +91,7 @@ public interface SchedulerAdapter {
     boolean isOnOwnerThread(World world, int chunkX, int chunkZ);
 
     /**
-     * Executes a task specifically linked to an entity immediately. On Spigot, this defaults to the global thread.
+     * Executes a task specifically linked to an entity on the next tick. On Spigot, this defaults to the global thread.
      */
     SchedulerTask runEntityTask(Entity entity, Runnable runnable);
 
@@ -102,6 +102,12 @@ public interface SchedulerAdapter {
      *            Delay before execution, measured in ticks.
      */
     SchedulerTask runEntityTaskLater(Entity entity, Runnable runnable, long delayTicks);
+
+    /**
+     * Executes a task specifically linked to an entity ideally immediately. On Spigot, this defaults to the global
+     * thread.
+     */
+    SchedulerTask runEntityTaskNow(Entity entity, Runnable runnable);
 
     /**
      * Executes a repeating task specifically linked to an entity. On Spigot, this defaults to the global thread.
