@@ -175,24 +175,14 @@ public class PersistenceLoader {
         Object value;
         Class<?> type = field.getType();
         Class<?> collectionType = field.getCollectionType();
-        // TODO: this is pretty ugly.
+
         if (!Collection.class.isAssignableFrom(collectionType) && !Map.class.isAssignableFrom(collectionType))
             throw loadException;
 
         if (Collection.class.isAssignableFrom(type) && !root.keyExists(field.key))
             return;
 
-        if (List.class.isAssignableFrom(type)) {
-            List<Object> list = (List<Object>) (!List.class.isAssignableFrom(collectionType) ? new ArrayList<>()
-                    : collectionType.newInstance());
-            Object raw = root.getRaw(field.key);
-            if (raw instanceof List && collectionType.isAssignableFrom(raw.getClass())) {
-                list = (List<Object>) raw;
-            } else {
-                deserialiseCollection(list, root, field);
-            }
-            value = list;
-        } else if (Set.class.isAssignableFrom(type)) {
+        if (Set.class.isAssignableFrom(type)) {
             Set set;
             if (Set.class.isAssignableFrom(collectionType)) {
                 set = (Set) collectionType.newInstance();
@@ -216,6 +206,16 @@ public class PersistenceLoader {
             }
             deserialiseMap(map, root, field);
             value = map;
+        } else if (Collection.class.isAssignableFrom(type)) {
+            List<Object> list = (List<Object>) (!List.class.isAssignableFrom(collectionType) ? new ArrayList<>()
+                    : collectionType.newInstance());
+            Object raw = root.getRaw(field.key);
+            if (raw instanceof List && collectionType.isAssignableFrom(raw.getClass())) {
+                list = (List<Object>) raw;
+            } else {
+                deserialiseCollection(list, root, field);
+            }
+            value = list;
         } else if (float[].class.isAssignableFrom(type)) {
             List<Float> floats = new ArrayList<>();
             for (DataKey sub : root.getRelative(field.key).getIntegerSubKeys()) {
@@ -295,9 +295,9 @@ public class PersistenceLoader {
     private static void deserialiseCollection(Collection<Object> collection, DataKey root, PersistField field) {
         for (DataKey subKey : root.getRelative(field.key).getSubKeys()) {
             Object loaded = deserialiseCollectionValue(field, subKey, field.getValueType());
-            if (loaded == null) {
+            if (loaded == null)
                 continue;
-            }
+
             collection.add(loaded);
         }
     }
