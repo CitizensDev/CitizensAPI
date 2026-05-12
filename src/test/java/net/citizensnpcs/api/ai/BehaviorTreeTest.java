@@ -15,6 +15,14 @@ public class BehaviorTreeTest {
     private BehaviorController test;
 
     @Test
+    public void clear() {
+        test.addBehavior(new RunningBehavior());
+        test.run();
+        test.clear();
+        test.run();
+    }
+
+    @Test
     public void emptySelector() {
         CountedBehavior goal = new CountedBehavior(BehaviorStatus.SUCCESS);
         Selector p = Selector.selecting(goal).build();
@@ -32,6 +40,7 @@ public class BehaviorTreeTest {
 
     @Test
     public void singleSelector() {
+        test.addBehavior(new RunningBehavior());
         test.run();
     }
 
@@ -82,5 +91,22 @@ public class BehaviorTreeTest {
             shouldExecuteCount++;
             return true;
         }
+    }
+
+    private static class RunningBehavior implements Behavior {
+        @Override
+        public void reset() {
+        }
+
+        @Override
+        public BehaviorStatus run() {
+            return BehaviorStatus.RUNNING;
+        }
+
+        @Override
+        public boolean shouldExecute() {
+            return true;
+        }
+
     }
 }

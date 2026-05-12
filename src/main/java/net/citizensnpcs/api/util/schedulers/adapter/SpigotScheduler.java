@@ -49,12 +49,6 @@ public class SpigotScheduler implements SchedulerAdapter {
     }
 
     @Override
-    public SchedulerTask runEntityTaskNow(Entity entity, Runnable runnable) {
-        runnable.run();
-        return null;
-    }
-
-    @Override
     public SchedulerTask runEntityTaskTimer(Entity entity, Runnable runnable, long delayTicks, long periodTicks) {
         return runTaskTimer(runnable, delayTicks, periodTicks);
     }

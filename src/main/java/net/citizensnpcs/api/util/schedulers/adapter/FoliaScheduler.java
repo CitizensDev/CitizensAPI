@@ -67,17 +67,6 @@ public class FoliaScheduler implements SchedulerAdapter {
     }
 
     @Override
-    public SchedulerTask runEntityTaskNow(Entity entity, Runnable runnable) {
-        if (!plugin.isEnabled())
-            return null;
-        if (isOnOwnerThread(entity)) {
-            runnable.run();
-            return null;
-        }
-        return runEntityTask(entity, runnable);
-    }
-
-    @Override
     public SchedulerTask runEntityTaskTimer(Entity entity, Runnable runnable, long delayTicks, long periodTicks) {
         if (!plugin.isEnabled())
             return null;
