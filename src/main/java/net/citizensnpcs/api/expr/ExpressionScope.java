@@ -213,4 +213,10 @@ public class ExpressionScope {
     public void setPlayer(Player player) {
         this.player = player;
     }
+
+    public static ExpressionScope create(Player player) {
+        ExpressionScope scope = new ExpressionScope();
+        scope.setPlayer(player);
+        return scope;
+    }
 }
