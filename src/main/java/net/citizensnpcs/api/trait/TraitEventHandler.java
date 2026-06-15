@@ -16,7 +16,7 @@ import net.citizensnpcs.api.npc.NPC;
 public @interface TraitEventHandler {
     Class<? extends NPCEventExtractor> processor() default NPCEventExtractor.class;
 
-    EventHandler value();
+    EventHandler value() default @EventHandler;
 
     public interface NPCEventExtractor extends Function<Event, NPC> {
     }

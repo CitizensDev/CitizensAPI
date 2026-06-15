@@ -261,19 +261,19 @@ public class CommandContext {
         if (location != null)
             return location;
 
+        if (hasValueFlag("entitylocation")) {
+            Entity entity = Bukkit.getEntity(UUID.fromString(getFlag("entitylocation")));
+            return location = entity.getLocation();
+        }
+        if (hasValueFlag("location"))
+            return location = parseLocation(getFlag("location"));
+
         Location base = null;
         if (sender instanceof Player) {
             base = ((Player) sender).getLocation();
         } else if (sender instanceof BlockCommandSender) {
             base = ((BlockCommandSender) sender).getBlock().getLocation();
         }
-        if (hasValueFlag("entitylocation")) {
-            Entity entity = Bukkit.getEntity(UUID.fromString(getFlag("entitylocation")));
-            return location = entity.getLocation();
-        }
-        if (hasValueFlag("location"))
-            return location = parseLocation(base, getFlag("location"));
-
         return location = base;
     }
 
@@ -283,12 +283,12 @@ public class CommandContext {
 
         Location base = null;
         if (sender instanceof Player) {
-            base = ((Player) sender).getTargetBlock((java.util.Set<org.bukkit.Material>) null, 50).getLocation();
+            base = ((Player) sender).getTargetBlock((java.util.Set<org.bukkit.Material>) null, 64).getLocation();
         } else if (sender instanceof BlockCommandSender) {
             base = ((BlockCommandSender) sender).getBlock().getLocation();
         }
         if (hasValueFlag("location"))
-            return location = parseLocation(base, getFlag("location"));
+            return location = parseLocation(getFlag("location"));
 
         return location = base;
     }
@@ -355,6 +355,29 @@ public class CommandContext {
         return new EulerAngle(itr.next(), itr.next(), itr.next());
     }
 
+    public Location parseLocation(String flag) throws CommandException {
+        Location base = null;
+        if (sender instanceof Player) {
+            base = ((Player) sender).getLocation();
+        } else if (sender instanceof BlockCommandSender) {
+            base = ((BlockCommandSender) sender).getBlock().getLocation();
+        }
+        if (LOCATION_PATTERN.asPredicate().test(flag)) {
+            return parseLocation(base != null ? base.getWorld() : null, flag);
+        } else if (flag.equals("me") || flag.equals("here")) {
+            return base;
+        } else if (flag.equals("facing")) {
+            if (sender instanceof Player)
+                return ((Player) sender).getTargetBlock((java.util.Set<org.bukkit.Material>) null, 64).getLocation();
+            throw new CommandException(CommandMessages.MUST_BE_INGAME);
+        } else {
+            Player search = Bukkit.getPlayerExact(flag);
+            if (search == null)
+                throw new CommandException(CommandMessages.PLAYER_NOT_FOUND_FOR_SPAWN);
+            return search.getLocation();
+        }
+    }
+
     public int parseTicks(String dur) {
         dur = dur.trim();
         char last = Character.toLowerCase(dur.charAt(dur.length() - 1));
@@ -376,50 +399,43 @@ public class CommandContext {
         return (int) Math.ceil(Double.parseDouble(dur.substring(0, dur.length() - 1)) * factor);
     }
 
-    public static Location parseLocation(Location currentLocation, String flag) throws CommandException {
+    public static Location parseLocation(World baseWorld, String flag) throws CommandException {
         boolean denizen = flag.startsWith("l@");
         String[] parts = Iterables.toArray(LOCATION_SPLITTER.split(flag.replaceFirst("l@", "")), String.class);
-        if (parts.length > 0) {
-            String worldName = currentLocation != null ? currentLocation.getWorld().getName() : "";
-            double x = 0, y = 0, z = 0;
-            float yaw = 0F, pitch = 0F;
-            switch (parts.length) {
-                case 6:
-                    if (denizen) {
-                        worldName = parts[5].replaceFirst("w@", "");
-                    } else {
-                        pitch = Float.parseFloat(parts[5]);
-                    }
-                case 5:
-                    if (denizen) {
-                        pitch = Float.parseFloat(parts[4]);
-                    } else {
-                        yaw = Float.parseFloat(parts[4]);
-                    }
-                case 4:
-                    if (denizen && parts.length > 4) {
-                        yaw = Float.parseFloat(parts[3]);
-                    } else {
-                        worldName = parts[3].replaceFirst("w@", "");
-                    }
-                case 3:
-                    x = Double.parseDouble(parts[0]);
-                    y = Double.parseDouble(parts[1]);
-                    z = Double.parseDouble(parts[2]);
-                    break;
-                default:
-                    throw new CommandException(CommandMessages.INVALID_LOCATION);
-            }
-            World world = Bukkit.getWorld(worldName);
-            if (world == null)
+        String worldName = baseWorld != null ? baseWorld.getName() : "";
+        double x = 0, y = 0, z = 0;
+        float yaw = 0F, pitch = 0F;
+        switch (parts.length) {
+            case 6:
+                if (denizen) {
+                    worldName = parts[5].replaceFirst("w@", "");
+                } else {
+                    pitch = Float.parseFloat(parts[5]);
+                }
+            case 5:
+                if (denizen) {
+                    pitch = Float.parseFloat(parts[4]);
+                } else {
+                    yaw = Float.parseFloat(parts[4]);
+                }
+            case 4:
+                if (denizen && parts.length > 4) {
+                    yaw = Float.parseFloat(parts[3]);
+                } else {
+                    worldName = parts[3].replaceFirst("w@", "");
+                }
+            case 3:
+                x = Double.parseDouble(parts[0]);
+                y = Double.parseDouble(parts[1]);
+                z = Double.parseDouble(parts[2]);
+                break;
+            default:
                 throw new CommandException(CommandMessages.INVALID_LOCATION);
-            return new Location(world, x, y, z, yaw, pitch);
-        } else {
-            Player search = Bukkit.getPlayerExact(flag);
-            if (search == null)
-                throw new CommandException(CommandMessages.PLAYER_NOT_FOUND_FOR_SPAWN);
-            return search.getLocation();
         }
+        World world = Bukkit.getWorld(worldName);
+        if (world == null)
+            throw new CommandException(CommandMessages.INVALID_LOCATION);
+        return new Location(world, x, y, z, yaw, pitch);
     }
 
     public static Quaternionf parseQuaternion(String string) {
@@ -440,6 +456,7 @@ public class CommandContext {
     }
 
     private static final Pattern FLAG = Pattern.compile("^-[a-zA-Z]+$");
+    private static final Pattern LOCATION_PATTERN = Pattern.compile("[,:]");
     private static final Splitter LOCATION_SPLITTER = Splitter.on(Pattern.compile("[,:]")).omitEmptyStrings();
     private static final Pattern VALUE_FLAG = Pattern.compile("^--[a-zA-Z0-9-_]+$");
 }

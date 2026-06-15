@@ -209,7 +209,7 @@ public class CommandManager implements TabCompleter {
                 } else if (desiredType == NamespacedKey.class) {
                     val = SpigotUtil.getKey(val.toString(), "minecraft");
                 } else if (desiredType == Location.class) {
-                    val = CommandContext.parseLocation(context.getSenderLocation(), val.toString());
+                    val = context.parseLocation(val.toString());
                 } else if (desiredType == ItemStack.class) {
                     val = SpigotUtil.parseItemStack(null, val.toString());
                 } else if (desiredType == UUID.class) {
