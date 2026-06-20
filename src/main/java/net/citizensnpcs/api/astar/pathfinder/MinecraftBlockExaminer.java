@@ -349,7 +349,7 @@ public class MinecraftBlockExaminer implements BlockExaminer {
             NOT_JUMPABLE.addAll(Lists.newArrayList(Material.valueOf("OAK_FENCE"),
                     Material.valueOf("NETHER_BRICK_FENCE"), Material.valueOf("COBBLESTONE_WALL")));
             for (Material mat : Material.values()) {
-                if (mat.name().startsWith("LEGACY"))
+                if (mat.name().startsWith("LEGACY") || !mat.isBlock())
                     continue;
                 try {
                     if (mat.createBlockData() instanceof Wall || mat.createBlockData() instanceof Fence) {
