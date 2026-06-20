@@ -351,8 +351,11 @@ public class MinecraftBlockExaminer implements BlockExaminer {
             for (Material mat : Material.values()) {
                 if (mat.name().startsWith("LEGACY"))
                     continue;
-                if (mat.createBlockData() instanceof Wall || mat.createBlockData() instanceof Fence) {
-                    NOT_JUMPABLE.add(mat);
+                try {
+                    if (mat.createBlockData() instanceof Wall || mat.createBlockData() instanceof Fence) {
+                        NOT_JUMPABLE.add(mat);
+                    }
+                } catch (Throwable t) {
                 }
             }
         }
