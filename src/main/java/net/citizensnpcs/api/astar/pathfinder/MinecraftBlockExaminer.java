@@ -12,8 +12,10 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
+import org.bukkit.block.data.type.Fence;
 import org.bukkit.block.data.type.Slab;
 import org.bukkit.block.data.type.TrapDoor;
+import org.bukkit.block.data.type.Wall;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Squid;
 import org.bukkit.entity.WaterMob;
@@ -346,13 +348,12 @@ public class MinecraftBlockExaminer implements BlockExaminer {
             }
             NOT_JUMPABLE.addAll(Lists.newArrayList(Material.valueOf("OAK_FENCE"),
                     Material.valueOf("NETHER_BRICK_FENCE"), Material.valueOf("COBBLESTONE_WALL")));
-            try {
-                NOT_JUMPABLE.add(Material.valueOf("MANGROVE_FENCE"));
-            } catch (IllegalArgumentException e) {
-            }
-            try {
-                NOT_JUMPABLE.add(Material.valueOf("CHERRY_FENCE"));
-            } catch (IllegalArgumentException e) {
+            for (Material mat : Material.values()) {
+                if (mat.name().startsWith("LEGACY"))
+                    continue;
+                if (mat.createBlockData() instanceof Wall || mat.createBlockData() instanceof Fence) {
+                    NOT_JUMPABLE.add(mat);
+                }
             }
         }
     }
