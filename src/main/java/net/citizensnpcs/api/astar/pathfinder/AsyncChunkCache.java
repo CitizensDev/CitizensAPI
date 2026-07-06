@@ -102,15 +102,22 @@ public class AsyncChunkCache {
 
     private void evictStaleChunks() {
         long now = System.currentTimeMillis();
-        for (Map.Entry<ChunkKey, Long> e : snapshotCacheExpiry.entrySet()) {
+        // Iterate the cache itself, not just the expiry map: exceptionally-completed/abandoned entries never
+        // get an expiry timestamp and would otherwise leak forever.
+        for (Map.Entry<ChunkKey, CompletableFuture<ChunkSnapshot>> e : snapshotCache.entrySet()) {
             ChunkKey key = e.getKey();
-            long last = e.getValue();
-            if (now > last) {
-                CompletableFuture<ChunkSnapshot> cf = snapshotCache.get(key);
-                if (cf != null && cf.isDone()) {
-                    snapshotCache.remove(key, cf);
-                    snapshotCacheExpiry.remove(key, last);
-                }
+            CompletableFuture<ChunkSnapshot> cf = e.getValue();
+            if (cf == null || !cf.isDone())
+                continue;
+            if (cf.isCompletedExceptionally()) {
+                snapshotCache.remove(key, cf);
+                snapshotCacheExpiry.remove(key);
+                continue;
+            }
+            Long expiry = snapshotCacheExpiry.get(key);
+            if (expiry == null || now > expiry) {
+                snapshotCache.remove(key, cf);
+                snapshotCacheExpiry.remove(key);
             }
         }
     }
@@ -347,8 +354,10 @@ public class AsyncChunkCache {
 
     private Path runPathfinder(PathRequest req, SnapshotProvider provider) {
         VectorGoal goal = new VectorGoal(req.to, (float) req.parameters.pathDistanceMargin());
+        // Bound async search by the same cap as the sync pathfinder; runFully(-1) was unbounded and, for
+        // unreachable/far targets, explored the whole reachable area, fetching a snapshot per region (leak).
         return AStarMachine.<VectorNode, Path> createWithVectorStorage().runFully(goal, new VectorNode(goal, req.from,
-                createSnapshotBlockSource(provider, req.from.getWorld()), req.parameters));
+                createSnapshotBlockSource(provider, req.from.getWorld()), req.parameters), req.maxIterations);
     }
 
     public void shutdown() {
@@ -449,15 +458,22 @@ public class AsyncChunkCache {
 
     public static final class PathRequest {
         private final Location from;
+        private final int maxIterations;
         private final NavigatorParameters parameters;
         private final int prefetchRadius;
         private final Location to;
 
         public PathRequest(Location from, Location to, int prefetchRadius, NavigatorParameters parameters) {
+            this(from, to, prefetchRadius, parameters, -1);
+        }
+
+        public PathRequest(Location from, Location to, int prefetchRadius, NavigatorParameters parameters,
+                int maxIterations) {
             this.from = from;
             this.to = to;
             this.parameters = parameters;
             this.prefetchRadius = prefetchRadius;
+            this.maxIterations = maxIterations;
         }
     }
 
