@@ -206,7 +206,7 @@ public class SpigotUtil {
             if (parts[2].contains("-")) {
                 parts[2] = parts[2].split("-")[0];
             }
-            if (parts[2].contains("build")) {
+            if (parts[2].contains("build") || parts[2].contains("local")) {
                 parts[2] = "0";
             }
             if (parts.length >= 3) {
