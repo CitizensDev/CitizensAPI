@@ -17,6 +17,7 @@ import java.util.UUID;
 import java.util.WeakHashMap;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Keyed;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -675,6 +676,7 @@ public class PersistenceLoader {
     private static final Map<Class<?>, PersisterRegistry<?>> registries = new WeakHashMap<>();
     private static boolean SUPPORTS_KEYED = false;
     static {
+        registerPersistDelegate(Color.class, ColorPersister.class);
         registerPersistDelegate(Quaternionfc.class, QuaternionfPersister.class);
         registerPersistDelegate(Quaternionf.class, QuaternionfPersister.class);
         registerPersistDelegate(Vector3fc.class, Vector3fPersister.class);
