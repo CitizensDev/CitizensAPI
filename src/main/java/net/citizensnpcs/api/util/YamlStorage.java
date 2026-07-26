@@ -111,15 +111,9 @@ public class YamlStorage implements Storage {
         if (map.isEmpty())
             return false;
         int i = 0;
-        for (String key : map.keySet()) {
-            try {
-                if (Integer.parseInt(key) != i++)
-                    return false;
-            } catch (NumberFormatException e) {
-                return false;
-            }
-        }
-        return true;
+        while (map.containsKey(String.valueOf(i)))
+            i++;
+        return i == map.size();
     }
 
     @Override
