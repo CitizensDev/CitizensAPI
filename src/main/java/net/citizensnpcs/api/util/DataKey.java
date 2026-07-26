@@ -1,11 +1,14 @@
 package net.citizensnpcs.api.util;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 
 /**
@@ -70,7 +73,9 @@ public abstract class DataKey {
     }
 
     public Iterable<DataKey> getIntegerSubKeys() {
-        return Iterables.filter(getSubKeys(), k -> Ints.tryParse(k.name()) != null);
+        List<DataKey> keys = Lists.newArrayList(Iterables.filter(getSubKeys(), k -> Ints.tryParse(k.name()) != null));
+        keys.sort(Comparator.comparingInt(k -> Integer.parseInt(k.name())));
+        return keys;
     }
 
     public abstract long getLong(String key);
