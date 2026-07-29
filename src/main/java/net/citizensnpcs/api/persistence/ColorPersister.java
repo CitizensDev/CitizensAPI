@@ -7,7 +7,7 @@ import net.citizensnpcs.api.util.DataKey;
 public class ColorPersister implements Persister<Color> {
     @Override
     public Color create(DataKey root) {
-        return Color.fromARGB(root.getInt("", 0));
+        return root.keyExists("") ? Color.fromARGB(root.getInt("")) : null;
     }
 
     @Override
