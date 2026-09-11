@@ -320,8 +320,9 @@ public class Equipment extends Trait {
     }
 
     private boolean supportsBodySlot() {
-        return npc.getEntity().getType().name().equals("HAPPY_GHAST") || npc.getEntity().getType() == EntityType.WOLF
-                || npc.getEntity() instanceof AbstractHorse;
+        return npc.getEntity().getType().name().equals("SULFUR_CUBE")
+                || npc.getEntity().getType().name().equals("HAPPY_GHAST")
+                || npc.getEntity().getType() == EntityType.WOLF || npc.getEntity() instanceof AbstractHorse;
     }
 
     private boolean supportsSaddleSlot() {
