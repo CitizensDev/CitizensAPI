@@ -588,6 +588,8 @@ public interface NPC extends Agent, Cloneable {
          * Whether the NPC's nameplate should be visible.
          */
         NAMEPLATE_VISIBLE("nameplate-visible", TypeToken.of(Boolean.class), false),
+        /** No physics, defaults to false. */
+        NO_PHYSICS("no-physics", Boolean.class),
         /** Internal use only */
         NPC_SPAWNING_IN_PROGRESS("citizens-internal-spawning-npc", Boolean.class),
         /**
