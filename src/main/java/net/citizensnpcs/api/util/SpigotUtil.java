@@ -203,17 +203,15 @@ public class SpigotUtil {
             if (parts[1].contains("-")) {
                 parts[1] = parts[1].split("-")[0];
             }
-            if (parts[2].contains("-")) {
-                parts[2] = parts[2].split("-")[0];
+            String three = parts.length > 2 ? parts[2] : "0";
+            if (three.contains("-")) {
+                three = three.split("-")[0];
             }
-            if (parts[2].contains("build") || parts[2].contains("local")) {
-                parts[2] = "0";
+            if (three.contains("build") || parts[2].contains("local")) {
+                three = "0";
             }
-            if (parts.length >= 3) {
-                return BUKKIT_VERSION = new int[] { Integer.parseInt(parts[0]), Integer.parseInt(parts[1]),
-                        Integer.parseInt(parts[2]) };
-            }
-            return BUKKIT_VERSION = new int[] { Integer.parseInt(parts[0]), Integer.parseInt(parts[1]) };
+            return BUKKIT_VERSION = new int[] { Integer.parseInt(parts[0]), Integer.parseInt(parts[1]),
+                    Integer.parseInt(three) };
         }
         return BUKKIT_VERSION;
     }
