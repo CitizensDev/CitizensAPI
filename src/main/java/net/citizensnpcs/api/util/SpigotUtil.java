@@ -197,21 +197,23 @@ public class SpigotUtil {
             String version = Bukkit.getBukkitVersion();
 
             if (version == null || version.isEmpty())
-                return BUKKIT_VERSION = new int[] { 1, 8, 8 };
+                return BUKKIT_VERSION = new int[] { 8, 8 };
 
             String[] parts = version.split("\\.");
             if (parts[1].contains("-")) {
                 parts[1] = parts[1].split("-")[0];
             }
-            String three = parts.length > 2 ? parts[2] : "0";
-            if (three.contains("-")) {
-                three = three.split("-")[0];
+            if (parts[2].contains("-")) {
+                parts[2] = parts[2].split("-")[0];
             }
-            if (three.contains("build") || parts[2].contains("local")) {
-                three = "0";
+            if (parts[2].contains("build") || parts[2].contains("local")) {
+                parts[2] = "0";
             }
-            return BUKKIT_VERSION = new int[] { Integer.parseInt(parts[0]), Integer.parseInt(parts[1]),
-                    Integer.parseInt(three) };
+            if (parts[0].equals("1")) {
+                parts[0] = parts[1];
+                parts[1] = parts[2];
+            }
+            return BUKKIT_VERSION = new int[] { Integer.parseInt(parts[0]), Integer.parseInt(parts[1]) };
         }
         return BUKKIT_VERSION;
     }
