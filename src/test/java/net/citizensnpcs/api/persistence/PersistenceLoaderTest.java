@@ -2,6 +2,7 @@ package net.citizensnpcs.api.persistence;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertEquals;
@@ -49,6 +50,12 @@ public class PersistenceLoaderTest {
         root.setDouble("array.2", 360.0);
         root.setInt("integer", 5);
         assertThat(root.copy().getValuesDeep().equals(root.getValuesDeep()), is(true));
+    }
+
+    @Test
+    public void colorPersistence() {
+        root.setInt("bgcolor", 65535);
+        assertThat(PersistenceLoader.load(ColorTest.class, root).bgcolor, not(nullValue()));
     }
 
     @Test
@@ -300,6 +307,11 @@ public class PersistenceLoaderTest {
         private Map<String, Integer> map;
         @Persist
         private Set<Integer> set;
+    }
+
+    public static class ColorTest {
+        @Persist
+        org.bukkit.Color bgcolor;
     }
 
     public static class CustomConstructor {

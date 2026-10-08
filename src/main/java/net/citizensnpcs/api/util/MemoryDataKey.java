@@ -235,8 +235,11 @@ public class MemoryDataKey extends DataKey {
 
     @Override
     public boolean keyExists(String key) {
-        if (key == null || key.isEmpty())
+        if (key == null)
             return !getCurrentSection().isEmpty();
+
+        if (key.isEmpty())
+            return root.containsKey(name);
 
         return navigateToValue(key) != null;
     }
