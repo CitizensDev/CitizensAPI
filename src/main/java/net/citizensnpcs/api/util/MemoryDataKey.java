@@ -239,7 +239,7 @@ public class MemoryDataKey extends DataKey {
             return !getCurrentSection().isEmpty();
 
         if (key.isEmpty())
-            return root.containsKey(name);
+            return getValueAtCurrentPath() != null;
 
         return navigateToValue(key) != null;
     }
