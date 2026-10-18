@@ -2,6 +2,7 @@ package net.citizensnpcs.api.trait.trait;
 
 import org.bukkit.entity.EntityType;
 
+import net.citizensnpcs.api.persistence.Persist;
 import net.citizensnpcs.api.trait.Trait;
 import net.citizensnpcs.api.trait.TraitName;
 import net.citizensnpcs.api.util.DataKey;
@@ -11,6 +12,7 @@ import net.citizensnpcs.api.util.DataKey;
  */
 @TraitName("type")
 public class MobType extends Trait {
+    @Persist("")
     private EntityType type = EntityType.PLAYER;
 
     public MobType() {
@@ -28,29 +30,12 @@ public class MobType extends Trait {
 
     @Override
     public void load(DataKey key) {
-        try {
-            if (key.getString("").equals("PIG_ZOMBIE")) {
-                type = EntityType.ZOMBIFIED_PIGLIN;
-            } else {
-                type = EntityType.valueOf(key.getString(""));
-            }
-        } catch (IllegalArgumentException ex) {
-            type = EntityType.fromName(key.getString(""));
-        }
-        if (type == null) {
-            type = EntityType.PLAYER;
-        }
         npc.setBukkitEntityType(type);
     }
 
     @Override
     public void onSpawn() {
         type = npc.getEntity().getType();
-    }
-
-    @Override
-    public void save(DataKey key) {
-        key.setString("", type.name());
     }
 
     /**

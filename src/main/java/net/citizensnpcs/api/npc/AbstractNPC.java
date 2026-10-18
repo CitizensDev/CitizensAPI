@@ -178,8 +178,8 @@ public abstract class AbstractNPC implements NPC {
         String replaced = Placeholders.replaceName(
                 coloredNameStringCache != null ? coloredNameStringCache : Messaging.parseComponents(name), null, this);
         if (Messaging.stripColor(replaced).length() > nameLength) {
-            Messaging.severe("ID", id, "created with name length greater than " + nameLength + ", truncating", replaced,
-                    "to", replaced.substring(0, nameLength));
+            Messaging.severe("NPC", this, "name length greater than " + nameLength + ", truncating", replaced, "to",
+                    replaced.substring(0, nameLength));
             replaced = replaced.substring(0, nameLength);
         }
         return replaced;

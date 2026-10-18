@@ -48,7 +48,9 @@ public class TemplateRegistry {
         root.removeKey("replacements.uuid");
         templateStorage.save();
         try {
-            fullyQualifiedTemplates.remove(key);
+            for (DataKey old : templateStorage.getKey("").getSubKeys()) {
+                fullyQualifiedTemplates.remove(new NamespacedKey(namespace, old.name()));
+            }
             loadTemplatesFromYamlFile(namespace, generatedFile);
         } catch (TemplateLoadException e) {
             e.printStackTrace();
@@ -84,9 +86,9 @@ public class TemplateRegistry {
             exception.printStackTrace();
             throw new TemplateLoadException(exception.getMessage());
         }
-        if (errors.errors.size() > 0) {
+        if (errors.errors.size() > 0)
             throw new TemplateLoadException(Joiner.on('\n').join(errors.errors));
-        }
+
         fullyQualifiedTemplates.put(namespacedKey, template);
         templatesByName.put(namespacedKey.getKey(), template);
     }
