@@ -8,11 +8,13 @@ import net.citizensnpcs.api.npc.NPC;
 
 public class NPCSeenByPlayerEvent extends NPCEvent implements Cancellable {
     private boolean cancel;
+    private final boolean firstSeen;
     private final Player player;
 
-    public NPCSeenByPlayerEvent(NPC npc, Player player) {
+    public NPCSeenByPlayerEvent(NPC npc, Player player, boolean firstSeen) {
         super(npc);
         this.player = player;
+        this.firstSeen = firstSeen;
     }
 
     @Override
@@ -27,6 +29,10 @@ public class NPCSeenByPlayerEvent extends NPCEvent implements Cancellable {
     @Override
     public boolean isCancelled() {
         return cancel;
+    }
+
+    public boolean isFirstSeen() {
+        return firstSeen;
     }
 
     @Override
