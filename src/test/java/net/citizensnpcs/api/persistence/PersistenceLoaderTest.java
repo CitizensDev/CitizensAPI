@@ -22,6 +22,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Horse;
 import org.joml.Quaternionf;
 import org.junit.Before;
@@ -329,6 +330,11 @@ public class PersistenceLoaderTest {
             public void save(CustomConstructor instance, DataKey root) {
             }
         }
+    }
+
+    public static class EntityTypeTest {
+        @Persist
+        public EntityType type = EntityType.PLAYER;
     }
 
     public static class HorseColorTest {
