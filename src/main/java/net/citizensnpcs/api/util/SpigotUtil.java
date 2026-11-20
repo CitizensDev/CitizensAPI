@@ -194,28 +194,36 @@ public class SpigotUtil {
 
     public static int[] getVersion() {
         if (BUKKIT_VERSION == null) {
-            String version = Bukkit.getBukkitVersion();
-
-            if (version == null || version.isEmpty())
-                return BUKKIT_VERSION = new int[] { 8, 8 };
-
-            String[] parts = version.split("\\.");
-            if (parts[1].contains("-")) {
-                parts[1] = parts[1].split("-")[0];
-            }
-            if (parts[2].contains("-")) {
-                parts[2] = parts[2].split("-")[0];
-            }
-            if (parts[2].contains("build") || parts[2].contains("local")) {
-                parts[2] = "0";
-            }
-            if (parts[0].equals("1")) {
-                parts[0] = parts[1];
-                parts[1] = parts[2];
-            }
-            return BUKKIT_VERSION = new int[] { Integer.parseInt(parts[0]), Integer.parseInt(parts[1]) };
+            BUKKIT_VERSION = parseVersion(Bukkit.getBukkitVersion());
         }
         return BUKKIT_VERSION;
+    }
+
+    /**
+     * Parses a Bukkit version string into {major, minor}. Accepts legacy strings ("1.21.4-R0.1-SNAPSHOT" -> {21, 4})
+     * and the new two-component scheme ("26.3", "26.3-R0.1-SNAPSHOT", "26.3.1.build.5-alpha" -> {26, 3}). Missing or
+     * non-numeric components default to 0 instead of throwing.
+     */
+    static int[] parseVersion(String version) {
+        if (version == null || version.isEmpty())
+            return new int[] { 8, 8 };
+        int dash = version.indexOf('-');
+        String[] parts = (dash >= 0 ? version.substring(0, dash) : version).split("\\.");
+        int[] nums = new int[3];
+        for (int i = 0; i < nums.length && i < parts.length; i++) {
+            nums[i] = leadingInt(parts[i]);
+        }
+        if (nums[0] == 1)
+            return new int[] { nums[1], nums[2] };
+        return new int[] { nums[0], nums[1] };
+    }
+
+    private static int leadingInt(String s) {
+        int i = 0;
+        while (i < s.length() && Character.isDigit(s.charAt(i))) {
+            i++;
+        }
+        return i == 0 ? 0 : Integer.parseInt(s.substring(0, i));
     }
 
     public static boolean isFoliaServer() {
